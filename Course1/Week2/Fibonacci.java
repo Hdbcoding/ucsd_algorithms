@@ -25,6 +25,7 @@ public class Fibonacci {
   public static void main(String args[]) {
     Scanner in = new Scanner(System.in);
     int n = in.nextInt();
+    in.close();
 
     System.out.println(calc_fib_fast(n));
   }

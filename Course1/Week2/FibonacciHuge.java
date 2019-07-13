@@ -21,6 +21,7 @@ public class FibonacciHuge {
         Scanner scanner = new Scanner(System.in);
         long n = scanner.nextLong();
         long m = scanner.nextLong();
+        scanner.close();
         System.out.println(getFibonacciHugeNaive(n, m));
     }
 }

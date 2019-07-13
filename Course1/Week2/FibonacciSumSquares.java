@@ -22,6 +22,7 @@ public class FibonacciSumSquares {
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
         long n = scanner.nextLong();
+        scanner.close();
         long s = getFibonacciSumSquaresNaive(n);
         System.out.println(s);
     }

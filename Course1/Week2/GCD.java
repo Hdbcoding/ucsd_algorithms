@@ -18,6 +18,7 @@ public class GCD {
     Scanner scanner = new Scanner(System.in);
     int a = scanner.nextInt();
     int b = scanner.nextInt();
+    scanner.close();
 
     System.out.println(gcd_naive(a, b));
   }

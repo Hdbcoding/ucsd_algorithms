@@ -20,6 +20,7 @@ public class FibonacciLastDigit {
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
         int n = scanner.nextInt();
+        scanner.close();
         int c = getFibonacciLastDigitNaive(n);
         System.out.println(c);
     }
