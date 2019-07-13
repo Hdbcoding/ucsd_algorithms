@@ -1,0 +1,18 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "CodeLens (Launch) - MaxPairwiseProduct",
+            "request": "launch",
+            "mainClass": "MaxPairwiseProduct",
+            "projectName": "UCSDAlgorithms_89e9a7f4"
+        },
+        {
+            "type": "java",
+            "name": "CodeLens (Launch) - Fibonacci",
+            "request": "launch",
+            "mainClass": "Fibonacci",
+            "projectName": "UCSDAlgorithms_89e9a7f4"
+        }
+    ]
+}
