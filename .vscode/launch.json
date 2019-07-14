@@ -6,6 +6,13 @@
     "configurations": [
         {
             "type": "java",
+            "name": "CodeLens (Launch) - LCM",
+            "request": "launch",
+            "mainClass": "LCM",
+            "projectName": "UCSDAlgorithms_5bd1ba95"
+        },
+        {
+            "type": "java",
             "name": "CodeLens (Launch) - GCD",
             "request": "launch",
             "mainClass": "GCD",
