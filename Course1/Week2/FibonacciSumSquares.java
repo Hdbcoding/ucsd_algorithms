@@ -36,8 +36,8 @@ public class FibonacciSumSquares {
     private static long getFibonacciSumSquaresFast(long n){
         if (n <= 1) return 1;
 
-        var current = getFibonacciHugeFast(n, 10);
-        var next = getFibonacciHugeFast(n + 1, 10);
+        long current = getFibonacciHugeFast(n, 10);
+        long next = getFibonacciHugeFast(n + 1, 10);
 
         return (current * next) % 10;
     }
