@@ -20,6 +20,9 @@ public class FibonacciPartialSum {
             return n;
 
         long remainder = n % getPisanoPeriod(m);
+        if (remainder <= 1)
+            return remainder;
+
         long val_2 = 0;
         long val_1 = 1;
         long val = 0;

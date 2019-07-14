@@ -20,6 +20,9 @@ public class FibonacciHuge {
             return n;
         
         long remainder = n % getPisanoPeriod(m);
+        if (remainder <= 1)
+            return remainder;
+
         long val_2 = 0;
         long val_1 = 1;
         long val = 0;
@@ -78,6 +81,10 @@ public class FibonacciHuge {
         result = getFibonacciHugeFast(2816213588l, 239);
         if (result != 151)
             System.out.println("Mod for F2816213588_239 is wrong");
+            
+        result = getFibonacciHugeFast(9999999999999l, 2);
+        if (result != 0)
+            System.out.println("Mod for F9999999999999_2 is wrong");
     }
     
     public static void main(String[] args) {

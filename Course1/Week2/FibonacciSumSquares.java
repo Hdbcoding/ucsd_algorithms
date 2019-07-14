@@ -19,8 +19,10 @@ public class FibonacciSumSquares {
         if (n <= 1)
             return n;
 
-        long period = getPisanoPeriod(m);
-        long remainder = n % period;
+        long remainder = n % getPisanoPeriod(m);
+        if (remainder <= 1)
+            return remainder;
+
         long val_2 = 0;
         long val_1 = 1;
         long val = 0;
@@ -34,7 +36,7 @@ public class FibonacciSumSquares {
     }
 
     private static long getFibonacciSumSquaresFast(long n){
-        if (n <= 1) return 1;
+        if (n <= 1) return n;
 
         long current = getFibonacciHugeFast(n, 10);
         long next = getFibonacciHugeFast(n + 1, 10);
