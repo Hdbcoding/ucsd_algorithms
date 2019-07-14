@@ -5,6 +5,13 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "type": "java",
+            "name": "CodeLens (Launch) - Fibonacci",
+            "request": "launch",
+            "mainClass": "Fibonacci",
+            "projectName": "UCSDAlgorithms_5bd1ba95"
+        },
+        {
             "name": "(gdb) launch active file",
             "type": "cppdbg",
             "request": "launch",
