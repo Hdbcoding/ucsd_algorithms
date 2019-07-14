@@ -33,7 +33,10 @@ public class FibonacciPartialSum {
     }
     
     private static long getFibonacciSumFast(long n) {
-        return getFibonacciHugeFast(n + 2, 10) - 1;
+        long sum = getFibonacciHugeFast(n + 2, 10) - 1;
+        if (sum < 0)
+            sum += 10;
+        return sum;
     }
 
     private static long getFibonacciPartialSumFast(long from, long to) {

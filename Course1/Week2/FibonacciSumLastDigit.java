@@ -33,7 +33,10 @@ public class FibonacciSumLastDigit {
     }
     
     private static long getFibonacciSumFast(long n) {
-        return getFibonacciHugeFast(n + 2, 10) - 1;
+        long sum = getFibonacciHugeFast(n + 2, 10) - 1;
+        if (sum < 0)
+            sum += 10;
+        return sum;
     }
 
     private static long getFibonacciSumNaive(long n) {
@@ -69,6 +72,14 @@ public class FibonacciSumLastDigit {
         result = getFibonacciSumFast(100);
         if (result != 5)
             System.out.println("Sum of first 100 is wrong: " + result);
+
+        result = getFibonacciSumFast(1);
+        if (result != 1)
+            System.out.println("Sum of first 1 is wrong: " + result);
+
+        result = getFibonacciSumFast(2);
+        if (result != 2)
+            System.out.println("Sum of first 2 is wrong: " + result);
     }
     
     public static void main(String[] args) {
