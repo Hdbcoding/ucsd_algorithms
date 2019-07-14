@@ -1,14 +1,29 @@
 import java.util.*;
 
 public class FibonacciHuge {
-    private static long getFibonacciHugeFast(long n, long m) {
-        if (n <= 1)
-            return n;
-
+    private static long getPisanoPeriod(long m) {
         long val_2 = 0;
         long val_1 = 1;
         long val = 0;
-        for (long i = 2; i < n; ++i) {
+        for (int i = 0; i < m * m; i++) {
+            val = (val_2 + val_1) % m;
+            val_2 = val_1;
+            val_1 = val;
+            if (val_2 == 0 && val_1 == 1)
+                return i + 1;
+        }
+        return 0; // shouldn't reach this line unless m <= 0
+    }
+
+    private static long getFibonacciHugeFast(long n, long m) {
+        if (n <= 1)
+            return n;
+        
+        long remainder = n % getPisanoPeriod(m);
+        long val_2 = 0;
+        long val_1 = 1;
+        long val = 0;
+        for (long i = 2; i < remainder; ++i) {
             val = (val_2 + val_1) % m;
             val_2 = val_1;
             val_1 = val;
@@ -48,18 +63,26 @@ public class FibonacciHuge {
     }
 
     private static void testSolution() {
-        long shouldBe9 = getFibonacciHugeFast(331, 10);
-        if (shouldBe9 != 9)
-            System.out.println("Mod for F331 is wrong");
+        long result = getFibonacciHugeFast(331, 10);
+        if (result != 9)
+            System.out.println("Mod for F331_10 is wrong");
 
-        long shouldBe5 = getFibonacciHugeFast(327305, 10);
-        if (shouldBe5 != 5)
-            System.out.println("Mod for F327305 is wrong");
+        result = getFibonacciHugeFast(327305, 10);
+        if (result != 5)
+            System.out.println("Mod for F327305_10 is wrong");
+
+        result = getFibonacciHugeFast(239, 1000);
+        if (result != 161)
+            System.out.println("Mod for F239_1000 is wrong");
+
+        result = getFibonacciHugeFast(2816213588l, 239);
+        if (result != 151)
+            System.out.println("Mod for F2816213588_239 is wrong");
     }
     
     public static void main(String[] args) {
-        // testSolution();
-        runSolution();
+        testSolution();
+        // runSolution();
     }
 
     static class Inputs {
