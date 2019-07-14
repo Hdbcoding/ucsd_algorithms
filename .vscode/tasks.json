@@ -2,8 +2,11 @@
     "tasks": [
         {
             "type": "shell",
-            "label": "g++ build current file",
-            "command": "C:/MinGW/bin/g++ -g ${file}",
+            "label": "g++ build active file",
+            "command": "g++ -g ${file} -o ${fileDirname}/${fileBasenameNoExtension}.exe",
+            "options": {
+				"cwd": "C:\\MinGW\\bin"
+			},
             "group": "build",
             "problemMatcher": []
         }
