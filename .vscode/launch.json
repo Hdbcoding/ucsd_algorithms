@@ -6,6 +6,20 @@
     "configurations": [
         {
             "type": "java",
+            "name": "CodeLens (Launch) - FibonacciLastDigit",
+            "request": "launch",
+            "mainClass": "FibonacciLastDigit",
+            "projectName": "UCSDAlgorithms_5bd1ba95"
+        },
+        {
+            "type": "java",
+            "name": "CodeLens (Launch) - FibonacciHuge",
+            "request": "launch",
+            "mainClass": "FibonacciHuge",
+            "projectName": "UCSDAlgorithms_5bd1ba95"
+        },
+        {
+            "type": "java",
             "name": "CodeLens (Launch) - Fibonacci",
             "request": "launch",
             "mainClass": "Fibonacci",

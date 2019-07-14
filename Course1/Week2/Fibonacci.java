@@ -14,7 +14,7 @@ public class Fibonacci {
 
     long val_2 = 0; // n - 2
     long val_1 = 1; // n - 1
-    long val = val_2 + val_1;
+    long val = 0;
     for (int i = 2; i < n; i++) {
       val = val_2 + val_1;
       val_2 = val_1;
