@@ -6,6 +6,13 @@
     "configurations": [
         {
             "type": "java",
+            "name": "CodeLens (Launch) - Change",
+            "request": "launch",
+            "mainClass": "Change",
+            "projectName": "UCSDAlgorithms_5bd1ba95"
+        },
+        {
+            "type": "java",
             "name": "CodeLens (Launch) - FibonacciSumSquares",
             "request": "launch",
             "mainClass": "FibonacciSumSquares",
