@@ -6,6 +6,13 @@
     "configurations": [
         {
             "type": "java",
+            "name": "CodeLens (Launch) - FractionalKnapsack",
+            "request": "launch",
+            "mainClass": "FractionalKnapsack",
+            "projectName": "UCSDAlgorithms_5bd1ba95"
+        },
+        {
+            "type": "java",
             "name": "CodeLens (Launch) - Change",
             "request": "launch",
             "mainClass": "Change",
