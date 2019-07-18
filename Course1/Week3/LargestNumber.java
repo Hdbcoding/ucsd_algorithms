@@ -7,6 +7,7 @@ public class LargestNumber {
             @Override
             public int compare(String o1, String o2) {
                 boolean o1Longer = o1.length() > o2.length();
+                boolean equalLengths = o1.length() == o2.length();
                 int length = o1Longer ? o2.length() : o1.length();
                 for (int i = 0; i < length; i++) {
                     if (o1.charAt(i) > o2.charAt(i))
@@ -15,7 +16,11 @@ public class LargestNumber {
                         return -1;
                 }
                 // "1" should be ">" than "10"
-                return 0;
+                if (equalLengths)
+                    return 0;
+                if (o1Longer)
+                    return -1;
+                return 1;
             }
         });
         for (int i = a.length - 1; i >= 0; i--) {
@@ -57,7 +62,7 @@ public class LargestNumber {
     }
 
     public static void main(String[] args) {
-        testSolution();
-        // runSolution();
+        // testSolution();
+        runSolution();
     }
 }
