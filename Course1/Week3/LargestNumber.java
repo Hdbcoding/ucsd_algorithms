@@ -6,29 +6,7 @@ public class LargestNumber {
         Arrays.sort(a, new Comparator<String>() {
             @Override
             public int compare(String o1, String o2) {
-                boolean o1Longer = o1.length() > o2.length();
-                boolean equalLengths = o1.length() == o2.length();
-                int length = o1Longer ? o2.length() : o1.length();
-                for (int i = 0; i < length; i++) {
-                    if (o1.charAt(i) > o2.charAt(i))
-                        return 1;
-                    if (o1.charAt(i) < o2.charAt(i))
-                        return -1;
-                }
-                // "1" should be ">" than "10"
-                // "12" should be ">" than "1"
-                if (equalLengths)
-                    return 0;
-                if (o1Longer) {
-                    // return -1;
-                    int o1Last = o1.charAt(o2.length());
-                    int o2First = o2.charAt(0);
-                    return o1Last - o2First;
-                }
-                // return 1;
-                int o2Last = o2.charAt(o1.length());
-                int o1First = o1.charAt(0);
-                return o1First - o2Last;
+                return (o1 + o2).compareTo(o2 + o1);
             }
         });
         for (int i = a.length - 1; i >= 0; i--) {
@@ -74,7 +52,7 @@ public class LargestNumber {
     }
 
     public static void main(String[] args) {
-        // testSolution();
-        runSolution();
+        testSolution();
+        // runSolution();
     }
 }
