@@ -2,9 +2,28 @@ import java.util.Scanner;
 
 public class CarFueling {
     static int computeMinRefills(int dist, int tank, int[] stops) {
+        int numStops = 0;
+        int tankRemaining = tank;
+        int lastPosition = 0;
+        for (int i = 0; i < stops.length; i++) {
+            int distance = stops[i] - lastPosition;
+            if (distance > tank)
+                return -1;
+            if (distance > tankRemaining) {
+                ++numStops;
+                tankRemaining = tank;
+            }
+            tankRemaining -= distance;
+            lastPosition = stops[i];
+        }
 
+        int lastDistance = dist - lastPosition;
+        if (lastDistance > tank)
+            return -1;
+        if (lastDistance > tankRemaining)
+            ++numStops;
 
-        return -1;
+        return numStops;
     }
 
     private static void runSolution() {
@@ -35,7 +54,7 @@ public class CarFueling {
     }
 
     public static void main(String[] args) {
-        testSolution();
-        // runSolution();
+        // testSolution();
+        runSolution();
     }
 }
