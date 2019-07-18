@@ -16,11 +16,19 @@ public class LargestNumber {
                         return -1;
                 }
                 // "1" should be ">" than "10"
+                // "12" should be ">" than "1"
                 if (equalLengths)
                     return 0;
-                if (o1Longer)
-                    return -1;
-                return 1;
+                if (o1Longer) {
+                    // return -1;
+                    int o1Last = o1.charAt(o2.length());
+                    int o2First = o2.charAt(0);
+                    return o1Last - o2First;
+                }
+                // return 1;
+                int o2Last = o2.charAt(o1.length());
+                int o1First = o1.charAt(0);
+                return o1First - o2Last;
             }
         });
         for (int i = a.length - 1; i >= 0; i--) {
@@ -41,6 +49,8 @@ public class LargestNumber {
     }
 
     private static void testSolution() {
+        runTest(new String[]{"1", "12", "10", "1", "12", "10", "11"}, "121211111010");
+        runTest(new String[]{"1", "12", "102", "100", "1", "102", "100", "101"}, "1211102102101100100");
         runTest(new String[] { "21", "22" }, "2221");
         runTest(new String[] { "21", "2" }, "221");
         runTest(new String[] { "9", "4", "6", "1", "9" }, "99641");
@@ -53,6 +63,8 @@ public class LargestNumber {
                 "1", "1", "9", "8", "6", "5", "9", "9", "3", "7", "6", "3", "10", "8", "10", "7", "2", "5", "1", "1",
                 "9", "9", "5" },
                 "9999999998888888888887777777776666666666555555554444444443333333333222222222111111111111111101010101010101010");
+        runTest(new String[] { "20", "208", "20", "208", }, "2082082020");
+        runTest(new String[] { "20", "2081", "20", "2081", }, "208120812020");
     }
 
     private static void runTest(String[] a, String expected) {
