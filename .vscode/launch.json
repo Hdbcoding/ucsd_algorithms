@@ -6,6 +6,13 @@
     "configurations": [
         {
             "type": "java",
+            "name": "CodeLens (Launch) - DotProduct",
+            "request": "launch",
+            "mainClass": "DotProduct",
+            "projectName": "UCSDAlgorithms_5bd1ba95"
+        },
+        {
+            "type": "java",
             "name": "CodeLens (Launch) - CarFueling",
             "request": "launch",
             "mainClass": "CarFueling",
