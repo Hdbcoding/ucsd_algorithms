@@ -39,8 +39,8 @@ public class DotProduct {
     }
 
     public static void main(String[] args) {
-        testSolution();
-        // runSolution();
+        // testSolution();
+        runSolution();
     }
 }
 
