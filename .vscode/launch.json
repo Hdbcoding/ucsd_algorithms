@@ -6,6 +6,13 @@
     "configurations": [
         {
             "type": "java",
+            "name": "CodeLens (Launch) - CoveringSegments",
+            "request": "launch",
+            "mainClass": "CoveringSegments",
+            "projectName": "UCSDAlgorithms_5bd1ba95"
+        },
+        {
+            "type": "java",
             "name": "CodeLens (Launch) - DotProduct",
             "request": "launch",
             "mainClass": "DotProduct",
