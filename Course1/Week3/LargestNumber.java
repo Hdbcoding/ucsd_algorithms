@@ -52,7 +52,7 @@ public class LargestNumber {
     }
 
     public static void main(String[] args) {
-        testSolution();
-        // runSolution();
+        // testSolution();
+        runSolution();
     }
 }
