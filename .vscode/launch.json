@@ -6,6 +6,13 @@
     "configurations": [
         {
             "type": "java",
+            "name": "CodeLens (Launch) - Inversions",
+            "request": "launch",
+            "mainClass": "Inversions",
+            "projectName": "UCSDAlgorithms_5bd1ba95"
+        },
+        {
+            "type": "java",
             "name": "CodeLens (Launch) - Sorting",
             "request": "launch",
             "mainClass": "Sorting",
