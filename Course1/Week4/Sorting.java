@@ -14,13 +14,13 @@ public class Sorting {
                 m1++;
                 m2++;
                 swap(a, m1, i);
-                swap(a, m2, i);
+                if (m1 != m2) swap(a, m2, i);
             } else if (a[i] == x) {
                 m2++;
                 swap(a, m2, i);
             }
         }
-        swap(a, l, m2);
+        swap(a, l, m1);
         int[] m = { m1, m2 };
         return m;
     }
@@ -74,18 +74,34 @@ public class Sorting {
     }
 
     static void testSolution() {
-        runTest(new int[] { 2, 3, 9, 2, 2 }, new int[] { 2, 2, 2, 3, 9 });
-        runTest(new int[] { 10, 9, 8, 7, 6, 5, 4, 3, 2, 1 }, new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 });
-        runTest(new int[] { 2, 1, 2, 3, 5, 5, 2, 7, 9 }, new int[] { 1, 2, 2, 2, 3, 5, 7, 9 });
-        runTest(new int[] { 4, 2, 5, 1, 3, 4, 4, 8, 2, 3, 9 }, new int[] { 1, 2, 2, 3, 3, 4, 4, 4, 5, 8, 9 });
+        for (int i = 0; i < 15; i++) {
+            runTest(new int[] { 2, 3, 9, 2, 2 }, new int[] { 2, 2, 2, 3, 9 });
+            runTest(new int[] { 10, 9, 8, 7, 6, 5, 4, 3, 2, 1 }, new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 });
+            runTest(new int[] { 2, 1, 2, 3, 5, 5, 2, 7, 9 }, new int[] { 1, 2, 2, 2, 3, 5, 5, 7, 9 });
+            runTest(new int[] { 4, 2, 5, 1, 3, 4, 4, 8, 2, 3, 9 }, new int[] { 1, 2, 2, 3, 3, 4, 4, 4, 5, 8, 9 });
+        }
+
+        runPartitionTest(new int[] { 2, 3, 9, 2, 2 }, 0, 4, new int[] { 2, 2, 2, 3, 9 }, new int[] { 0, 2 });
+        runPartitionTest(new int[] { 3, 2, 9, 2, 2 }, 0, 4, new int[] { 2, 2, 2, 3, 9 }, new int[] { 3, 3 });
+        runPartitionTest(new int[] { 9, 3, 2, 2, 2 }, 0, 4, new int[] { 2, 3, 2, 2, 9 }, new int[] { 4, 4 });
     }
 
     static void runTest(int[] a, int[] expected) {
         randomizedQuickSort(a, 0, a.length - 1);
-        if (!sequenceEqual(a, expected)) {
+        checkSequencesEqual(a, expected, "Sort failed");
+    }
+
+    static void runPartitionTest(int[] a, int l, int r, int[] expectedArr, int[] expectedM) {
+        int[] m = partition3(a, l, r);
+        checkSequencesEqual(a, expectedArr, "Partition failed (array)");
+        checkSequencesEqual(m, expectedM, "Partition failed (midpoints)");
+    }
+    
+    static void checkSequencesEqual(int[] a, int[] b, String message) {
+        if (!sequenceEqual(a, b)) {
             String aString = Arrays.toString(a);
-            String expectedString = Arrays.toString(expected);
-            System.out.println("Sort failed, expected: " + expectedString + ", but got: " + aString);
+            String expectedString = Arrays.toString(b);
+            System.out.println(message + ", expected: " + expectedString + ", but got: " + aString);
         }
     }
 
@@ -101,8 +117,8 @@ public class Sorting {
     }
 
     public static void main(String[] args) {
-        testSolution();
-        // runSolution();
+        // testSolution();
+        runSolution();
     }
 
     static class FastScanner {
