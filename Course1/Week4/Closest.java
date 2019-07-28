@@ -25,7 +25,7 @@ public class Closest {
         return ans;
     }
 
-    public static void main(String[] args) throws Exception {
+    static void runSolution() {
         reader = new BufferedReader(new InputStreamReader(System.in));
         writer = new PrintWriter(System.out);
         int n = nextInt();
@@ -37,6 +37,22 @@ public class Closest {
         }
         System.out.println(minimalDistance(x, y));
         writer.close();
+    }
+
+    static void testSolution() {
+        runTest(new int[] { 0, 3 }, new int[] { 0, 4 }, 5d);
+        runTest(new int[] { 7, 1, 4, 7 }, new int[] { 7, 100, 8, 7 }, 0d);
+        runTest(new int[] { 4, -2, -3, -1, 2, -4, 1, -1, 3, -4, -2 }, new int[] { 4, -2, -4, 3, 3, 0, 1, -1, -1, 2, 4 }, 1.414213d);
+    }
+    
+    static void runTest(int[] x, int y[], double expected) {
+        double actual = minimalDistance(x, y);
+        if (actual - 1E-5 > expected || actual + 1E-5 < expected) 
+            System.out.println("wrong minimum distance, expected: " + expected + ", but got: " + actual);
+    }
+
+    public static void main(String[] args) {
+        runSolution();
     }
 
     static BufferedReader reader;
