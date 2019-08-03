@@ -6,6 +6,13 @@
     "configurations": [
         {
             "type": "java",
+            "name": "CodeLens (Launch) - ChangeDP",
+            "request": "launch",
+            "mainClass": "ChangeDP",
+            "projectName": "UCSDAlgorithms_5bd1ba95"
+        },
+        {
+            "type": "java",
             "name": "CodeLens (Launch) - Closest",
             "request": "launch",
             "mainClass": "Closest",
