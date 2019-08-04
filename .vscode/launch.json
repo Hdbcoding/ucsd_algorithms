@@ -6,6 +6,13 @@
     "configurations": [
         {
             "type": "java",
+            "name": "CodeLens (Launch) - LCS3",
+            "request": "launch",
+            "mainClass": "LCS3",
+            "projectName": "UCSDAlgorithms_5bd1ba95"
+        },
+        {
+            "type": "java",
             "name": "CodeLens (Launch) - LCS2",
             "request": "launch",
             "mainClass": "LCS2",
