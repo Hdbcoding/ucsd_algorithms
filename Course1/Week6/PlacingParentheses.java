@@ -2,8 +2,8 @@ import java.util.Scanner;
 
 public class PlacingParentheses {
     private static long getMaximValue(String exp) {
-      //write your code here
-      return 0;
+        // write your code here
+        return 0;
     }
 
     private static long eval(long a, long b, char op) {
@@ -20,9 +20,18 @@ public class PlacingParentheses {
     }
 
     public static void main(String[] args) {
+        testSolution();
+        // runSolution();
+    }
+
+    static void runSolution() {
         Scanner scanner = new Scanner(System.in);
         String exp = scanner.next();
+        scanner.close();
         System.out.println(getMaximValue(exp));
     }
+    
+    static void testSolution() {
+        
+    }
 }
-
