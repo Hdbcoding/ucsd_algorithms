@@ -6,6 +6,13 @@
     "configurations": [
         {
             "type": "java",
+            "name": "CodeLens (Launch) - PlacingParentheses",
+            "request": "launch",
+            "mainClass": "PlacingParentheses",
+            "projectName": "UCSDAlgorithms_5bd1ba95"
+        },
+        {
+            "type": "java",
             "name": "CodeLens (Launch) - Partition3",
             "request": "launch",
             "mainClass": "Partition3",
