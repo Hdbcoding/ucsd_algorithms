@@ -48,14 +48,41 @@ class check_brackets {
     }
 
     public static void main(String[] args) throws IOException {
-        InputStreamReader input_stream = new InputStreamReader(System.in);
-        BufferedReader reader = new BufferedReader(input_stream);
-        String text = reader.readLine();
+        // testSolution();
+        runSolution();
+    }
 
-        int position = find_first_unmatched_bracket(text);
-        if (position == -1)
-            System.out.println("Success");
-        else
-            System.out.println(position);
+    static void runSolution() {
+        try {
+            InputStreamReader input_stream = new InputStreamReader(System.in);
+            BufferedReader reader = new BufferedReader(input_stream);
+            String text = reader.readLine();
+
+            int position = find_first_unmatched_bracket(text);
+            if (position == -1)
+                System.out.println("Success");
+            else
+                System.out.println(position);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    static void testSolution() {
+        runTest("[]", -1);
+        runTest("{}[]", -1);
+        runTest("[{}]", -1);
+        runTest("(())", -1);
+        runTest("{[]}()", -1);
+        runTest("{", 1);
+        runTest("{[}", 3);
+        runTest("foo(bar);", -1);
+        runTest("foo(bar[i);", 10);
+    }
+    
+    static void runTest(String text, int expected) {
+        int actual = find_first_unmatched_bracket(text);
+        if (actual != expected)
+            System.out.println("Unexpected result for " + text + ", expected: " + expected + ", actual: " + actual);
     }
 }
