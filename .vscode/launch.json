@@ -6,6 +6,13 @@
     "configurations": [
         {
             "type": "java",
+            "name": "CodeLens (Launch) - tree_height",
+            "request": "launch",
+            "mainClass": "tree_height",
+            "projectName": "UCSDAlgorithms_5bd1ba95"
+        },
+        {
+            "type": "java",
             "name": "CodeLens (Launch) - check_brackets",
             "request": "launch",
             "mainClass": "check_brackets",
