@@ -17,20 +17,6 @@ class Request {
     public int startTime;
 }
 
-class Response {
-    public Response(boolean dropped, int start_time) {
-        this.dropped = dropped;
-        this.startTime = start_time;
-    }
-
-    public boolean dropped;
-    public int startTime;
-
-    public int getDisplayTime() {
-        return dropped ? -1 : startTime;
-    }
-}
-
 class Buffer {
     public Buffer(int size) {
         this.size = size;
@@ -38,34 +24,26 @@ class Buffer {
         this.buffer = new LinkedList<Request>();
     }
 
-    public Response process(Request request) {
-        boolean success = false;
-        if (buffer.isEmpty()) {
-            success = true;
-        } else {
-            clearOldItems(request.arrivalTime);
-            if (buffer.size() != size) {
-                success = true;
-            }
-        }
+    public void process(Request request) {
+        clearOldItems(request.arrivalTime);
 
-        if (success) {
-            request.startTime = nextStartTime;
+        if (!isFull()) {
+            request.startTime = Math.max(nextStartTime, request.arrivalTime);
             nextStartTime = request.startTime + request.processTime;
             buffer.add(request);
-            return new Response(true, nextStartTime);
-        } else {
-            return new Response(false, -1);
         }
     }
 
     private void clearOldItems(int arrivalTime) {
         Request next = buffer.peek();
-        while (!buffer.isEmpty() && (next.startTime + next.processTime < arrivalTime)) {
+        while (next != null && (next.startTime + next.processTime <= arrivalTime)) {
             buffer.poll();
-            if (!buffer.isEmpty())
-                next = buffer.peek();
+            next = buffer.peek();
         }
+    }
+
+    private boolean isFull(){
+        return buffer.size() >= size;
     }
 
     private int size;
@@ -85,23 +63,22 @@ class process_packages {
         return requests;
     }
 
-    private static ArrayList<Response> ProcessRequests(ArrayList<Request> requests, Buffer buffer) {
-        ArrayList<Response> responses = new ArrayList<Response>();
+    private static void ProcessRequests(ArrayList<Request> requests, Buffer buffer) {
         for (int i = 0; i < requests.size(); ++i) {
-            responses.add(buffer.process(requests.get(i)));
+            buffer.process(requests.get(i));
         }
-        return responses;
     }
 
-    private static void PrintResponses(ArrayList<Response> responses) {
-        for (int i = 0; i < responses.size(); ++i) {
-            Response response = responses.get(i);
-            System.out.println(response.getDisplayTime());
+    private static void PrintResults(ArrayList<Request> requests) {
+        for (int i = 0; i < requests.size(); ++i) {
+            Request request = requests.get(i);
+            System.out.println(request.startTime);
         }
     }
 
     public static void main(String[] args) throws IOException {
         runSolution();
+        // testSolution();
     }
 
     private static void runSolution() throws IOException {
@@ -111,28 +88,39 @@ class process_packages {
 
         ArrayList<Request> requests = ReadQueries(scanner);
         scanner.close();
-        ArrayList<Response> responses = ProcessRequests(requests, buffer);
-        PrintResponses(responses);
+        ProcessRequests(requests, buffer);
+        PrintResults(requests);
     }
 
     private static void testSolution() {
-
+        ArrayList<Request> requests = new ArrayList<Request>();
+        runTest(0, requests, new int[0]);
+        requests.add(new Request(0, 0));
+        runTest(1, requests, new int[]{0});
+        requests.clear();
+        requests.add(new Request(0, 1));
+        requests.add(new Request(0, 1));
+        runTest(1, requests, new int[]{0, -1});
+        requests.clear();
+        requests.add(new Request(0, 1));
+        requests.add(new Request(1, 1));
+        runTest(1, requests, new int[]{0, 1});
     }
 
     private static void runTest(int bufferSize, ArrayList<Request> requests, int[] expected) {
-        ArrayList<Response> responses = ProcessRequests(requests, new Buffer(bufferSize));
-        int[] times = processResponses(responses);
+        ProcessRequests(requests, new Buffer(bufferSize));
+        int[] times = processResults(requests);
         String exp_str = Arrays.toString(expected);
         String actual = Arrays.toString(times);
-        if (exp_str != actual)
+        if (!exp_str.equals(actual))
             System.out.println(
                     "Unexpected result for pattern of requests. Expected: " + exp_str + ", but got: " + actual);
     }
 
-    private static int[] processResponses(ArrayList<Response> responses) {
-        int[] times = new int[responses.size()];
+    private static int[] processResults(ArrayList<Request> results) {
+        int[] times = new int[results.size()];
         for (int i = 0; i < times.length; i++)
-            times[i] = responses.get(i).getDisplayTime();
+            times[i] = results.get(i).startTime;
         return times;
     }
 }

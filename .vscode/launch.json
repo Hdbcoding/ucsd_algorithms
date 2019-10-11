@@ -6,6 +6,12 @@
     "configurations": [
         {
             "type": "java",
+            "name": "CodeLens (Launch) - process_packages",
+            "request": "launch",
+            "mainClass": "process_packages"
+        },
+        {
+            "type": "java",
             "name": "CodeLens (Launch) - tree_height",
             "request": "launch",
             "mainClass": "tree_height",
