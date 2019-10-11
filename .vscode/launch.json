@@ -6,6 +6,12 @@
     "configurations": [
         {
             "type": "java",
+            "name": "CodeLens (Launch) - stack_with_max",
+            "request": "launch",
+            "mainClass": "stack_with_max"
+        },
+        {
+            "type": "java",
             "name": "CodeLens (Launch) - process_packages",
             "request": "launch",
             "mainClass": "process_packages"
