@@ -12,6 +12,7 @@ class Dequeue {
     public void addFront(int value) {
         DequeueNode node = new DequeueNode(value);
         node.back = this.front;
+        if (this.front != null) this.front.front = node;
         this.front = node;
         if (this.back == null)
             this.back = node;
@@ -20,6 +21,7 @@ class Dequeue {
     public void addBack(int value) {
         DequeueNode node = new DequeueNode(value);
         node.front = this.back;
+        if (this.back != null) this.back.back = node;
         this.back = node;
         if (this.front == null)
             this.front = node;
@@ -59,6 +61,19 @@ class Dequeue {
         return value;
     }
 
+    public String toString() {
+        if (this.isEmpty())
+            return "{}";
+        String value = "{";
+        DequeueNode next = this.front;
+        while (next.back != null) {
+            value += next.value + ", ";
+            next = next.back;
+        }
+        value += next.value + "}";
+        return value;
+    }
+
     class DequeueNode {
         public int value;
         public DequeueNode front;
@@ -74,7 +89,7 @@ public class max_sliding_window {
     static int[] max_sliding_window_naive(int[] A, int w) {
         int[] solutions = new int[A.length - w + 1];
         int k = 0;
-        for (int i = 0; i < A.length - w; i++) {
+        for (int i = 0; i < A.length - w + 1; i++) {
             int max = A[i];
             for (int j = i + 1; j < i + w; j++)
                 max = Math.max(max, A[j]);
@@ -87,23 +102,37 @@ public class max_sliding_window {
         int[] solutions = new int[A.length - w + 1];
         int k = 0;
         Dequeue dq = new Dequeue();
-        for (int i = 0; i < w; i++) 
+        for (int i = 0; i < w; i++)
             addToDequeue(i, dq, A);
         solutions[k++] = A[dq.peekFront()];
-        for (int i = w; i < A.length; i++){
-            if (dq.peekFront() < (i - w + 1)) dq.popFront();
+        // System.out.println((w - 1) + ": " + dq);
+        for (int i = w; i < A.length; i++) {
+            if (dq.peekFront() < (i - w + 1))
+                dq.popFront();
             addToDequeue(i, dq, A);
             solutions[k++] = A[dq.peekFront()];
+            // System.out.println(i + ": " + dq);
         }
 
         return solutions;
     }
 
+    static void max_sliding_window_fast_noReturn(int[] A, int w){
+        Dequeue dq = new Dequeue();
+        for (int i = 0; i < w; i++)
+            addToDequeue(i, dq, A);
+        System.out.println(A[dq.peekFront()]);
+        for (int i = w; i < A.length; i++) {
+            if (dq.peekFront() < (i - w + 1))
+                dq.popFront();
+            addToDequeue(i, dq, A);
+            System.out.println(A[dq.peekFront()]);
+        }
+    }
+
     static void addToDequeue(int index, Dequeue dq, int[] A) {
         if (!dq.isEmpty()) {
             int value = A[index];
-            if (A[dq.peekBack()] > value)
-                return;
             while (!dq.isEmpty() && A[dq.peekBack()] < value)
                 dq.popBack();
         }
@@ -111,8 +140,8 @@ public class max_sliding_window {
     }
 
     public static void main(String[] args) {
-        // runSolution();
-        testSolution();
+        runSolution();
+        // testSolution();
     }
 
     static void runSolution() {
@@ -123,13 +152,15 @@ public class max_sliding_window {
             A[i] = scanner.nextInt();
         int w = scanner.nextInt();
         scanner.close();
-        int[] solutions = max_sliding_window_naive(A, w);
-        for (int s : solutions)
-            System.out.println(s);
+        // int[] solutions = max_sliding_window_fast(A, w);
+        // for (int s : solutions)
+        //     System.out.println(s);
+        max_sliding_window_fast_noReturn(A, w);
     }
 
     static void testSolution() {
-        runTest(new int[]{2, 7, 3, 1, 5, 2, 6, 2}, 4, new int[]{7, 7, 5, 6, 6});
+        runTest(new int[] { 2, 7, 3, 1, 5, 2, 6, 2 }, 4, new int[] { 7, 7, 5, 6, 6 });
+        runTest(new int[] { 1 }, 1, new int[] { 1 });
     }
 
     static void runTest(int[] A, int w, int[] expected) {
