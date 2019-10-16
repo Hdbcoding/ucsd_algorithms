@@ -6,6 +6,13 @@
     "configurations": [
         {
             "type": "java",
+            "name": "CodeLens (Launch) - max_sliding_window",
+            "request": "launch",
+            "mainClass": "max_sliding_window",
+            "projectName": "UCSDAlgorithms_5bd1ba95"
+        },
+        {
+            "type": "java",
             "name": "CodeLens (Launch) - stack_with_max",
             "request": "launch",
             "mainClass": "stack_with_max"
