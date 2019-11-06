@@ -1,6 +1,5 @@
 import java.io.*;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.StringTokenizer;
 
@@ -69,32 +68,19 @@ public class BuildHeap {
 
     public void siftDown(int i, ArrayList<Swap> swaps) {
       // if we have no children, we can't sit down
-      int l = Left(i), s = size();
-      if (l >= s)
-        return;
+      int l = Left(i), r = Right(i), s = size(), swapIndex = i;
 
-      int r = Right(i), val = _data[i];
-      if (r >= s) {
-        int left = _data[l];
-        if (!rule(val, left))
-          swapAndSiftDown(i, l, swaps);
-      } else {
-        int left = _data[l];
-        int right = _data[r];
-        if (rule(left, right)) {
-          if (!rule(val, left))
-            swapAndSiftDown(i, l, swaps);
-        } else {
-          if (!rule(val, right))
-            swapAndSiftDown(i, r, swaps);
-        }
+      if (l <= s && !rule(swapIndex, l))
+        swapIndex = l;
+      
+      if (r <= s && !rule(swapIndex, r))
+        swapIndex = r;
+      
+      if (swapIndex != i){
+        Swap(i, swapIndex);
+        swaps.add(new Swap(i, swapIndex));
+        siftDown(swapIndex, swaps);
       }
-    }
-
-    public void swapAndSiftDown(int p, int c, ArrayList<Swap> swaps) {
-      Swap(p, c);
-      swaps.add(new Swap(p, c));
-      siftDown(c, swaps);
     }
 
     public int size() {
@@ -119,8 +105,8 @@ public class BuildHeap {
 
     // rule true => heap is good
     // in this case, we have a min heap
-    boolean rule(int parent, int child) {
-      return parent <= child;
+    boolean rule(int pIndex, int cIndex) {
+      return _data[pIndex] <= _data[cIndex];
     }
   }
 
