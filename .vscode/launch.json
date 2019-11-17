@@ -6,6 +6,13 @@
     "configurations": [
         {
             "type": "java",
+            "name": "CodeLens (Launch) - MergingTables",
+            "request": "launch",
+            "mainClass": "MergingTables",
+            "projectName": "ucsd_algorithms_9b09e84f"
+        },
+        {
+            "type": "java",
             "name": "CodeLens (Launch) - JobQueue",
             "request": "launch",
             "mainClass": "JobQueue",
