@@ -86,7 +86,7 @@ public class MergingTables {
         else {
             realDestination.setParent(realSource);
             if (realDestination.rank == realSource.rank)
-                realDestination.rank++;
+                realSource.rank++;
         }
     }
 
