@@ -10,18 +10,18 @@ public class BuildHeap {
     // testSolution();
   }
 
-  public static void runSolution() throws IOException {
+  static void runSolution() throws IOException {
     int[] data = readData();
     List<Swap> swaps = generateSwapsFast(data);
     writeResponse(swaps);
   }
 
-  public static void testSolution(){
+  static void testSolution(){
     runTest(new int[]{5, 4, 3, 2, 1}, new int[]{3, 1, 4, 0, 1, 1, 3});
     runTest(new int[]{1, 2, 3, 4, 5}, new int[]{0});
   }
 
-  public static void runTest(int[] data, int[] expected) {
+  static void runTest(int[] data, int[] expected) {
     List<Swap> actualSwaps = generateSwapsFast(data);
     int[] actual = generateResponse(actualSwaps);
     String actualString = Arrays.toString(actual);
@@ -32,18 +32,7 @@ public class BuildHeap {
     }
   }
 
-  private static int[] generateResponse(List<Swap> actualSwaps) {
-    int[] actual = new int[actualSwaps.size() * 2 + 1];
-    actual[0] = actualSwaps.size();
-    int i = 1;
-    for (int j = 0; j < actualSwaps.size(); j++) {
-      actual[i++] = actualSwaps.get(j).index1;
-      actual[i++] = actualSwaps.get(j).index2;
-    }
-    return actual;
-  }
-
-  private static int[] readData() throws IOException {
+  static int[] readData() throws IOException {
     FastScanner in = new FastScanner();
     int n = in.nextInt();
     int[] data = new int[n];
@@ -53,7 +42,7 @@ public class BuildHeap {
     return data;
   }
 
-  private static List<Swap> generateSwapsNaive(int[] data) {
+  static List<Swap> generateSwapsNaive(int[] data) {
     List<Swap> swaps = new ArrayList<Swap>();
     // The following naive implementation just sorts
     // the given sequence using selection sort algorithm
@@ -75,19 +64,30 @@ public class BuildHeap {
     return swaps;
   }
 
-  private static List<Swap> generateSwapsFast(int[] data){
+  static List<Swap> generateSwapsFast(int[] data){
     Heap heap = new Heap(data);
     List<Swap> swaps = heap.heapify();
     return swaps;
   }
 
-  private static void writeResponse(List<Swap> swaps) {
+  static void writeResponse(List<Swap> swaps) {
     PrintWriter out = new PrintWriter(new BufferedOutputStream(System.out));
     out.println(swaps.size());
     for (Swap swap : swaps) {
       out.println(swap.index1 + " " + swap.index2);
     }
     out.close();
+  }
+
+  static int[] generateResponse(List<Swap> actualSwaps) {
+    int[] actual = new int[actualSwaps.size() * 2 + 1];
+    actual[0] = actualSwaps.size();
+    int i = 1;
+    for (int j = 0; j < actualSwaps.size(); j++) {
+      actual[i++] = actualSwaps.get(j).index1;
+      actual[i++] = actualSwaps.get(j).index2;
+    }
+    return actual;
   }
 
   static class Heap {

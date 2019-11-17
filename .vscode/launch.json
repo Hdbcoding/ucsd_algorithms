@@ -6,6 +6,13 @@
     "configurations": [
         {
             "type": "java",
+            "name": "CodeLens (Launch) - JobQueue",
+            "request": "launch",
+            "mainClass": "JobQueue",
+            "projectName": "ucsd_algorithms_9b09e84f"
+        },
+        {
+            "type": "java",
             "name": "CodeLens (Launch) - BuildHeap",
             "request": "launch",
             "mainClass": "BuildHeap",
