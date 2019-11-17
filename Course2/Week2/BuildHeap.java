@@ -6,13 +6,13 @@ import java.util.StringTokenizer;
 
 public class BuildHeap {
   public static void main(String[] args) throws IOException {
-    // runSolution();
-    testSolution();
+    runSolution();
+    // testSolution();
   }
 
   public static void runSolution() throws IOException {
     int[] data = readData();
-    List<Swap> swaps = generateSwapsNaive(data);
+    List<Swap> swaps = generateSwapsFast(data);
     writeResponse(swaps);
   }
 
