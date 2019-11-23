@@ -3,12 +3,12 @@ import java.util.stream.Collectors;
 import java.io.*;
 
 public class MatchingWithMismatches {
-    public List<Integer> solve(int k, String text, String pattern) {
-        ArrayList<Integer> pos = new ArrayList<>();
-        return pos;
+    static public void main(String[] args) {
+        runSolution();
+        testSolution();
     }
 
-    public void run() {
+    static void runSolution() {
         BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
         PrintWriter out = new PrintWriter(System.out);
         in.lines().forEach(line -> {
@@ -18,15 +18,20 @@ public class MatchingWithMismatches {
             String t = tok.nextToken();
             List<Integer> ans = solve(k, s, t);
             out.format("%d ", ans.size());
-            out.println(ans.stream()
-                    .map(n -> String.valueOf(n))
-                    .collect(Collectors.joining(" "))
-            );
+            out.println(ans.stream().map(n -> String.valueOf(n)).collect(Collectors.joining(" ")));
         });
         out.close();
     }
 
-    static public void main(String[] args) {
-        new MatchingWithMismatches().run();
+    static void testSolution() {
+    }
+
+    static void runTest() {
+
+    }
+
+    static List<Integer> solve(int k, String text, String pattern) {
+        ArrayList<Integer> pos = new ArrayList<>();
+        return pos;
     }
 }
