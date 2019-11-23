@@ -27,7 +27,6 @@ public class MatchingWithMismatches {
     }
 
     static void runTest() {
-
     }
 
     static List<Integer> solve(int k, String text, String pattern) {

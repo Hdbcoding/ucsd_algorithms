@@ -7,16 +7,25 @@ import java.util.List;
 import java.util.StringTokenizer;
 
 public class PhoneBook {
-
-    private FastScanner in = new FastScanner();
-    // Keep list of all existing (i.e. not deleted yet) contacts.
-    private List<Contact> contacts = new ArrayList<>();
-
     public static void main(String[] args) {
-        new PhoneBook().processQueries();
+        runSolution();
+        testSolution();
     }
 
-    private Query readQuery() {
+    static void runSolution() {
+        FastScanner in = new FastScanner();
+        List<Contact> contacts = new ArrayList<>();
+        int queryCount = in.nextInt();
+        for (int i = 0; i < queryCount; ++i){
+            String result = processQuery(readQuery(in), contacts);
+            if (result != null) writeResponse(result);
+        }
+    }
+
+    static void testSolution() {
+    }
+
+    static Query readQuery(FastScanner in) {
         String type = in.next();
         int number = in.nextInt();
         if (type.equals("add")) {
@@ -27,12 +36,11 @@ public class PhoneBook {
         }
     }
 
-    private void writeResponse(String response) {
+    static void writeResponse(String response) {
         System.out.println(response);
     }
 
-
-    private void processQuery(Query query) {
+    static String processQuery(Query query, List<Contact> contacts) {
         if (query.type.equals("add")) {
             // if we already have contact with such number,
             // we should rewrite contact's name
@@ -47,26 +55,21 @@ public class PhoneBook {
             if (!wasFound)
                 contacts.add(new Contact(query.name, query.number));
         } else if (query.type.equals("del")) {
-            for (Iterator<Contact> it = contacts.iterator(); it.hasNext(); )
+            for (Iterator<Contact> it = contacts.iterator(); it.hasNext();)
                 if (it.next().number == query.number) {
                     it.remove();
                     break;
                 }
         } else {
             String response = "not found";
-            for (Contact contact: contacts)
+            for (Contact contact : contacts)
                 if (contact.number == query.number) {
                     response = contact.name;
                     break;
                 }
-            writeResponse(response);
+            return response;
         }
-    }
-
-    public void processQueries() {
-        int queryCount = in.nextInt();
-        for (int i = 0; i < queryCount; ++i)
-            processQuery(readQuery());
+        return null;
     }
 
     static class Contact {
@@ -96,7 +99,7 @@ public class PhoneBook {
         }
     }
 
-    class FastScanner {
+    static class FastScanner {
         BufferedReader br;
         StringTokenizer st;
 
