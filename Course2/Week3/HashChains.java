@@ -5,27 +5,49 @@ import java.util.StringTokenizer;
 
 public class HashChains {
 
-    private FastScanner in;
-    private PrintWriter out;
-    // store all strings in one list
-    private List<String> elems;
-    // for hash function
-    private int bucketCount;
-    private int prime = 1000000007;
-    private int multiplier = 263;
+    //  FastScanner in;
+    //  PrintWriter out;
+    // // store all strings in one list
+    //  List<String> elems;
+    // // for hash function
+    //  int bucketCount;
+    //  int prime = 1000000007;
+    //  int multiplier = 263;
 
     public static void main(String[] args) throws IOException {
         new HashChains().processQueries();
     }
 
-    private int hashFunc(String s) {
+    static void runSolution() throws IOException {
+        List<String> elems = new ArrayList<>();
+        FastScanner in = new FastScanner();
+        PrintWriter out = new PrintWriter(new BufferedOutputStream(System.out));
+        int bucketCount = in.nextInt();
+        int queryCount = in.nextInt();
+        for (int i = 0; i < queryCount; i++){
+            processQuery(readQuery(in), elems, out);
+        }
+        out.close();
+    }
+
+    static void testSolution(){
+
+    }
+
+    static void runTest(){
+
+    }
+
+    
+
+     int hashFunc(String s) {
         long hash = 0;
         for (int i = s.length() - 1; i >= 0; --i)
             hash = (hash * multiplier + s.charAt(i)) % prime;
         return (int)hash % bucketCount;
     }
 
-    private Query readQuery() throws IOException {
+     Query readQuery() throws IOException {
         String type = in.next();
         if (!type.equals("check")) {
             String s = in.next();
@@ -36,13 +58,13 @@ public class HashChains {
         }
     }
 
-    private void writeSearchResult(boolean wasFound) {
+     void writeSearchResult(boolean wasFound) {
         out.println(wasFound ? "yes" : "no");
         // Uncomment the following if you want to play with the program interactively.
         // out.flush();
     }
 
-    private void processQuery(Query query) {
+     void processQuery(Query query) {
         switch (query.type) {
             case "add":
                 if (!elems.contains(query.s))
@@ -68,17 +90,17 @@ public class HashChains {
         }
     }
 
-    public void processQueries() throws IOException {
-        elems = new ArrayList<>();
-        in = new FastScanner();
-        out = new PrintWriter(new BufferedOutputStream(System.out));
-        bucketCount = in.nextInt();
-        int queryCount = in.nextInt();
-        for (int i = 0; i < queryCount; ++i) {
-            processQuery(readQuery());
-        }
-        out.close();
-    }
+    // public void processQueries() throws IOException {
+    //     elems = new ArrayList<>();
+    //     in = new FastScanner();
+    //     out = new PrintWriter(new BufferedOutputStream(System.out));
+    //     bucketCount = in.nextInt();
+    //     int queryCount = in.nextInt();
+    //     for (int i = 0; i < queryCount; ++i) {
+    //         processQuery(readQuery());
+    //     }
+    //     out.close();
+    // }
 
     static class Query {
         String type;
@@ -97,8 +119,8 @@ public class HashChains {
     }
 
     static class FastScanner {
-        private BufferedReader reader;
-        private StringTokenizer tokenizer;
+         BufferedReader reader;
+         StringTokenizer tokenizer;
 
         public FastScanner() {
             reader = new BufferedReader(new InputStreamReader(System.in));
