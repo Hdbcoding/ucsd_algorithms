@@ -2,36 +2,38 @@ import java.util.*;
 import java.io.*;
 
 public class SubstringEquality {
-	public class Solver {
-		private String s;
-		public Solver(String s) {
-			this.s = s;
-		}
-		public boolean ask(int a, int b, int l) {
-			return s.substring(a, a + l).equals(s.substring(b, b + l));
-		}
+	static public void main(String[] args) throws IOException {
+		runSolution();
+		testSolution();
 	}
 
-	public void run() throws IOException {
+	static void runSolution() throws IOException {
 		FastScanner in = new FastScanner();
 		PrintWriter out = new PrintWriter(System.out);
 		String s = in.next();
 		int q = in.nextInt();
-		Solver solver = new Solver(s);
 		for (int i = 0; i < q; i++) {
 			int a = in.nextInt();
 			int b = in.nextInt();
 			int l = in.nextInt();
-			out.println(solver.ask(a, b, l) ? "Yes" : "No");
+			out.println(ask(s, a, b, l) ? "Yes" : "No");
 		}
 		out.close();
 	}
 
-	static public void main(String[] args) throws IOException {
-	    new SubstringEquality().run();
+	static void testSolution(){
+
 	}
 
-	class FastScanner {
+	static void runTest(){
+
+	}
+
+	static boolean ask(String s, int a, int b, int l) {
+		return s.substring(a, a + l).equals(s.substring(b, b + l));
+	}
+
+	static class FastScanner {
 		StringTokenizer tok = new StringTokenizer("");
 		BufferedReader in;
 
