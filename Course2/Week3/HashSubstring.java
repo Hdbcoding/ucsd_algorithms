@@ -100,9 +100,9 @@ public class HashSubstring {
         return hashes;
     }
 
-    static long pow_x(int pLength) {
+    static long pow_x(int l) {
         long y = 1;
-        for (int i = 0; i < pLength; i++){
+        for (int i = 0; i < l; i++){
             long v = y * x;
             y = safeModulo(v);
         }
