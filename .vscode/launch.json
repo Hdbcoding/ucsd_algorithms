@@ -6,6 +6,13 @@
     "configurations": [
         {
             "type": "java",
+            "name": "CodeLens (Launch) - SubstringEquality",
+            "request": "launch",
+            "mainClass": "SubstringEquality",
+            "projectName": "ucsd_algorithms_9b09e84f"
+        },
+        {
+            "type": "java",
             "name": "CodeLens (Launch) - HashSubstring",
             "request": "launch",
             "mainClass": "HashSubstring",
