@@ -3,8 +3,8 @@ import java.io.*;
 
 public class SubstringEquality {
 	static public void main(String[] args) throws IOException {
-		runSolution();
-		// testSolution();
+		// runSolution();
+		testSolution();
 	}
 
 	static void runSolution() throws IOException {
@@ -31,6 +31,156 @@ public class SubstringEquality {
 		runTest("trololo",
 				new Query[] { new Query(0, 0, 7), new Query(2, 4, 3), new Query(3, 5, 1), new Query(1, 3, 2) },
 				new String[] { "Yes", "Yes", "Yes", "No" });
+		// length 10
+		System.out.println("bbbabbabaa test 10");
+		runTest("bbbabbabaa", new Query[]{
+			new Query(0, 0, 10)
+		}, new String[]{
+			"Yes"
+		});
+		// length 9
+		System.out.println("bbbabbabaa test 9");
+		runTest("bbbabbabaa", new Query[]{
+			new Query(0, 1, 9),
+		}, new String[]{
+			"No"
+		});
+		// length 8 (3)
+		System.out.println("bbbabbabaa test 8");
+		runTest("bbbabbabaa", new Query[]{
+			new Query(0, 1, 8), new Query(0, 2, 8), 
+			new Query(1, 2, 8)
+		}, new String[]{
+			"No", "No", 
+			"No"
+		});
+		// length 7 (6)
+		System.out.println("bbbabbabaa test 7");
+		runTest("bbbabbabaa", new Query[]{
+			new Query(0, 1, 7), new Query(0, 2, 7), new Query(0, 3, 7), 
+			new Query(1, 2, 7), new Query(1, 3, 7), 
+			new Query(2, 3, 7)
+		}, new String[]{
+			"No", "No", "No", 
+			"No", "No", 
+			"No"
+		});
+		// length 6 (10)
+		System.out.println("bbbabbabaa test 6");
+		runTest("bbbabbabaa", new Query[]{
+			new Query(0, 1, 6), new Query(0, 2, 6), new Query(0, 3, 6), new Query(0, 4, 6), 
+			new Query(1, 2, 6), new Query(1, 3, 6), new Query(1, 4, 6), 
+			new Query(2, 3, 6), new Query(2, 4, 6), 
+			new Query(3, 4, 6)
+		}, new String[]{
+			"No", "No", "No", "No",
+			"No", "No", "No", 
+			"No", "No", 
+			"No"
+		});
+		// length 5 (15)
+		System.out.println("bbbabbabaa test 5");
+		runTest("bbbabbabaa", new Query[]{
+			new Query(0, 1, 5), new Query(0, 2, 5), new Query(0, 3, 5), new Query(0, 4, 5), new Query(0, 5, 5), 
+			new Query(1, 2, 5), new Query(1, 3, 5), new Query(1, 4, 5), new Query(1, 5, 5), 
+			new Query(2, 3, 5), new Query(2, 4, 5), new Query(2, 5, 5), 
+			new Query(3, 4, 5), new Query(3, 5, 5), 
+			new Query(4, 5, 5)
+		}, new String[]{
+			"No", "No", "No", "No", "No",
+			"No", "No", "No", "No",
+			"No", "No", "No", 
+			"No", "No", 
+			"No"
+		});
+		// length 4 (21)
+		System.out.println("bbbabbabaa test 4");
+		runTest("bbbabbabaa", new Query[]{
+			new Query(0, 1, 4), new Query(0, 2, 4), new Query(0, 3, 4), new Query(0, 4, 4), new Query(0, 5, 4), new Query(0, 6, 4), 
+			new Query(1, 2, 4), new Query(1, 3, 4), new Query(1, 4, 4), new Query(1, 5, 4), new Query(1, 6, 4), 
+			new Query(2, 3, 4), new Query(2, 4, 4), new Query(2, 5, 4), new Query(2, 6, 4), 
+			new Query(3, 4, 4), new Query(3, 5, 4), new Query(3, 6, 4), 
+			new Query(4, 5, 4), new Query(4, 6, 4), 
+			new Query(5, 6, 4)
+		}, new String[]{
+			"No", "No", "No", "No", "No", "No",
+			"No", "No", "Yes", "No", "No",
+			"No", "No", "No", "No",
+			"No", "No", "No", 
+			"No", "No", 
+			"No"
+		});
+		// length 3 (28)
+		System.out.println("bbbabbabaa test 3");
+		runTest("bbbabbabaa", new Query[]{
+			new Query(0, 1, 3), new Query(0, 2, 3), new Query(0, 3, 3), new Query(0, 4, 3), new Query(0, 5, 3), new Query(0, 6, 3), new Query(0, 7, 3),
+			new Query(1, 2, 3), new Query(1, 3, 3), new Query(1, 4, 3), new Query(1, 5, 3), new Query(1, 6, 3), new Query(1, 7, 3),
+			new Query(2, 3, 3), new Query(2, 4, 3), new Query(2, 5, 3), new Query(2, 6, 3), new Query(2, 7, 3),
+			new Query(3, 4, 3), new Query(3, 5, 3), new Query(3, 6, 3), new Query(3, 7, 3),
+			new Query(4, 5, 3), new Query(4, 6, 3), new Query(4, 7, 3),
+			new Query(5, 6, 3), new Query(5, 7, 3),
+			new Query(6, 7, 3)
+		}, new String[]{
+			"No", "No", "No", "No", "No", "No", "No",
+			"No", "No", "Yes", "No", "No", "No",
+			"No", "No", "Yes", "No", "No", 
+			"No", "No", "No", "No", 
+			"No", "No", "No", 
+			"No", "No", 
+			"No"
+		});
+		// length 2 (36)
+		System.out.println("bbbabbabaa test 2 - 0th index tests");
+		runTest("bbbabbabaa", new Query[]{
+			new Query(0, 1, 2), new Query(0, 2, 2), new Query(0, 3, 2), new Query(0, 4, 2), new Query(0, 5, 2), new Query(0, 6, 2), new Query(0, 7, 2), new Query(0, 8, 2)
+		}, new String[] {
+			"Yes", "No", "No", "Yes", "No", "No", "No", "No"
+		});
+		System.out.println("bbbabbabaa test 2 - 1+ index tests");
+		runTest("bbbabbabaa", new Query[]{
+			new Query(1, 2, 2), new Query(1, 3, 2), new Query(1, 4, 2), new Query(1, 5, 2), new Query(1, 6, 2), new Query(1, 7, 2), new Query(1, 8, 2),
+			new Query(2, 3, 2), new Query(2, 4, 2), new Query(2, 5, 2), new Query(2, 6, 2), new Query(2, 7, 2), new Query(2, 8, 2),
+			new Query(3, 4, 2), new Query(3, 5, 2), new Query(3, 6, 2), new Query(3, 7, 2), new Query(3, 8, 2),
+			new Query(4, 5, 2), new Query(4, 6, 2), new Query(4, 7, 2), new Query(4, 8, 2),
+			new Query(5, 6, 2), new Query(5, 7, 2), new Query(5, 8, 2),
+			new Query(6, 7, 2), new Query(6, 8, 2),
+			new Query(7, 8, 2)
+		}, new String[]{
+			"No", "No", "Yes", "No", "No", "No", "No",
+			"No", "No", "Yes", "No", "Yes", "No",
+			"No", "No", "Yes", "No", "No", 
+			"No", "No", "No", "No", 
+			"No", "Yes", "No", 
+			"No", "No", 
+			"No"
+		});
+		// length 1 (45)
+		System.out.println("bbbabbabaa test 1 - 0th index tests");
+		runTest("bbbabbabaa", new Query[]{
+			new Query(0, 1, 1), new Query(0, 2, 1), new Query(0, 3, 1), new Query(0, 4, 1), new Query(0, 5, 1), new Query(0, 6, 1), new Query(0, 7, 1), new Query(0, 8, 1), new Query(0, 9, 1)
+		}, new String[]{
+			"Yes", "Yes", "No", "Yes", "Yes", "No", "Yes", "No", "No"
+		});
+		System.out.println("bbbabbabaa test 1 - 1+ index tests");
+		runTest("bbbabbabaa", new Query[]{
+			new Query(1, 2, 1), new Query(1, 3, 1), new Query(1, 4, 1), new Query(1, 5, 1), new Query(1, 6, 1), new Query(1, 7, 1), new Query(1, 8, 1), new Query(1, 9, 1),
+			new Query(2, 3, 1), new Query(2, 4, 1), new Query(2, 5, 1), new Query(2, 6, 1), new Query(2, 7, 1), new Query(2, 8, 1), new Query(2, 9, 1),
+			new Query(3, 4, 1), new Query(3, 5, 1), new Query(3, 6, 1), new Query(3, 7, 1), new Query(3, 8, 1), new Query(3, 9, 1),
+			new Query(4, 5, 1), new Query(4, 6, 1), new Query(4, 7, 1), new Query(4, 8, 1), new Query(4, 9, 1),
+			new Query(5, 6, 1), new Query(5, 7, 1), new Query(5, 8, 1), new Query(5, 9, 1),
+			new Query(6, 7, 1), new Query(6, 8, 1), new Query(6, 9, 1),
+			new Query(7, 8, 1), new Query(7, 9, 1),
+			new Query(8, 9, 1)
+		}, new String[]{
+			"Yes", "No", "Yes", "Yes", "No", "Yes", "No", "No",
+			"No", "Yes", "Yes", "No", "Yes", "No", "No",
+			"No", "No", "Yes", "No", "Yes", "Yes",
+			"Yes", "No", "Yes", "No", "No", 
+			"No", "Yes", "No", "No", 
+			"No", "Yes", "Yes", 
+			"No", "No", 
+			"Yes"
+		});
 	}
 
 	static void runTest(String s, Query[] queries, String[] expected) {
@@ -63,7 +213,7 @@ public class SubstringEquality {
 			p1Hashes = new long[l];
 			p2Hashes = new long[l];
 
-			for (int i = 1; i < l; i++){
+			for (int i = 1; i < l; i++) {
 				char c = s.charAt(i);
 				setPrefixHash(p1, p1Hashes, i, c);
 				setPrefixHash(p2, p2Hashes, i, c);
@@ -71,7 +221,7 @@ public class SubstringEquality {
 		}
 
 		private void setPrefixHash(long p, long[] hashes, int i, char c) {
-			long v = x * hashes[i-1] + c;
+			long v = x * hashes[i - 1] + c;
 			hashes[i] = safeModulo(v, p);
 		}
 
@@ -93,7 +243,7 @@ public class SubstringEquality {
 
 		private long pow_x(int l, long p) {
 			long y = 1;
-			for (int i = 0; i < l; i++){
+			for (int i = 0; i < l; i++) {
 				long v = y * x;
 				y = safeModulo(v, p);
 			}
@@ -102,7 +252,8 @@ public class SubstringEquality {
 
 		private long getHashCode(int a, int l, long y, long p, long[] hashes) {
 			long v = hashes[a + l - 1];
-			if (a != 0) v -= y * hashes[a - 1];
+			if (a != 0)
+				v -= y * hashes[a - 1];
 			return safeModulo(v, p);
 		}
 	}
