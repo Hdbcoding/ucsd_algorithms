@@ -3,8 +3,9 @@ import java.io.*;
 
 public class SubstringEquality {
 	static public void main(String[] args) throws IOException {
-		runSolution();
+		// runSolution();
 		// testSolution();
+		stressTestSolution();
 	}
 
 	static void runSolution() throws IOException {
@@ -134,7 +135,7 @@ public class SubstringEquality {
 						"No", "No", "No", "No", "Yes", "No", "Yes", "Yes", "Yes", "No", "Yes", "No", "No", "No", "Yes",
 						"No", "No", "No", "Yes", "Yes", "No", "No", "Yes" });
 	}
-
+	
 	static void runTest(String s, Query[] queries, String[] expected) {
 		SubstringMatcher matcher = new DoubleHashingMatcher();
 		matcher.initialize(s);
@@ -148,6 +149,35 @@ public class SubstringEquality {
 		String eString = Arrays.toString(expected);
 		if (!aString.equals(eString))
 			System.out.println("Unexpected result, expected: " + eString + ", but got: " + aString);
+	}
+
+	static void stressTestSolution() {
+		runStressTest("trololo");
+		runStressTest("bbbabbabaa");
+		runStressTest("trololololololololo");
+		runStressTest("abcabcabcabcabcabcabcababababababcdddacbdcdddabcdddabcdddabcdabcdabcdddddabcdabcdbacdbabdbdbdbdbdhabcbdbdbdbdbddddddabcabcabcabcabcabcabcababababababcdddacbdcdddabcdddabcdddabcdabcdabcdddddabcdabcdbacdbabdbdbdbdbdhabcbdbdbdbdbddddddabcabcabcabcabcabcabcababababababcdddacbdcdddabcdddabcdddabcdabcdabcdddddabcdabcdbacdbabdbdbdbdbdhabcbdbdbdbdbddddddabcabcabcabcabcabcabcababababababcdddacbdcdddabcdddabcdddabcdabcdabcdddddabcdabcdbacdbabdbdbdbdbdhabcbdbdbdbdbddddddabcabcabcabcabcabcabcababababababcdddacbdcdddabcdddabcdddabcdabcdabcdddddabcdabcdbacdbabdbdbdbdbdhabcbdbdbdbdbddddddabcabcabcabcabcabcabcababababababcdddacbdcdddabcdddabcdddabcdabcdabcdddddabcdabcdbacdbabdbdbdbdbdhabcbdbdbdbdbddddddabcabcabcabcabcabcabcababababababcdddacbdcdddabcdddabcdddabcdabcdabcdddddabcdabcdbacdbabdbdbdbdbdhabcbdbdbdbdbddddddabcabcabcabcabcabcabcababababababcdddacbdcdddabcdddabcdddabcdabcdabcdddddabcdabcdbacdbabdbdbdbdbdhabcbdbdbdbdbdddddd");
+	}
+
+	static void runStressTest(String s){
+		System.out.println("Running stress test for string: " + s);
+		int l = s.length();
+		SubstringMatcher slow = new NaiveSubstringMatcher();
+		slow.initialize(s);
+		SubstringMatcher fast = new DoubleHashingMatcher();
+		fast.initialize(s);
+
+		for (int i = 0; i < l; i++) {
+			System.out.println("new i: " + i);
+			for (int j = i; j < l; j++) {
+				for (int k = l - j; k >= 1; k--){
+					boolean slowAnswer = slow.ask(i, j, k);
+					boolean fastAnswer = fast.ask(i, j, k);
+					if (slowAnswer != fastAnswer){
+						System.out.println("Different result between slow and fast for " + i + ", " + j + ", " + k);
+					}
+				}
+			}
+		}
 	}
 
 	static class DoubleHashingMatcher implements SubstringMatcher {
