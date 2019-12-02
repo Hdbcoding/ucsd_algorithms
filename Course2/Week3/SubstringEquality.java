@@ -3,9 +3,9 @@ import java.io.*;
 
 public class SubstringEquality {
 	static public void main(String[] args) throws IOException {
-		// runSolution();
+		runSolution();
 		// testSolution();
-		stressTestSolution();
+		// stressTestSolution();
 	}
 
 	static void runSolution() throws IOException {
@@ -166,12 +166,12 @@ public class SubstringEquality {
 		SubstringMatcher fast = new DoubleHashingMatcher();
 		fast.initialize(s);
 
-		for (int i = 0; i < l; i++) {
-			System.out.println("new i: " + i);
-			for (int j = i; j < l; j++) {
-				for (int k = l - j; k >= 1; k--){
-					boolean slowAnswer = slow.ask(i, j, k);
+		for (int k = 1; k <= l; k++){
+			System.out.println("new substring length: " + k + ". num substrings: " + (l - k + 1));
+			for (int i = 0; i <= l - k; i++){
+				for (int j = i; j <= l - k; j++){
 					boolean fastAnswer = fast.ask(i, j, k);
+					boolean slowAnswer = slow.ask(i, j, k);
 					if (slowAnswer != fastAnswer){
 						System.out.println("Different result between slow and fast for " + i + ", " + j + ", " + k);
 					}
@@ -182,18 +182,18 @@ public class SubstringEquality {
 
 	static class DoubleHashingMatcher implements SubstringMatcher {
 		String s;
-		long p1 = 1000000007;
-		long[] p1Hashes;
-		long p2 = 1000000009;
-		long[] p2Hashes;
-		long x = 31;
+		int p1 = 1000000007;
+		int[] p1Hashes;
+		int p2 = 1000000009;
+		int[] p2Hashes;
+		int x = 31;
 
 		@Override
 		public void initialize(String s) {
 			int l = s.length();
 			this.s = s;
-			p1Hashes = new long[l];
-			p2Hashes = new long[l];
+			p1Hashes = new int[l];
+			p2Hashes = new int[l];
 
 			p1Hashes[0] = s.charAt(0);
 			p2Hashes[0] = s.charAt(0);
@@ -205,13 +205,13 @@ public class SubstringEquality {
 			}
 		}
 
-		private void setPrefixHash(long p, long[] hashes, int i, char c) {
-			long v = x * hashes[i - 1] + c;
+		private void setPrefixHash(int p, int[] hashes, int i, char c) {
+			long v = (long)x * hashes[i - 1] + c;
 			hashes[i] = safeModulo(v, p);
 		}
 
-		private long safeModulo(long v, long p) {
-			return ((v % p) + p) % p;
+		private int safeModulo(long v, int p) {
+			return (int)((v % p) + p) % p;
 		}
 
 		@Override
@@ -219,24 +219,24 @@ public class SubstringEquality {
 			return hashesMatch(a, b, l, p1, p1Hashes) && hashesMatch(a, b, l, p2, p2Hashes);
 		}
 
-		private boolean hashesMatch(int a, int b, int l, long p, long[] hashes) {
-			long y = pow_x(l, p);
-			long aHash = getHashCode(a, l, y, p, hashes);
-			long bHash = getHashCode(b, l, y, p, hashes);
+		private boolean hashesMatch(int a, int b, int l, int p, int[] hashes) {
+			int y = pow_x(l, p);
+			int aHash = getHashCode(a, l, y, p, hashes);
+			int bHash = getHashCode(b, l, y, p, hashes);
 			return aHash == bHash;
 		}
 
-		private long pow_x(int l, long p) {
-			long y = 1;
+		private int pow_x(int l, int p) {
+			int y = 1;
 			for (int i = 0; i < l; i++) {
-				long v = y * x;
+				long v = (long)y * x;
 				y = safeModulo(v, p);
 			}
 			return y;
 		}
 
-		private long getHashCode(int a, int l, long y, long p, long[] hashes) {
-			long v = hashes[a + l - 1] - y * (a == 0 ? 0 : hashes[a - 1]);
+		private int getHashCode(int a, int l, int y, int p, int[] hashes) {
+			long v = hashes[a + l - 1] - (long)y * (a == 0 ? 0 : hashes[a - 1]);
 			return safeModulo(v, p);
 		}
 	}
