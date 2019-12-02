@@ -182,11 +182,13 @@ public class SubstringEquality {
 
 	static class DoubleHashingMatcher implements SubstringMatcher {
 		String s;
-		int p1 = 1000000007;
-		int[] p1Hashes;
-		int p2 = 1000000009;
-		int[] p2Hashes;
 		int x = 31;
+		int p1 = 1000000007;
+		int p2 = 1000000009;
+		int[] p1Hashes;
+		int[] p2Hashes;
+		int[] pow_x1;
+		int[] pow_x2;
 
 		@Override
 		public void initialize(String s) {
@@ -203,6 +205,22 @@ public class SubstringEquality {
 				setPrefixHash(p1, p1Hashes, i, c);
 				setPrefixHash(p2, p2Hashes, i, c);
 			}
+
+			pow_x1 = new int[l];
+			pow_x2 = new int[l];
+			int y1 = 1;
+			int y2 = 1;
+			for (int i = 0; i < l; i++) {
+				y1 = setPowX(y1, p1, pow_x1, i);
+				y2 = setPowX(y2, p2, pow_x2, i);
+			}
+		}
+
+		private int setPowX(int y, int p, int[] pow_x, int i) {
+			long v = (long)y * x;
+			y = safeModulo(v, p);
+			pow_x[i] = y;
+			return y;
 		}
 
 		private void setPrefixHash(int p, int[] hashes, int i, char c) {
@@ -216,23 +234,14 @@ public class SubstringEquality {
 
 		@Override
 		public boolean ask(int a, int b, int l) {
-			return hashesMatch(a, b, l, p1, p1Hashes) && hashesMatch(a, b, l, p2, p2Hashes);
+			return hashesMatch(a, b, l, p1, p1Hashes, pow_x1) && hashesMatch(a, b, l, p2, p2Hashes, pow_x2);
 		}
 
-		private boolean hashesMatch(int a, int b, int l, int p, int[] hashes) {
-			int y = pow_x(l, p);
+		private boolean hashesMatch(int a, int b, int l, int p, int[] hashes, int[] pow_x) {
+			int y = pow_x[l - 1];
 			int aHash = getHashCode(a, l, y, p, hashes);
 			int bHash = getHashCode(b, l, y, p, hashes);
 			return aHash == bHash;
-		}
-
-		private int pow_x(int l, int p) {
-			int y = 1;
-			for (int i = 0; i < l; i++) {
-				long v = (long)y * x;
-				y = safeModulo(v, p);
-			}
-			return y;
 		}
 
 		private int getHashCode(int a, int l, int y, int p, int[] hashes) {
