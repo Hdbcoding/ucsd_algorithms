@@ -59,13 +59,13 @@ public class CommonSubstring {
             String s = getRandomString();
             String t = getRandomString();
 
-            // naive.initialize(s, t);
+            naive.initialize(s, t);
             fast.initialize(s, t);
 
-            // Answer expected = naive.solve();
+            Answer expected = naive.solve();
             Answer actual = fast.solve();
 
-            // complainAboutDiscrepancy(s, t, expected, actual);
+            complainAboutDiscrepancy(s, t, expected, actual);
         }
     }
 
