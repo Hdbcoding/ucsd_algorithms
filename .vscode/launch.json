@@ -6,6 +6,13 @@
     "configurations": [
         {
             "type": "java",
+            "name": "CodeLens (Launch) - MatchingWithMismatches",
+            "request": "launch",
+            "mainClass": "MatchingWithMismatches",
+            "projectName": "ucsd_algorithms_9b09e84f"
+        },
+        {
+            "type": "java",
             "name": "CodeLens (Launch) - CommonSubstring",
             "request": "launch",
             "mainClass": "CommonSubstring",
