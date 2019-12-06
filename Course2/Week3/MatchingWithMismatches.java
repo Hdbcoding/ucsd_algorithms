@@ -26,11 +26,9 @@ public class MatchingWithMismatches {
     }
 
     static void testSolution() {
-        // runMismatchTests();
-
+        runNextMismatchTests();
         runIsMatchTests();
-
-        // runFullTests();
+        runFullTests();
     }
 
     static void runFullTests() {
@@ -89,7 +87,6 @@ public class MatchingWithMismatches {
         boolean actual = matcher.isMatch(k, i);
         if (actual != expected)
             System.out.println("Unexpected match. Expected: " + expected + ", but got: " + actual);
-
     }
 
     static int x = 31;
@@ -133,7 +130,7 @@ public class MatchingWithMismatches {
 
         boolean isMatch(int k, int i) {
             int misMatches = 0;
-            int end = i + t.length();
+            int end = i + t.length() - 1;
             int orig_i = i;
             while (i <= end) {
                 i = findNextMismatch(orig_i, i, end);
