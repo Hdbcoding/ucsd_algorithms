@@ -5,7 +5,8 @@ import java.io.*;
 public class MatchingWithMismatches {
     static public void main(String[] args) {
         // runSolution();
-        testSolution();
+        // testSolution();
+        runStressTest();
     }
 
     static void runSolution() {
@@ -74,19 +75,68 @@ public class MatchingWithMismatches {
             System.out.println("Unexpected mismatch. Expected: " + expected + ", but got: " + actual);
     }
 
-    static void runIsMatchTests(){
+    static void runIsMatchTests() {
         isMatchTest("ababab", "baaa", 1, 0, false);
         isMatchTest("ababab", "baaa", 1, 1, true);
         isMatchTest("ababab", "baaa", 1, 2, false);
     }
 
-    static void isMatchTest(String s, String t, int k, int i, boolean expected){
-        System.out.println("Checking is match: " + s + ", " + t + ", at " + i + " with " + k + " mismatche(s) allowed.");
+    static void isMatchTest(String s, String t, int k, int i, boolean expected) {
+        System.out
+                .println("Checking is match: " + s + ", " + t + ", at " + i + " with " + k + " mismatche(s) allowed.");
         HashingMismatchMatcher matcher = new HashingMismatchMatcher();
         matcher.initialize(s, t);
         boolean actual = matcher.isMatch(k, i);
         if (actual != expected)
             System.out.println("Unexpected match. Expected: " + expected + ", but got: " + actual);
+    }
+
+    private static void runStressTest() {
+        MismatchMatcher slow = new NaiveMismatchMatcher();
+        MismatchMatcher fast = new HashingMismatchMatcher();
+
+        for (int i = 0; i < 1000; i++) {
+            if ((i % 10) == 0) {
+                System.out.println(i);
+            }
+            String s = getRandomString();
+            String t = getRandomString();
+            String longer = s.length() >= t.length() ? s : t;
+            String shorter = s.length() >= t.length() ? t : s;
+
+            slow.initialize(longer, shorter);
+            fast.initialize(longer, shorter);
+
+            for (int k = 0; k < shorter.length(); k++) {
+                List<Integer> expected = slow.solve(k);
+                List<Integer> actual = fast.solve(k);
+
+                complainAboutDiscrepancy(longer, shorter, k, expected, actual);
+            }
+        }
+    }
+
+    private static void complainAboutDiscrepancy(String s, String t, int k, List<Integer> expected,
+            List<Integer> actual) {
+        String expectedString = Arrays.toString(expected.toArray());
+        String actualString = Arrays.toString(actual.toArray());
+
+        if (!expectedString.equals(actualString))
+            System.out.println("Unexpected result for " + s + ", " + t + ", " + k + ". Expected: " + expectedString
+                    + ", actual: " + actualString);
+    }
+
+    static String getRandomString() {
+        int leftLimit = 97; // letter 'a'
+        int rightLimit = 122; // letter 'z'
+        Random random = new Random();
+        int targetStringLength = random.nextInt(500) + 1;
+        StringBuilder buffer = new StringBuilder(targetStringLength);
+        for (int i = 0; i < targetStringLength; i++) {
+            int randomLimitedInt = leftLimit + (int) (random.nextFloat() * (rightLimit - leftLimit + 1));
+            buffer.append((char) randomLimitedInt);
+        }
+        return buffer.toString();
     }
 
     static int x = 31;
@@ -159,8 +209,9 @@ public class MatchingWithMismatches {
         boolean matchingSubstrings(int s_i, int t_i, int len) {
             int sHash1 = s_helper.getHashCode1(s_i, len);
             int tHash1 = t_helper.getHashCode1(t_i, len);
-            if (sHash1 != tHash1) return false;
-            
+            if (sHash1 != tHash1)
+                return false;
+
             int sHash2 = s_helper.getHashCode2(s_i, len);
             int tHash2 = t_helper.getHashCode2(t_i, len);
             return sHash2 == tHash2;
