@@ -85,15 +85,13 @@ public class CommonSubstring {
     static int x = 31;
     static int p1 = 1000000007;
     static int p2 = 1000000009;
+    static int[] pow_x1;
+    static int[] pow_x2;
 
     static class HashingSubstringFinder implements CommonSubstringFinder {
         String s;
-        String t;
-
-        int[] pow_x1;
-        int[] pow_x2;
-
         HashHelper s_helper;
+        String t;
         HashHelper t_helper;
 
         @Override
@@ -106,44 +104,7 @@ public class CommonSubstring {
             t_helper = new HashHelper(t);
             t_helper.initialize();
 
-            buildPowersOfX();
-        }
-
-        void buildPowersOfX() {
-            int l = Math.max(s_helper.l, t_helper.l);
-            if (pow_x1 == null)
-                buildPowersOfXFromScratch(l);
-            else if (pow_x1.length < l)
-                expandPowersOfX(l);
-        }
-
-        void buildPowersOfXFromScratch(int l) {
-            pow_x1 = new int[l];
-            pow_x2 = new int[l];
-            int y1 = 1;
-            int y2 = 1;
-            for (int i = 0; i < l; i++) {
-                y1 = setPowX(y1, p1, pow_x1, i);
-                y2 = setPowX(y2, p2, pow_x2, i);
-            }
-        }
-
-        void expandPowersOfX(int l) {
-            int[] pow_x1_new = new int[l];
-            int[] pow_x2_new = new int[l];
-            int i = 0;
-            for (; i < pow_x1.length; i++) {
-                pow_x1_new[i] = pow_x1[i];
-                pow_x2_new[i] = pow_x2[i];
-            }
-            int y1 = pow_x1[i - 1];
-            int y2 = pow_x2[i - 1];
-            for (; i < l; i++) {
-                y1 = setPowX(y1, p1, pow_x1_new, i);
-                y2 = setPowX(y2, p2, pow_x2_new, i);
-            }
-            pow_x1 = pow_x1_new;
-            pow_x2 = pow_x2_new;
+            buildPowersOfX(Math.max(s_helper.l, t_helper.l));
         }
 
         @Override
@@ -318,6 +279,43 @@ public class CommonSubstring {
         return (int) ((v % p) + p) % p;
     }
 
+
+    static void buildPowersOfX(int l) {
+        if (pow_x1 == null)
+            buildPowersOfXFromScratch(l);
+        else if (pow_x1.length < l)
+            expandPowersOfX(l);
+    }
+
+    static void buildPowersOfXFromScratch(int l) {
+        pow_x1 = new int[l];
+        pow_x2 = new int[l];
+        int y1 = 1;
+        int y2 = 1;
+        for (int i = 0; i < l; i++) {
+            y1 = setPowX(y1, p1, pow_x1, i);
+            y2 = setPowX(y2, p2, pow_x2, i);
+        }
+    }
+
+    static void expandPowersOfX(int l) {
+        int[] pow_x1_new = new int[l];
+        int[] pow_x2_new = new int[l];
+        int i = 0;
+        for (; i < pow_x1.length; i++) {
+            pow_x1_new[i] = pow_x1[i];
+            pow_x2_new[i] = pow_x2[i];
+        }
+        int y1 = pow_x1[i - 1];
+        int y2 = pow_x2[i - 1];
+        for (; i < l; i++) {
+            y1 = setPowX(y1, p1, pow_x1_new, i);
+            y2 = setPowX(y2, p2, pow_x2_new, i);
+        }
+        pow_x1 = pow_x1_new;
+        pow_x2 = pow_x2_new;
+    }
+    
     static int setPowX(int y, int p, int[] pow_x, int i) {
         long v = (long) y * x;
         y = safeModulo(v, p);
