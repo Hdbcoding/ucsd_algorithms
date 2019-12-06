@@ -96,18 +96,25 @@ public class MatchingWithMismatches {
         MismatchMatcher fast = new HashingMismatchMatcher();
 
         for (int i = 0; i < 1000; i++) {
-            if ((i % 10) == 0) {
-                System.out.println(i);
-            }
             String s = getRandomString();
             String t = getRandomString();
             String longer = s.length() >= t.length() ? s : t;
             String shorter = s.length() >= t.length() ? t : s;
 
+            
+            if ((i % 10) == 0) {
+                System.out.println(i);
+                System.out.println("Current strings: " + longer + ", " + shorter);
+            }
+
             slow.initialize(longer, shorter);
             fast.initialize(longer, shorter);
 
             for (int k = 0; k < shorter.length(); k++) {
+                if ((i % 10) == 0 && k % 10 == 0) {
+                    System.out.println("Current k: " + k);
+                }
+
                 List<Integer> expected = slow.solve(k);
                 List<Integer> actual = fast.solve(k);
 
