@@ -4,15 +4,15 @@ import java.io.*;
 
 public class MatchingWithMismatches {
     static public void main(String[] args) {
-        // runSolution();
+        runSolution();
         // testSolution();
-        runStressTest();
+        // runStressTest();
     }
 
     static void runSolution() {
         BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
         PrintWriter out = new PrintWriter(System.out);
-        MismatchMatcher matcher = new NaiveMismatchMatcher();
+        MismatchMatcher matcher = new HashingMismatchMatcher();
         in.lines().forEach(line -> {
             StringTokenizer tok = new StringTokenizer(line);
             int k = Integer.valueOf(tok.nextToken());
@@ -214,6 +214,8 @@ public class MatchingWithMismatches {
         }
 
         boolean matchingSubstrings(int s_i, int t_i, int len) {
+            if (len == 1) return s.charAt(s_i) == t.charAt(t_i);
+
             int sHash1 = s_helper.getHashCode1(s_i, len);
             int tHash1 = t_helper.getHashCode1(t_i, len);
             if (sHash1 != tHash1)
