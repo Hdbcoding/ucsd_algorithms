@@ -210,7 +210,6 @@ public class SetRangeSum {
         return ans;
     }
 
-
     public static final int MODULO = 1000000001;
 
     void solve() throws IOException {
@@ -268,6 +267,7 @@ public class SetRangeSum {
     int nextInt() throws IOException {
         return Integer.parseInt(nextToken());
     }
+    
     char nextChar() throws IOException {
         return nextToken().charAt(0);
     }

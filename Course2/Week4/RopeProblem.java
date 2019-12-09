@@ -40,6 +40,7 @@ class RopeProblem {
 	public static void main( String[] args ) throws IOException {
 		new RopeProblem().run();
 	}
+	
 	public void run() throws IOException {
 		FastScanner in = new FastScanner();
 		PrintWriter out = new PrintWriter(System.out);
