@@ -3,7 +3,8 @@ import java.util.*;
 
 class RopeProblem {
 	public static void main(String[] args) throws IOException {
-		runSolution();
+		// runSolution();
+		testSolution();
 	}
 
 	static void runSolution() throws IOException {

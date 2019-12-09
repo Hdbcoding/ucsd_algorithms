@@ -6,7 +6,8 @@ public class SetRangeSum {
     static int last_sum_result = 0;
 
     public static void main(String[] args) throws IOException {
-        runSolution();
+        // runSolution();
+        testSolution();
     }
 
     static void runSolution() throws IOException {

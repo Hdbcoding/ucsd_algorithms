@@ -3,7 +3,7 @@ import java.io.*;
 
 public class is_bst_hard {
     static public void main(String[] args) throws IOException {
-        runSolutionWithTallStack();
+        // runSolutionWithTallStack();
         testSolution();
     }
 
