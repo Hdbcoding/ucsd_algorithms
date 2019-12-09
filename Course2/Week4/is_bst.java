@@ -52,7 +52,7 @@ public class is_bst {
             System.out.println("Unexpected result of " + actual + " for tree " + solver);
     }
 
-    private static Node[] processData(int[] data) {
+    static Node[] processData(int[] data) {
         Node[] tree = new Node[data.length / 3];
         for (int i = 0; i < tree.length; i++) {
             tree[i] = new Node(data[i * 3], data[i * 3 + 1], data[i * 3 + 2]);
