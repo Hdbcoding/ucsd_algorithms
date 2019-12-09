@@ -13,36 +13,62 @@ public class SetRangeSum {
         FastScanner in = new FastScanner();
         PrintWriter out = new PrintWriter(System.out);
 
-        solve(in, out);
-        out.close();
-    }
-
-    static void solve(FastScanner in, PrintWriter out) throws IOException {
         int n = in.nextInt();
         SplayTree tree = new SplayTree();
         for (int i = 0; i < n; i++) {
             Query q = Query.read(in);
             String s = processQuery(tree, q);
-            if (s != null) out.println(s);
+            if (s != null)
+                out.println(s);
         }
+        out.close();
     }
 
-    static String processQuery(SplayTree tree, Query q){
+    static String processQuery(SplayTree tree, Query q) {
         switch (q.type) {
-            case '+': 
-                tree.insert((q.arg1 + last_sum_result) % MODULO);
-                break;
-            case '-': 
-                tree.erase((q.arg1 + last_sum_result) % MODULO);
-                break;
-            case '?': 
-                return (tree.find((q.arg1 + last_sum_result) % MODULO) ? "Found" : "Not found");
-            case 's': 
-                long res = tree.sum((q.arg1 + last_sum_result) % MODULO, (q.arg2 + last_sum_result) % MODULO);
-                last_sum_result = (int) (res % MODULO);
-                return res + "";
-            }
+        case '+':
+            tree.insert((q.arg1 + last_sum_result) % MODULO);
+            break;
+        case '-':
+            tree.erase((q.arg1 + last_sum_result) % MODULO);
+            break;
+        case '?':
+            return (tree.find((q.arg1 + last_sum_result) % MODULO) ? "Found" : "Not found");
+        case 's':
+            long res = tree.sum((q.arg1 + last_sum_result) % MODULO, (q.arg2 + last_sum_result) % MODULO);
+            last_sum_result = (int) (res % MODULO);
+            return res + "";
+        }
         return null;
+    }
+
+    static void testSolution() {
+        runTest(new Query[] { new Query('?', 1), new Query('+', 1), new Query('?', 1), new Query('+', 2),
+                new Query('s', 1, 2), new Query('+', 1000000000), new Query('?', 1000000000),
+                new Query('-', 1000000000), new Query('?', 1000000000), new Query('s', 999999999, 1000000000),
+                new Query('-', 2), new Query('?', 2), new Query('-', 0), new Query('+', 9), new Query('s', 0, 9) },
+                new String[] { "Not found", "Found", "3", "Found", "Not found", "1", "Not found", "10" });
+        runTest(new Query[] { new Query('?', 0), new Query('+', 0), new Query('?', 0), new Query('-', 0),
+                new Query('?', 0) }, new String[] { "Not found", "Found", "Not found" });
+        runTest(new Query[] { new Query('+', 491572259), new Query('?', 491572259), new Query('?', 899375874),
+                new Query('s', 310971296, 877523306), new Query('+', 352411209), },
+                new String[] { "Found", "Not found", "491572259" });
+    }
+
+    static void runTest(Query[] queries, String[] expected) {
+        ArrayList<String> actual = new ArrayList<>();
+        last_sum_result = 0;
+        SplayTree tree = new SplayTree();
+        for (int i = 0; i < queries.length; i++) {
+            String s = processQuery(tree, queries[i]);
+            if (s != null)
+                actual.add(s);
+        }
+
+        String actualString = Arrays.toString(actual.toArray());
+        String expectedString = Arrays.toString(expected);
+        if (!expectedString.equals(actualString))
+            System.out.println("Unexpected result, expected: " + expected + ", but got: " + actual);
     }
 
     static class SplayTree {
