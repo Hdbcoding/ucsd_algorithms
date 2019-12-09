@@ -6,6 +6,48 @@
     "configurations": [
         {
             "type": "java",
+            "name": "CodeLens (Launch) - MatchingWithMismatches",
+            "request": "launch",
+            "mainClass": "MatchingWithMismatches",
+            "projectName": "ucsd_algorithms_9b09e84f"
+        },
+        {
+            "type": "java",
+            "name": "CodeLens (Launch) - CommonSubstring",
+            "request": "launch",
+            "mainClass": "CommonSubstring",
+            "projectName": "ucsd_algorithms_9b09e84f"
+        },
+        {
+            "type": "java",
+            "name": "CodeLens (Launch) - SubstringEquality",
+            "request": "launch",
+            "mainClass": "SubstringEquality",
+            "projectName": "ucsd_algorithms_9b09e84f"
+        },
+        {
+            "type": "java",
+            "name": "CodeLens (Launch) - HashSubstring",
+            "request": "launch",
+            "mainClass": "HashSubstring",
+            "projectName": "ucsd_algorithms_9b09e84f"
+        },
+        {
+            "type": "java",
+            "name": "CodeLens (Launch) - HashChains",
+            "request": "launch",
+            "mainClass": "HashChains",
+            "projectName": "ucsd_algorithms_9b09e84f"
+        },
+        {
+            "type": "java",
+            "name": "CodeLens (Launch) - PhoneBook",
+            "request": "launch",
+            "mainClass": "PhoneBook",
+            "projectName": "ucsd_algorithms_9b09e84f"
+        },
+        {
+            "type": "java",
             "name": "CodeLens (Launch) - MergingTables",
             "request": "launch",
             "mainClass": "MergingTables",

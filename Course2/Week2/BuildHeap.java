@@ -49,8 +49,6 @@ public class BuildHeap {
     // and saves the resulting sequence of swaps.
     // This turns the given array into a heap,
     // but in the worst case gives a quadratic number of swaps.
-    //
-    // TODO: replace by a more efficient implementation
     for (int i = 0; i < data.length; ++i) {
       for (int j = i + 1; j < data.length; ++j) {
         if (data[i] > data[j]) {
