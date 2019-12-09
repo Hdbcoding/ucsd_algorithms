@@ -3,10 +3,10 @@ import java.util.*;
 
 class RopeProblem {
 	public static void main(String[] args) throws IOException {
-		new RopeProblem().run();
+		runSolution();
 	}
 
-	public void run() throws IOException {
+	static void runSolution() throws IOException {
 		FastScanner in = new FastScanner();
 		PrintWriter out = new PrintWriter(System.out);
 		Rope rope = new Rope(in.next());
@@ -20,8 +20,27 @@ class RopeProblem {
 		out.close();
 	}
 
-	class Rope {
+	static void testSolution() {
+		runTest("hlelowrold", new Query[] { new Query(1, 1, 2), new Query(6, 6, 7) }, "helloworld");
+		runTest("abcdef", new Query[] { new Query(0, 1, 1), new Query(4, 5, 0) }, "efcabd");
+	}
+
+	static void runTest(String word, Query[] queries, String expected) {
+		Rope r = new Rope(word);
+		for (Query q : queries) {
+			r.process(q.i, q.j, q.k);
+		}
+		String actual = r.result();
+		if (!actual.equals(expected))
+			System.out.println("Unexpected result on word " + word + ". Expected " + expected + ", but got: " + actual);
+	}
+
+	static class Rope {
 		String s;
+
+		Rope(String s) {
+			this.s = s;
+		}
 
 		void process(int i, int j, int k) {
 			// Replace this code with a faster implementation
@@ -32,13 +51,21 @@ class RopeProblem {
 		String result() {
 			return s;
 		}
+	}
 
-		Rope(String s) {
-			this.s = s;
+	static class Query {
+		int i;
+		int j;
+		int k;
+
+		Query(int i, int j, int k) {
+			this.i = i;
+			this.j = j;
+			this.k = k;
 		}
 	}
 
-	class FastScanner {
+	static class FastScanner {
 		StringTokenizer tok = new StringTokenizer("");
 		BufferedReader in;
 

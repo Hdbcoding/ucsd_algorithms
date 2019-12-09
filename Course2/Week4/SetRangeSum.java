@@ -59,8 +59,8 @@ public class SetRangeSum {
         ArrayList<String> actual = new ArrayList<>();
         last_sum_result = 0;
         SplayTree tree = new SplayTree();
-        for (int i = 0; i < queries.length; i++) {
-            String s = processQuery(tree, queries[i]);
+        for (Query q : queries) {
+            String s = processQuery(tree, q);
             if (s != null)
                 actual.add(s);
         }
