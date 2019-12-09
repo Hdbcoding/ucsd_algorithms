@@ -9,13 +9,10 @@ public class tree_orders {
 	}
 
 	static void runSolutionWithTallStack() {
-		new Thread(null, new Runnable() {
-			public void run() {
-				try {
-					runSolution();
-				} catch (IOException e) {
-				}
-			}
+		new Thread(null, () -> {
+			try {
+				runSolution();
+			} catch (IOException e) {}
 		}, "1", 1 << 26).start();
 	}
 
