@@ -6,6 +6,20 @@
     "configurations": [
         {
             "type": "java",
+            "name": "CodeLens (Launch) - is_bst",
+            "request": "launch",
+            "mainClass": "is_bst",
+            "projectName": "ucsd_algorithms_9b09e84f"
+        },
+        {
+            "type": "java",
+            "name": "CodeLens (Launch) - tree_orders",
+            "request": "launch",
+            "mainClass": "tree_orders",
+            "projectName": "ucsd_algorithms_9b09e84f"
+        },
+        {
+            "type": "java",
             "name": "CodeLens (Launch) - MatchingWithMismatches",
             "request": "launch",
             "mainClass": "MatchingWithMismatches",

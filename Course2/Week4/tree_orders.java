@@ -4,8 +4,8 @@ import java.io.*;
 public class tree_orders {
 
 	static public void main(String[] args) {
-		// runSolutionWithTallStack();
-		testSolution();
+		runSolutionWithTallStack();
+		// testSolution();
 	}
 
 	static void runSolutionWithTallStack() {
@@ -89,23 +89,85 @@ public class tree_orders {
 		TreeNode root;
 
 		void AssembleTree(ProblemInstance p) {
+			HashMap<Integer, TreeNode> map = new HashMap<>();
+			for (int i = 0; i < p.key.length; i++){
+				TreeNode node = FindOrCreateNode(p.key, i, map);
+				AddLeftChild(node, p.key, p.left[i], map);
+				AddRightChild(node, p.key, p.right[i], map);
+				UpdateRoot(node);
+			}
+		}
+
+		private TreeNode FindOrCreateNode(int[] keys, int index, HashMap<Integer, TreeNode> map) {
+			if (index == -1) return null;
+			if (map.containsKey(index)) return map.get(index);
+			TreeNode n = new TreeNode(keys[index]);
+			map.put(index, n);
+			return n;
+		}
+
+		private void AddLeftChild(TreeNode node,int[] keys, int index, HashMap<Integer, TreeNode> map) {
+			TreeNode left = FindOrCreateNode(keys, index, map);
+			if (left != null){
+				node.left = left;
+				left.parent = node;
+			}
+		}
+
+		private void AddRightChild(TreeNode node, int[] keys, int index, HashMap<Integer, TreeNode> map) {
+			TreeNode right = FindOrCreateNode(keys, index, map);
+			if (right != null){
+				node.right = right;
+				right.parent = node;
+			}
+		}
+
+		private void UpdateRoot(TreeNode node) {
+			while (node.parent != null)
+				node = node.parent;
+			root = node;
 		}
 
 		List<Integer> inOrder() {
-			return new ArrayList<Integer>();
+			return inOrderRecursive(root, new ArrayList<Integer>());
+		}
+
+		private List<Integer> inOrderRecursive(TreeNode n, ArrayList<Integer> list) {
+			if (n == null) return list;
+			inOrderRecursive(n.left, list);
+			list.add(n.value);
+			inOrderRecursive(n.right, list);
+			return list;
 		}
 
 		List<Integer> preOrder() {
-			return new ArrayList<Integer>();
+			return preOrderRecursive(root, new ArrayList<Integer>());
+		}
+
+		private List<Integer> preOrderRecursive(TreeNode n, ArrayList<Integer> list) {
+			if (n == null) return list;
+			list.add(n.value);
+			preOrderRecursive(n.left, list);
+			preOrderRecursive(n.right, list);
+			return list;
 		}
 
 		List<Integer> postOrder() {
-			return new ArrayList<Integer>();
+			return postOrderRecursive(root, new ArrayList<Integer>());
+		}
+
+		private List<Integer> postOrderRecursive(TreeNode n, ArrayList<Integer> list) {
+			if (n == null) return list;
+			postOrderRecursive(n.left, list);
+			postOrderRecursive(n.right, list);
+			list.add(n.value);
+			return list;
 		}
 	}
 
 	static class TreeNode {
 		int value;
+		TreeNode parent;
 		TreeNode left;
 		TreeNode right;
 

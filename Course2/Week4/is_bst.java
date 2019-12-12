@@ -3,10 +3,12 @@ import java.io.*;
 
 public class is_bst {
     static public void main(String[] args) throws IOException {
+        runSolution();
         // runSolutionWithTallStack();
-        testSolution();
+        // testSolution();
     }
 
+    // implemented in-order traversal with a stack, so no need for tall call stack
     static void runSolutionWithTallStack() {
         new Thread(null, () -> {
             try {
@@ -68,13 +70,44 @@ public class is_bst {
         }
 
         boolean isBinarySearchTree() {
+            if (tree == null || tree.length == 0)
+                return true;
+
             // Implement correct algorithm here
+            Stack<Node> toVisit = new Stack<Node>();
+            Node current = tree[0];
+            int prev = 0;
+            boolean gotFirstNode = false;
+            while (current != null || !toVisit.isEmpty()) {
+                while (current != null) {
+                    toVisit.push(current);
+                    current = getLeftChild(current);
+                }
+                current = toVisit.pop();
+                if (gotFirstNode && current.key < prev)
+                    return false;
+                prev = current.key;
+                gotFirstNode = true;
+                current = getRightChild(current);
+            }
             return true;
+        }
+
+        private Node getLeftChild(Node current) {
+            if (current == null || current.left == -1)
+                return null;
+            return tree[current.left];
+        }
+
+        private Node getRightChild(Node current) {
+            if (current == null || current.right == -1)
+                return null;
+            return tree[current.right];
         }
 
         @Override
         public String toString() {
-            return "";
+            return Arrays.toString(tree);
         }
     }
 
@@ -87,6 +120,11 @@ public class is_bst {
             this.left = left;
             this.right = right;
             this.key = key;
+        }
+
+        @Override
+        public String toString() {
+            return "{ key: " + key + ", left: " + left + ", right: " + right + " }";
         }
     }
 
