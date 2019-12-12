@@ -3,8 +3,9 @@ import java.io.*;
 
 public class is_bst_hard {
     static public void main(String[] args) throws IOException {
+        runSolution();
         // runSolutionWithTallStack();
-        testSolution();
+        // testSolution();
     }
 
     static void runSolutionWithTallStack() {
@@ -73,13 +74,57 @@ public class is_bst_hard {
         }
 
         boolean isBinarySearchTree() {
+            if (tree == null || tree.length == 0)
+                return true;
+
             // Implement correct algorithm here
+            Stack<Node> toVisit = new Stack<Node>();
+            Node current = tree[0];
+            Node prev = null;
+            while (current != null || !toVisit.isEmpty()) {
+                while (current != null) {
+                    toVisit.push(current);
+                    current = getLeftChild(current);
+                }
+                current = toVisit.pop();
+                if (prev != null){
+                    if (current.key < prev.key) return false;
+                    if (current.key == prev.key && isLeftDescendant(prev, current)) return false;
+                }
+                prev = current;
+                current = getRightChild(current);
+            }
             return true;
+        }
+
+        // checks if prev is a left descendant of current.
+        // prev and current have the same key, but current comes after prev in the tree
+        // so, current should be in the right child tree of prev
+        private boolean isLeftDescendant(Node prev, Node current) {
+            current = getLeftChild(current);
+            while (current != null){
+                if (current == prev) return true;
+                if (current.key < prev.key) current = getLeftChild(current);
+                else current = getRightChild(current);
+            }
+            return false;
+        }
+
+        private Node getLeftChild(Node current) {
+            if (current == null || current.left == -1)
+                return null;
+            return tree[current.left];
+        }
+
+        private Node getRightChild(Node current) {
+            if (current == null || current.right == -1)
+                return null;
+            return tree[current.right];
         }
 
         @Override
         public String toString() {
-            return "";
+            return Arrays.toString(tree);
         }
     }
 
@@ -92,6 +137,11 @@ public class is_bst_hard {
             this.left = left;
             this.right = right;
             this.key = key;
+        }
+
+        @Override
+        public String toString() {
+            return "{ key: " + key + ", left: " + left + ", right: " + right + " }";
         }
     }
 

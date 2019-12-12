@@ -6,6 +6,13 @@
     "configurations": [
         {
             "type": "java",
+            "name": "CodeLens (Launch) - is_bst_hard",
+            "request": "launch",
+            "mainClass": "is_bst_hard",
+            "projectName": "ucsd_algorithms_9b09e84f"
+        },
+        {
+            "type": "java",
             "name": "CodeLens (Launch) - is_bst",
             "request": "launch",
             "mainClass": "is_bst",
