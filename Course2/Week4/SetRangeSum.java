@@ -1,4 +1,5 @@
 import java.io.*;
+import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
 public class SetRangeSum {
@@ -7,7 +8,7 @@ public class SetRangeSum {
 
     public static void main(String[] args) throws IOException {
         // runSolution();
-        testSolution();
+        SetRangeSum.<SimpleTree>testSolution();
     }
 
     static void runSolution() throws IOException {
@@ -25,41 +26,46 @@ public class SetRangeSum {
         out.close();
     }
 
-    static String processQuery(SplayTree tree, Query q) {
+    static String processQuery(SummingSet tree, Query q) {
         switch (q.type) {
         case '+':
-            tree.insert((q.arg1 + last_sum_result) % MODULO);
+            tree.add(getModulatedInput(q.arg1));
             break;
         case '-':
-            tree.erase((q.arg1 + last_sum_result) % MODULO);
+            tree.delete(getModulatedInput(q.arg1));
             break;
         case '?':
-            return (tree.find((q.arg1 + last_sum_result) % MODULO) ? "Found" : "Not found");
+            return (tree.contains(getModulatedInput(q.arg1)) ? "Found" : "Not found");
         case 's':
-            long res = tree.sum((q.arg1 + last_sum_result) % MODULO, (q.arg2 + last_sum_result) % MODULO);
+            long res = tree.sum(getModulatedInput(q.arg1), getModulatedInput(q.arg2));
             last_sum_result = (int) (res % MODULO);
             return res + "";
         }
         return null;
     }
 
-    static void testSolution() {
-        runTest(new Query[] { new Query('?', 1), new Query('+', 1), new Query('?', 1), new Query('+', 2),
+    private static int getModulatedInput(int arg) {
+        return (arg + last_sum_result) % MODULO;
+    }
+
+    static <T extends SummingSet> void testSolution() {
+        SetRangeSum.<T>runTest(new Query[] { new Query('?', 1), new Query('+', 1), new Query('?', 1), new Query('+', 2),
                 new Query('s', 1, 2), new Query('+', 1000000000), new Query('?', 1000000000),
                 new Query('-', 1000000000), new Query('?', 1000000000), new Query('s', 999999999, 1000000000),
                 new Query('-', 2), new Query('?', 2), new Query('-', 0), new Query('+', 9), new Query('s', 0, 9) },
                 new String[] { "Not found", "Found", "3", "Found", "Not found", "1", "Not found", "10" });
-        runTest(new Query[] { new Query('?', 0), new Query('+', 0), new Query('?', 0), new Query('-', 0),
+        SetRangeSum.<T>runTest(new Query[] { new Query('?', 0), new Query('+', 0), new Query('?', 0), new Query('-', 0),
                 new Query('?', 0) }, new String[] { "Not found", "Found", "Not found" });
-        runTest(new Query[] { new Query('+', 491572259), new Query('?', 491572259), new Query('?', 899375874),
-                new Query('s', 310971296, 877523306), new Query('+', 352411209), },
+        SetRangeSum.<T>runTest(
+                new Query[] { new Query('+', 491572259), new Query('?', 491572259), new Query('?', 899375874),
+                        new Query('s', 310971296, 877523306), new Query('+', 352411209), },
                 new String[] { "Found", "Not found", "491572259" });
     }
 
-    static void runTest(Query[] queries, String[] expected) {
+    static <T extends SummingSet> void runTest(Query[] queries, String[] expected) {
         ArrayList<String> actual = new ArrayList<>();
         last_sum_result = 0;
-        SplayTree tree = new SplayTree();
+        SummingSet tree = new Instantiator<T>().getInstance();
         for (Query q : queries) {
             String s = processQuery(tree, q);
             if (s != null)
@@ -72,44 +78,44 @@ public class SetRangeSum {
             System.out.println("Unexpected result, expected: " + expected + ", but got: " + actual);
     }
 
-    static class SplayTree {
-        Vertex root = null;
+    static class SplayTree implements SummingSet {
+        SumNode root = null;
 
-        void insert(int x) {
-            Vertex left = null;
-            Vertex right = null;
-            Vertex new_vertex = null;
-            VertexPair leftRight = split(root, x);
+        public void add(int x) {
+            SumNode left = null;
+            SumNode right = null;
+            SumNode new_vertex = null;
+            NodePair leftRight = split(root, x);
             left = leftRight.left;
             right = leftRight.right;
             if (right == null || right.key != x) {
-                new_vertex = new Vertex(x, x, null, null, null);
+                new_vertex = new SumNode(x, x, null, null, null);
             }
             root = merge(merge(left, new_vertex), right);
         }
 
-        void erase(int x) {
+        public void delete(int x) {
             // TODO - implement
         }
 
-        boolean find(int x) {
+        public boolean contains(int x) {
             // TODO - implement
             return false;
         }
 
-        long sum(int from, int to) {
-            VertexPair leftMiddle = split(root, from);
-            Vertex left = leftMiddle.left;
-            Vertex middle = leftMiddle.right;
-            VertexPair middleRight = split(middle, to + 1);
+        public long sum(int from, int to) {
+            NodePair leftMiddle = split(root, from);
+            SumNode left = leftMiddle.left;
+            SumNode middle = leftMiddle.right;
+            NodePair middleRight = split(middle, to + 1);
             middle = middleRight.left;
-            Vertex right = middleRight.right;
+            SumNode right = middleRight.right;
             long ans = 0;
             // TODO - implement
             return ans;
         }
 
-        void update(Vertex v) {
+        void update(SumNode v) {
             if (v == null)
                 return;
             v.sum = v.key + (v.left != null ? v.left.sum : 0) + (v.right != null ? v.right.sum : 0);
@@ -121,18 +127,18 @@ public class SetRangeSum {
             }
         }
 
-        void smallRotation(Vertex v) {
-            Vertex parent = v.parent;
+        void smallRotation(SumNode v) {
+            SumNode parent = v.parent;
             if (parent == null) {
                 return;
             }
-            Vertex grandparent = v.parent.parent;
+            SumNode grandparent = v.parent.parent;
             if (parent.left == v) {
-                Vertex m = v.right;
+                SumNode m = v.right;
                 v.right = parent;
                 parent.left = m;
             } else {
-                Vertex m = v.left;
+                SumNode m = v.left;
                 v.left = parent;
                 parent.right = m;
             }
@@ -148,7 +154,7 @@ public class SetRangeSum {
             }
         }
 
-        void bigRotation(Vertex v) {
+        void bigRotation(SumNode v) {
             if (v.parent.left == v && v.parent.parent.left == v.parent) {
                 // Zig-zig
                 smallRotation(v.parent);
@@ -164,7 +170,7 @@ public class SetRangeSum {
             }
         }
 
-        Vertex splay(Vertex v) {
+        SumNode splay(SumNode v) {
             if (v == null)
                 return null;
             while (v.parent != null) {
@@ -185,10 +191,10 @@ public class SetRangeSum {
         // bigger key (next value in the order).
         // If the key is bigger than all keys in the tree,
         // then result is null.
-        VertexPair find(Vertex root, int key) {
-            Vertex v = root;
-            Vertex last = root;
-            Vertex next = null;
+        NodePair find(SumNode root, int key) {
+            SumNode v = root;
+            SumNode last = root;
+            SumNode next = null;
             while (v != null) {
                 if (v.key >= key && (next == null || v.key < next.key)) {
                     next = v;
@@ -204,12 +210,12 @@ public class SetRangeSum {
                 }
             }
             root = splay(last);
-            return new VertexPair(next, root);
+            return new NodePair(next, root);
         }
 
-        VertexPair split(Vertex root, int key) {
-            VertexPair result = new VertexPair();
-            VertexPair findAndRoot = find(root, key);
+        NodePair split(SumNode root, int key) {
+            NodePair result = new NodePair();
+            NodePair findAndRoot = find(root, key);
             root = findAndRoot.right;
             result.right = findAndRoot.left;
             if (result.right == null) {
@@ -227,7 +233,7 @@ public class SetRangeSum {
             return result;
         }
 
-        Vertex merge(Vertex left, Vertex right) {
+        SumNode merge(SumNode left, SumNode right) {
             if (left == null)
                 return right;
             if (right == null)
@@ -242,16 +248,51 @@ public class SetRangeSum {
         }
     }
 
-    static class Vertex {
+    static class SimpleTree implements SummingSet {
+        @Override
+        public void add(int key) {
+            // TODO Auto-generated method stub
+        }
+
+        @Override
+        public void delete(int key) {
+            // TODO Auto-generated method stub
+        }
+
+        @Override
+        public boolean contains(int key) {
+            // TODO Auto-generated method stub
+            return false;
+        }
+
+        @Override
+        public long sum(int from, int to) {
+            // TODO Auto-generated method stub
+            return 0;
+        }
+
+    }
+
+    interface SummingSet {
+        void add(int key);
+
+        void delete(int key);
+
+        boolean contains(int key);
+
+        long sum(int from, int to);
+    }
+
+    static class SumNode {
         int key;
         // Sum of all the keys in the subtree - remember to update
         // it after each operation that changes the tree.
         long sum;
-        Vertex left;
-        Vertex right;
-        Vertex parent;
+        SumNode left;
+        SumNode right;
+        SumNode parent;
 
-        Vertex(int key, long sum, Vertex left, Vertex right, Vertex parent) {
+        SumNode(int key, long sum, SumNode left, SumNode right, SumNode parent) {
             this.key = key;
             this.sum = sum;
             this.left = left;
@@ -260,14 +301,14 @@ public class SetRangeSum {
         }
     }
 
-    static class VertexPair {
-        Vertex left;
-        Vertex right;
+    static class NodePair {
+        SumNode left;
+        SumNode right;
 
-        VertexPair() {
+        NodePair() {
         }
 
-        VertexPair(Vertex left, Vertex right) {
+        NodePair(SumNode left, SumNode right) {
             this.left = left;
             this.right = right;
         }
@@ -295,6 +336,21 @@ public class SetRangeSum {
             if (type == 's')
                 arg2 = in.nextInt();
             return new Query(type, arg1, arg2);
+        }
+    }
+
+    static class Instantiator<T> {
+        Class<T> dummy;
+
+        T getInstance() {
+            try {
+                return dummy.getDeclaredConstructor().newInstance(new Object[0]);
+            } catch (InstantiationException | IllegalAccessException | IllegalArgumentException
+                    | InvocationTargetException | NoSuchMethodException | SecurityException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+            return null;
         }
     }
 
