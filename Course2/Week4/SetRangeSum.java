@@ -249,20 +249,93 @@ public class SetRangeSum {
     }
 
     static class SimpleTree implements SummingSet {
+        SumNode root;
+
         @Override
         public void add(int key) {
-            // TODO Auto-generated method stub
+            if (root == null){
+                root = new SumNode(key, key);
+            } else {
+                SumNode p = find(root, key);
+                if (p.key == key)
+                    throw new Error("Duplicate keys! Do I have to handle that?");
+                if (p.key > key) addLeftChild(p, key);
+                else addRightChild(p, key);
+                updateSumOfAllParents(p);
+            }
+        }
+
+        void addLeftChild(SumNode p, int key) {
+            p.left = new SumNode(key, key);
+            p.left.parent = p;
+        }
+
+        void addRightChild(SumNode p, int key) {
+            p.right = new SumNode(key, key);
+            p.right.parent = p;
+        }
+
+        void updateSumOfAllParents(SumNode p) {
+            while (p != null) {
+                updateSum(p);
+                p = p.parent;
+            }
+        }
+
+        void updateSum(SumNode p) {
+            p.sum = getSum(p.left) + getSum(p.right) + p.key;
+        }
+
+        long getSum(SumNode n) {
+            return n == null ? 0 : n.sum;
+        }
+
+        SumNode find(SumNode n, int key) {
+            if (n.key == key) return n;
+            if (n.key > key && n.left != null) return find(n.left, key);
+            if (n.key < key && n.right != null) return find(n.right, key);
+            return n;
         }
 
         @Override
         public void delete(int key) {
-            // TODO Auto-generated method stub
+            if (root == null) return;
+            SumNode p = find(root, key);
+            if (p.key != key) return;
+            if (p.right == null){
+                // remove p from the tree
+                // replace p with p.left
+                // if p was root, root = p.left
+            } else {
+                SumNode n = next(p);
+                // remove p from the tree
+                // replace n with n.right
+                // replace p with n
+                // if p was root, root = n
+            }
+        }
+
+        SumNode next(SumNode n){
+            if (n.right != null) return leftDescendant(n.right);
+            return rightAncestor(n);
+        }
+
+        SumNode leftDescendant(SumNode n){
+            if (n.left == null) return n;
+            return leftDescendant(n.left);
+        }
+
+        SumNode rightAncestor(SumNode n){
+            if (n.parent == null) return null;
+            if (n.key < n.parent.key) return n.parent;
+            return rightAncestor(n.parent);
         }
 
         @Override
         public boolean contains(int key) {
-            // TODO Auto-generated method stub
-            return false;
+            if (root == null) return false;
+            SumNode n = find(root, key);
+            return n.key == key;
         }
 
         @Override
@@ -292,9 +365,13 @@ public class SetRangeSum {
         SumNode right;
         SumNode parent;
 
-        SumNode(int key, long sum, SumNode left, SumNode right, SumNode parent) {
+        SumNode(int key, long sum){
             this.key = key;
             this.sum = sum;
+        }
+
+        SumNode(int key, long sum, SumNode left, SumNode right, SumNode parent) {
+            this(key, sum);
             this.left = left;
             this.right = right;
             this.parent = parent;
