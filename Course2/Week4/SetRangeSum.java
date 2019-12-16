@@ -4,11 +4,19 @@ import java.util.*;
 
 public class SetRangeSum {
     static int MODULO = 1000000001;
-    static int last_sum_result = 0;
+    static long last_sum_result = 0;
+    static boolean debug = false;
 
     public static void main(String[] args) throws IOException {
         // runSolution();
-        SetRangeSum.<SimpleTree>testSolution(SimpleTree.class);
+        debug = true;
+        testWithTallStack(SimpleTree.class);
+    }
+
+    static <T extends SummingSet> void testWithTallStack(Class<T> type) {
+        new Thread(null, () -> {
+            testSolution(type);
+        }, "1", 1 << 26).start();
     }
 
     static void runSolution() throws IOException {
@@ -27,45 +35,99 @@ public class SetRangeSum {
     }
 
     static String processQuery(SummingSet tree, Query q) {
+        int a1 = getModulatedInput(q.arg1);
         switch (q.type) {
         case '+':
-            tree.add(getModulatedInput(q.arg1));
+            debugLog("add " + a1);
+            tree.add(a1);
             break;
         case '-':
-            tree.delete(getModulatedInput(q.arg1));
+            debugLog("del " + a1);
+            tree.delete(a1);
             break;
         case '?':
-            return (tree.contains(getModulatedInput(q.arg1)) ? "Found" : "Not found");
+            String found = (tree.contains(a1) ? "Found" : "Not found");
+            debugLog("has " + a1 + ": " + found);
+            return found;
         case 's':
-            long res = tree.sum(getModulatedInput(q.arg1), getModulatedInput(q.arg2));
-            last_sum_result = (int) (res % MODULO);
-            return res + "";
+            int a2 = getModulatedInput(q.arg2);
+            last_sum_result = tree.sum(a1, a2);
+            debugLog("sum " + a1 + ", " + a2 + ": " + last_sum_result);
+            return last_sum_result + "";
         }
         return null;
     }
 
     private static int getModulatedInput(int arg) {
-        return (arg + last_sum_result) % MODULO;
+        long v = arg + last_sum_result;
+        // return (int) (v % MODULO + MODULO) % MODULO;
+        return (int) (v % MODULO);
     }
 
     static <T extends SummingSet> void testSolution(Class<T> type) {
-        SetRangeSum.<T>runTest(new Query[] { new Query('?', 1), new Query('+', 1), new Query('?', 1), new Query('+', 2),
-                new Query('s', 1, 2), new Query('+', 1000000000), new Query('?', 1000000000),
-                new Query('-', 1000000000), new Query('?', 1000000000), new Query('s', 999999999, 1000000000),
-                new Query('-', 2), new Query('?', 2), new Query('-', 0), new Query('+', 9), new Query('s', 0, 9) },
-                new String[] { "Not found", "Found", "3", "Found", "Not found", "1", "Not found", "10" }, type);
-        SetRangeSum.<T>runTest(new Query[] { new Query('?', 0), new Query('+', 0), new Query('?', 0), new Query('-', 0),
-                new Query('?', 0) }, new String[] { "Not found", "Found", "Not found" }, type);
-        SetRangeSum.<T>runTest(
-                new Query[] { new Query('+', 491572259), new Query('?', 491572259), new Query('?', 899375874),
-                        new Query('s', 310971296, 877523306), new Query('+', 352411209), },
-                new String[] { "Found", "Not found", "491572259" }, type);
-        SetRangeSum.<T>runTest(
-                new Query[] { new Query('+', 291142036), new Query('?', 422794372), new Query('?', 859168580),
-                        new Query('+', 265305159), new Query('?', 316850196), new Query('?', 546263228),
-                        new Query('-', 805892060), new Query('+', 421880949), new Query('?', 265305159),
-                        new Query('?', 821164215) },
-                new String[] { "Not found", "Not found", "Not found", "Not found", "Found", "Not found" }, type);
+        // System.out.println("running simple case 1");
+        // runTest(new Query[] { new Query('?', 0), new Query('+', 0), new Query('?', 0), new Query('-', 0),
+        //         new Query('?', 0) }, new String[] { "Not found", "Found", "Not found" }, type);
+        // System.out.println("done with simple case 1");
+        // System.out.println("running simple case 2");
+        // runTest(
+        //         new Query[] { new Query('+', 491572259), new Query('?', 491572259), new Query('?', 899375874),
+        //                 new Query('s', 310971296, 877523306), new Query('+', 352411209), },
+        //         new String[] { "Found", "Not found", "491572259" }, type);
+        // System.out.println("done with simple case 2");
+        // runFileTest("01", type);
+        // runFileTest("04", type);
+        // runFileTest("05", type);
+        // runFileTest("20", type);
+        runFileTest("36_early", type);
+        // runFileTest("36", type);
+        // runFileTest("83", type);
+    }
+
+    static void debugLog(String message) {
+        if (debug) System.out.println(message);
+    }
+
+    static <T extends SummingSet> void runFileTest(String key, Class<T> type) {
+        System.out.println("running file test: " + key);
+        String root = "C:/test_data/ucsd_algorithms/2_4_4/";
+        Query[] queries = readQueries(root + key);
+        String[] expected = readExpected(root + key + ".a");
+        runTest(queries, expected, type);
+        System.out.println("done with test: " + key);
+    }
+
+    static Query[] readQueries(String fileName) {
+        ArrayList<Query> queries = new ArrayList<>();
+        try {
+            BufferedReader r = new BufferedReader(new FileReader(new File(fileName)));
+            String line;
+            r.readLine(); // dump the first line
+            while ((line = r.readLine()) != null) {
+                String[] tokens = line.split(" ");
+                char type = tokens[0].charAt(0);
+                int arg1 = Integer.parseInt(tokens[1]);
+                int arg2 = tokens.length > 2 ? Integer.parseInt(tokens[2]) : 0;
+                queries.add(new Query(type, arg1, arg2));
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return queries.stream().toArray(Query[]::new);
+    }
+
+    static String[] readExpected(String fileName) {
+        ArrayList<String> expected = new ArrayList<>();
+        try {
+            BufferedReader r = new BufferedReader(new FileReader(new File(fileName)));
+            String line;
+            while ((line = r.readLine()) != null) {
+                expected.add(line);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return expected.stream().toArray(String[]::new);
     }
 
     static <T extends SummingSet> void runTest(Query[] queries, String[] expected, Class<T> type) {
@@ -81,7 +143,7 @@ public class SetRangeSum {
         String actualString = Arrays.toString(actual.toArray());
         String expectedString = Arrays.toString(expected);
         if (!expectedString.equals(actualString))
-            System.out.println("Unexpected result, expected: " + expected + ", but got: " + actual);
+            System.out.println("Unexpected result, expected: " + expectedString + ", but got: " + actualString);
     }
 
     static class SplayTree implements SummingSet {
@@ -328,12 +390,14 @@ public class SetRangeSum {
                 SumNode n = next(p);
                 SumNode np = n.parent;
                 deleteSwapChild(np, n, n.right);
+                updateSumOfAllParents(n.right);
                 // then, replace p with the successor
                 toReplace = n;
             }
 
             // replace p with the selected descendant
             deleteSwapChild(p.parent, p, toReplace);
+            updateSumOfAllParents(toReplace);
         }
 
         private void deleteSwapChild(SumNode p, SumNode oldC, SumNode newC) {
@@ -391,8 +455,9 @@ public class SetRangeSum {
 
             while (n != null && n.key <= to) {
                 if (n.key >= from) {
-                    long v = sum + n.key;
-                    sum = ((v % MODULO) + MODULO) % MODULO;
+                    // long v = sum + n.key;
+                    // sum = ((v % MODULO) + MODULO) % MODULO;
+                    sum += n.key;
                 }
                 n = next(n);
             }
