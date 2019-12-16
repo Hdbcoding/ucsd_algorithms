@@ -38,21 +38,21 @@ public class SetRangeSum {
         int a1 = getModulatedInput(q.arg1);
         switch (q.type) {
         case '+':
-            debugLog("add " + a1);
+            debugLog("add " + a1 + " (" + q.arg1 + ")");
             tree.add(a1);
             break;
         case '-':
-            debugLog("del " + a1);
+            debugLog("del " + a1 + " (" + q.arg1 + ")");
             tree.delete(a1);
             break;
         case '?':
             String found = (tree.contains(a1) ? "Found" : "Not found");
-            debugLog("has " + a1 + ": " + found);
+            debugLog("has " + a1 + " (" + q.arg1 + "): " + found);
             return found;
         case 's':
             int a2 = getModulatedInput(q.arg2);
             last_sum_result = tree.sum(a1, a2);
-            debugLog("sum " + a1 + ", " + a2 + ": " + last_sum_result);
+            debugLog("sum " + a1 + " (" + q.arg1 + "), " + a2 + " (" + q.arg2 + "): " + last_sum_result);
             return last_sum_result + "";
         }
         return null;
@@ -66,26 +66,31 @@ public class SetRangeSum {
 
     static <T extends SummingSet> void testSolution(Class<T> type) {
         // System.out.println("running simple case 1");
-        // runTest(new Query[] { new Query('?', 0), new Query('+', 0), new Query('?', 0), new Query('-', 0),
-        //         new Query('?', 0) }, new String[] { "Not found", "Found", "Not found" }, type);
+        // runTest(new Query[] { new Query('?', 0), new Query('+', 0), new Query('?',
+        // 0), new Query('-', 0),
+        // new Query('?', 0) }, new String[] { "Not found", "Found", "Not found" },
+        // type);
         // System.out.println("done with simple case 1");
         // System.out.println("running simple case 2");
         // runTest(
-        //         new Query[] { new Query('+', 491572259), new Query('?', 491572259), new Query('?', 899375874),
-        //                 new Query('s', 310971296, 877523306), new Query('+', 352411209), },
-        //         new String[] { "Found", "Not found", "491572259" }, type);
+        // new Query[] { new Query('+', 491572259), new Query('?', 491572259), new
+        // Query('?', 899375874),
+        // new Query('s', 310971296, 877523306), new Query('+', 352411209), },
+        // new String[] { "Found", "Not found", "491572259" }, type);
         // System.out.println("done with simple case 2");
         // runFileTest("01", type);
         // runFileTest("04", type);
         // runFileTest("05", type);
         // runFileTest("20", type);
+        // runFileTest("36_early_2", type);
         runFileTest("36_early", type);
         // runFileTest("36", type);
         // runFileTest("83", type);
     }
 
     static void debugLog(String message) {
-        if (debug) System.out.println(message);
+        if (debug)
+            System.out.println(message);
     }
 
     static <T extends SummingSet> void runFileTest(String key, Class<T> type) {
@@ -331,7 +336,6 @@ public class SetRangeSum {
                     addLeftChild(p, key);
                 else
                     addRightChild(p, key);
-                updateSumOfAllParents(p);
             }
         }
 
@@ -379,10 +383,9 @@ public class SetRangeSum {
             if (p.key != key)
                 return;
 
-            SumNode toReplace = null;
             if (p.right == null) {
                 // if no right child, just promote the left child
-                toReplace = p.left;
+                deleteSwapChild(p.parent, p, p.left);
             } else {
                 // "next" node is always in p's right subtree, because p has a right subtree
                 // replace the successor with its right child
@@ -390,14 +393,10 @@ public class SetRangeSum {
                 SumNode n = next(p);
                 SumNode np = n.parent;
                 deleteSwapChild(np, n, n.right);
-                updateSumOfAllParents(n.right);
+                n.right = null;
                 // then, replace p with the successor
-                toReplace = n;
+                deleteSwapChild(p.parent, p, n);
             }
-
-            // replace p with the selected descendant
-            deleteSwapChild(p.parent, p, toReplace);
-            updateSumOfAllParents(toReplace);
         }
 
         private void deleteSwapChild(SumNode p, SumNode oldC, SumNode newC) {
@@ -414,7 +413,8 @@ public class SetRangeSum {
             // swapped-in node
             if (newC != null) {
                 newC.parent = p;
-                newC.left = oldC.left;
+                if (newC.left == null) newC.left = oldC.left;
+                if (newC.right == null) newC.right = oldC.right;
             }
         }
 
