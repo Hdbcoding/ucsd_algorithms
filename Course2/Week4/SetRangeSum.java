@@ -8,7 +8,7 @@ public class SetRangeSum {
 
     public static void main(String[] args) throws IOException {
         // runSolution();
-        SetRangeSum.<SimpleTree>testSolution();
+        SetRangeSum.<SimpleTree>testSolution(SimpleTree.class);
     }
 
     static void runSolution() throws IOException {
@@ -48,24 +48,30 @@ public class SetRangeSum {
         return (arg + last_sum_result) % MODULO;
     }
 
-    static <T extends SummingSet> void testSolution() {
+    static <T extends SummingSet> void testSolution(Class<T> type) {
         SetRangeSum.<T>runTest(new Query[] { new Query('?', 1), new Query('+', 1), new Query('?', 1), new Query('+', 2),
                 new Query('s', 1, 2), new Query('+', 1000000000), new Query('?', 1000000000),
                 new Query('-', 1000000000), new Query('?', 1000000000), new Query('s', 999999999, 1000000000),
                 new Query('-', 2), new Query('?', 2), new Query('-', 0), new Query('+', 9), new Query('s', 0, 9) },
-                new String[] { "Not found", "Found", "3", "Found", "Not found", "1", "Not found", "10" });
+                new String[] { "Not found", "Found", "3", "Found", "Not found", "1", "Not found", "10" }, type);
         SetRangeSum.<T>runTest(new Query[] { new Query('?', 0), new Query('+', 0), new Query('?', 0), new Query('-', 0),
-                new Query('?', 0) }, new String[] { "Not found", "Found", "Not found" });
+                new Query('?', 0) }, new String[] { "Not found", "Found", "Not found" }, type);
         SetRangeSum.<T>runTest(
                 new Query[] { new Query('+', 491572259), new Query('?', 491572259), new Query('?', 899375874),
                         new Query('s', 310971296, 877523306), new Query('+', 352411209), },
-                new String[] { "Found", "Not found", "491572259" });
+                new String[] { "Found", "Not found", "491572259" }, type);
+        SetRangeSum.<T>runTest(
+                new Query[] { new Query('+', 291142036), new Query('?', 422794372), new Query('?', 859168580),
+                        new Query('+', 265305159), new Query('?', 316850196), new Query('?', 546263228),
+                        new Query('-', 805892060), new Query('+', 421880949), new Query('?', 265305159),
+                        new Query('?', 821164215) },
+                new String[] { "Not found", "Not found", "Not found", "Not found", "Found", "Not found" }, type);
     }
 
-    static <T extends SummingSet> void runTest(Query[] queries, String[] expected) {
+    static <T extends SummingSet> void runTest(Query[] queries, String[] expected, Class<T> type) {
         ArrayList<String> actual = new ArrayList<>();
         last_sum_result = 0;
-        SummingSet tree = new Instantiator<T>().getInstance();
+        SummingSet tree = new Instantiator<T>().getInstance(type);
         for (Query q : queries) {
             String s = processQuery(tree, q);
             if (s != null)
@@ -253,14 +259,16 @@ public class SetRangeSum {
 
         @Override
         public void add(int key) {
-            if (root == null){
+            if (root == null) {
                 root = new SumNode(key, key);
             } else {
                 SumNode p = find(root, key);
                 if (p.key == key)
-                    throw new Error("Duplicate keys! Do I have to handle that?");
-                if (p.key > key) addLeftChild(p, key);
-                else addRightChild(p, key);
+                    return;
+                if (p.key > key)
+                    addLeftChild(p, key);
+                else
+                    addRightChild(p, key);
                 updateSumOfAllParents(p);
             }
         }
@@ -291,57 +299,105 @@ public class SetRangeSum {
         }
 
         SumNode find(SumNode n, int key) {
-            if (n.key == key) return n;
-            if (n.key > key && n.left != null) return find(n.left, key);
-            if (n.key < key && n.right != null) return find(n.right, key);
+            if (n.key == key)
+                return n;
+            if (n.key > key && n.left != null)
+                return find(n.left, key);
+            if (n.key < key && n.right != null)
+                return find(n.right, key);
             return n;
         }
 
         @Override
         public void delete(int key) {
-            if (root == null) return;
+            if (root == null)
+                return;
             SumNode p = find(root, key);
-            if (p.key != key) return;
-            if (p.right == null){
-                // remove p from the tree
-                // replace p with p.left
-                // if p was root, root = p.left
+            // if the key isnt in the set, nothing to delete
+            if (p.key != key)
+                return;
+
+            SumNode toReplace = null;
+            if (p.right == null) {
+                // if no right child, just promote the left child
+                toReplace = p.left;
             } else {
+                // "next" node is always in p's right subtree, because p has a right subtree
+                // replace the successor with its right child
+                // successor has no left children
                 SumNode n = next(p);
-                // remove p from the tree
-                // replace n with n.right
-                // replace p with n
-                // if p was root, root = n
+                SumNode np = n.parent;
+                deleteSwapChild(np, n, n.right);
+                // then, replace p with the successor
+                toReplace = n;
+            }
+
+            // replace p with the selected descendant
+            deleteSwapChild(p.parent, p, toReplace);
+        }
+
+        private void deleteSwapChild(SumNode p, SumNode oldC, SumNode newC) {
+            if (p == null) {
+                root = newC;
+            } else {
+                if (p.key > oldC.key) {
+                    p.left = newC;
+                } else {
+                    p.right = newC;
+                }
+            }
+            // when deleting, may have to update the parent or the left child of the
+            // swapped-in node
+            if (newC != null) {
+                newC.parent = p;
+                newC.left = oldC.left;
             }
         }
 
-        SumNode next(SumNode n){
-            if (n.right != null) return leftDescendant(n.right);
+        SumNode next(SumNode n) {
+            if (n.right != null)
+                return leftDescendant(n.right);
             return rightAncestor(n);
         }
 
-        SumNode leftDescendant(SumNode n){
-            if (n.left == null) return n;
+        SumNode leftDescendant(SumNode n) {
+            if (n.left == null)
+                return n;
             return leftDescendant(n.left);
         }
 
-        SumNode rightAncestor(SumNode n){
-            if (n.parent == null) return null;
-            if (n.key < n.parent.key) return n.parent;
+        SumNode rightAncestor(SumNode n) {
+            if (n.parent == null)
+                return null;
+            if (n.key < n.parent.key)
+                return n.parent;
             return rightAncestor(n.parent);
         }
 
         @Override
         public boolean contains(int key) {
-            if (root == null) return false;
+            if (root == null)
+                return false;
             SumNode n = find(root, key);
             return n.key == key;
         }
 
         @Override
         public long sum(int from, int to) {
-            // TODO Auto-generated method stub
-            return 0;
+            if (root == null)
+                return 0;
+            long sum = 0;
+            SumNode n = find(root, from);
+
+            while (n != null && n.key <= to) {
+                if (n.key >= from) {
+                    long v = sum + n.key;
+                    sum = ((v % MODULO) + MODULO) % MODULO;
+                }
+                n = next(n);
+            }
+
+            return sum;
         }
 
     }
@@ -365,7 +421,7 @@ public class SetRangeSum {
         SumNode right;
         SumNode parent;
 
-        SumNode(int key, long sum){
+        SumNode(int key, long sum) {
             this.key = key;
             this.sum = sum;
         }
@@ -417,11 +473,9 @@ public class SetRangeSum {
     }
 
     static class Instantiator<T> {
-        Class<T> dummy;
-
-        T getInstance() {
+        T getInstance(Class<T> type) {
             try {
-                return dummy.getDeclaredConstructor().newInstance(new Object[0]);
+                return type.getDeclaredConstructor().newInstance(new Object[0]);
             } catch (InstantiationException | IllegalAccessException | IllegalArgumentException
                     | InvocationTargetException | NoSuchMethodException | SecurityException e) {
                 // TODO Auto-generated catch block
