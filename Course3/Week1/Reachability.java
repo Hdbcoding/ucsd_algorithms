@@ -43,9 +43,9 @@ public class Reachability {
         runTest(parseGraph(4, new int[] { 1, 2, 3, 2 }), 0, 3, 0);
     }
 
-    static ArrayList<Integer>[] parseGraph(int n, int[] edges) {
+    static ArrayList<Integer>[] parseGraph(int nVertices, int[] edges) {
         int x, y;
-        ArrayList<Integer>[] adj = constructGraph(n);
+        ArrayList<Integer>[] adj = constructGraph(nVertices);
         for (int i = 0; i < edges.length - 1; i += 2) {
             x = edges[i];
             y = edges[i + 1];
@@ -82,9 +82,7 @@ public class Reachability {
 
     static void explore(int x, ArrayList<Integer>[] adj, boolean[] visited) {
         visited[x] = true;
-        ArrayList<Integer> neighbors = adj[x];
-        for (Integer y : neighbors)
-            if (!visited[y])
-                explore(y, adj, visited);
+        for (int y : adj[x])
+            if (!visited[y]) explore(y, adj, visited);
     }
 }
