@@ -6,6 +6,13 @@
     "configurations": [
         {
             "type": "java",
+            "name": "CodeLens (Launch) - Reachability",
+            "request": "launch",
+            "mainClass": "Reachability",
+            "projectName": "ucsd_algorithms_9b09e84f"
+        },
+        {
+            "type": "java",
             "name": "CodeLens (Launch) - SetRangeSum",
             "request": "launch",
             "mainClass": "SetRangeSum",
