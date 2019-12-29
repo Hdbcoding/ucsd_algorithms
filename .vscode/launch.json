@@ -6,6 +6,13 @@
     "configurations": [
         {
             "type": "java",
+            "name": "CodeLens (Launch) - Acyclicity",
+            "request": "launch",
+            "mainClass": "Acyclicity",
+            "projectName": "ucsd_algorithms_9b09e84f"
+        },
+        {
+            "type": "java",
             "name": "CodeLens (Launch) - ConnectedComponents",
             "request": "launch",
             "mainClass": "ConnectedComponents",
