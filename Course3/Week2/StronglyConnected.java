@@ -6,7 +6,7 @@ import java.util.Scanner;
 public class StronglyConnected {
     public static void main(String[] args) {
         runSolution();
-        testSolution();
+        // testSolution();
     }
 
     static void runSolution() {
@@ -25,16 +25,20 @@ public class StronglyConnected {
     }
 
     static void testSolution() {
-
+        runTest(parseGraph(4, new int[] { 1, 2, 4, 1, 2, 3, 3, 1 }), 2);
+        runTest(parseGraph(5, new int[] { 2, 1, 3, 2, 3, 1, 4, 3, 4, 1, 5, 2, 5, 3 }), 5);
     }
 
-    static void runTest() {
-
+    static void runTest(Graph g, int expected) {
+        int actual = numberOfStronglyConnectedComponents(g);
+        if (expected != actual)
+            System.out.println("Unexpected number of SCCs for graph: " + printGraph(g.adj) + "Expected " + expected
+                    + " but got " + actual);
     }
 
-    static ArrayList<Integer>[] parseGraph(int nVertices, int[] edges) {
+    static Graph parseGraph(int nVertices, int[] edges) {
         int x, y;
-        Graph g = new Graph(n);
+        Graph g = new Graph(nVertices);
         for (int i = 0; i < edges.length - 1; i += 2) {
             x = edges[i];
             y = edges[i + 1];
@@ -57,8 +61,53 @@ public class StronglyConnected {
     }
 
     private static int numberOfStronglyConnectedComponents(Graph g) {
-        // write your code here
-        return 0;
+        SCCCounter counter = new SCCCounter(g);
+        return counter.count();
+    }
+
+    static class SCCCounter {
+        Graph g;
+        boolean[] visited;
+        boolean[] visited_r;
+        ArrayList<Integer> order_r;
+        int num_scc = 0;
+
+        public SCCCounter(Graph g) {
+            this.g = g;
+            this.visited = new boolean[g.adj.length];
+            this.visited_r = new boolean[g.adj.length];
+            this.order_r = new ArrayList<Integer>(g.adj.length);
+        }
+
+        int count() {
+            dfs_r();
+            Collections.reverse(order_r);
+            count_scc();
+            return num_scc;
+        }
+
+        void dfs_r() {
+            for (int i = 0; i < g.adj_r.length; i++)
+                if (!visited_r[i])
+                    explore(i, g.adj_r, visited_r, true);
+        }
+
+        void explore(int i, ArrayList<Integer>[] adj, boolean[] v, boolean doPostAction) {
+            v[i] = true;
+            ArrayList<Integer> n = adj[i];
+            for (int j : n)
+                if (!v[j])
+                    explore(j, adj, v, doPostAction);
+            if (doPostAction) order_r.add(i);
+        }
+
+        void count_scc() {
+            for (int i : order_r)
+                if (!visited[i]) {
+                    explore(i, g.adj, visited, false);
+                    num_scc++;
+                }
+        }
     }
 
     static class Graph {

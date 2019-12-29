@@ -6,6 +6,13 @@
     "configurations": [
         {
             "type": "java",
+            "name": "CodeLens (Launch) - StronglyConnected",
+            "request": "launch",
+            "mainClass": "StronglyConnected",
+            "projectName": "ucsd_algorithms_9b09e84f"
+        },
+        {
+            "type": "java",
             "name": "CodeLens (Launch) - Toposort",
             "request": "launch",
             "mainClass": "Toposort",
