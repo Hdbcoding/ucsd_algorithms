@@ -23,9 +23,10 @@ public class Acyclicity {
         System.out.println(acyclic(adj));
     }
 
-    private static void addEdgeToAdjacencyList(ArrayList<Integer>[] adj, int x, int y) {
-        adj[x - 1].add(y - 1);
-        // no reverse edge this time
+    static void testSolution() {
+        runTest(parseGraph(4, new int[] { 1, 2, 4, 1, 2, 3, 3, 1 }), 1);
+        runTest(parseGraph(5, new int[] { 1, 2, 2, 3, 1, 3, 3, 4, 1, 4, 2, 5, 3, 5
+        }), 0);
     }
 
     static ArrayList<Integer>[] constructGraph(int length) {
@@ -36,10 +37,8 @@ public class Acyclicity {
         return adj;
     }
 
-    static void testSolution() {
-        runTest(parseGraph(4, new int[] { 1, 2, 4, 1, 2, 3, 3, 1 }), 1);
-        runTest(parseGraph(5, new int[] { 1, 2, 2, 3, 1, 3, 3, 4, 1, 4, 2, 5, 3, 5
-        }), 0);
+    static void addEdgeToAdjacencyList(ArrayList<Integer>[] adj, int x, int y) {
+        adj[x - 1].add(y - 1);
     }
 
     static ArrayList<Integer>[] parseGraph(int nVertices, int[] edges) {
