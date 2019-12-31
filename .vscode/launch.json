@@ -6,6 +6,20 @@
     "configurations": [
         {
             "type": "java",
+            "name": "CodeLens (Launch) - Bipartite",
+            "request": "launch",
+            "mainClass": "Bipartite",
+            "projectName": "ucsd_algorithms_9b09e84f"
+        },
+        {
+            "type": "java",
+            "name": "CodeLens (Launch) - BFS",
+            "request": "launch",
+            "mainClass": "BFS",
+            "projectName": "ucsd_algorithms_9b09e84f"
+        },
+        {
+            "type": "java",
             "name": "CodeLens (Launch) - StronglyConnected",
             "request": "launch",
             "mainClass": "StronglyConnected",
