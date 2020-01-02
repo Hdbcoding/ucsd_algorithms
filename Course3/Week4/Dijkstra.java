@@ -80,9 +80,9 @@ public class Dijkstra {
         }
 
         @Override
-        public String toString(){
+        public String toString() {
             StringBuilder s = new StringBuilder();
-    
+
             for (int i = 0; i < adj.length; i++) {
                 ArrayList<Integer> edges = adj[i];
                 ArrayList<Integer> weights = cost[i];
@@ -91,8 +91,148 @@ public class Dijkstra {
                 s.append("weights: " + Arrays.toString(weights.toArray()));
                 s.append("\n");
             }
-    
+
             return s.toString();
+        }
+    }
+
+    static class NodeHeap {
+        Node[] heap;
+        int[] nodeMap; // tracks index of node in heap
+        int numNodes;
+
+        NodeHeap(int numNodes) {
+            heap = new Node[numNodes];
+            nodeMap = new int[numNodes];
+            Arrays.fill(nodeMap, -1);
+            this.numNodes = 0;
+        }
+
+        Node extractMin() {
+            if (isEmpty())
+                return null;
+            Node n = removeNode(0);
+            siftDown(0);
+            return n;
+        }
+
+        Node removeNode(int index) {
+            Node n = heap[index];
+            nodeMap[n.nodeId] = -1;
+            numNodes--;
+            Node lastNode = heap[numNodes];
+            if (numNodes != 0 && lastNode != n) {
+                heap[numNodes] = null;
+                updateNode(lastNode, index);
+            }
+            return n;
+        }
+
+        void add(int nodeId, long distance) {
+            numNodes++;
+            int index = numNodes - 1;
+            Node n = new Node(nodeId, distance);
+            updateNode(n, index);
+            siftUp(index);
+        }
+
+        void delete(int nodeId) {
+            int index = nodeMap[nodeId];
+            if (index == -1)
+                return;
+            removeNode(index);
+            heapify(index);
+        }
+
+        void heapify(int index) {
+            if (rule(index))
+                siftDown(index);
+            else
+                siftUp(index);
+        }
+
+        void siftUp(int i) {
+            if (i == 0)
+                return;
+            int p = parent(i);
+            if (!rule(p, i)) {
+                swap(p, i);
+                siftUp(p);
+            }
+        }
+
+        void siftDown(int i) {
+            int l = left(i), r = right(i), swapIndex = i;
+
+            if (l < numNodes && !rule(swapIndex, l))
+                swapIndex = l;
+
+            if (r < numNodes && !rule(swapIndex, r))
+                swapIndex = r;
+
+            if (swapIndex != i) {
+                swap(i, swapIndex);
+                siftDown(swapIndex);
+            }
+        }
+
+        void swap(int i, int j) {
+            Node ni = heap[i];
+            Node nj = heap[j];
+            updateNode(ni, j);
+            updateNode(nj, i);
+        }
+
+        void updateNode(Node n, int i) {
+            heap[i] = n;
+            if (n != null){
+                nodeMap[n.nodeId] = i;
+            }
+        }
+
+        boolean isEmpty() {
+            return numNodes == 0;
+        }
+
+        // rule must be true for the heap property to be satisfied
+        // in this heap, the node with the shortest overall distance is on top
+        boolean rule(int pIndex, int cIndex) {
+            Node p = heap[pIndex];
+            Node c = heap[cIndex];
+            if (p.distance == c.distance)
+                return p.nodeId <= c.nodeId;
+            return p.distance < c.distance;
+        }
+
+        // when checking the rule for a single index, compare the element with its
+        // parent
+        // if it has no parent, the rule is satisifed
+        boolean rule(int cIndex) {
+            if (cIndex == 0)
+                return true;
+            return rule(parent(cIndex), cIndex);
+        }
+
+        int parent(int i) {
+            return (i - 1) / 2;
+        }
+
+        int left(int i) {
+            return i + i + 1;
+        }
+
+        int right(int i) {
+            return i + i + 2;
+        }
+    }
+
+    static class Node {
+        int nodeId;
+        long distance;
+
+        Node(int nodeId, long distance2) {
+            this.nodeId = nodeId;
+            this.distance = distance2;
         }
     }
 }
