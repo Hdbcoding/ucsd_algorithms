@@ -53,9 +53,9 @@ public class ShortestPaths {
     static Graph processData(int[] data) {
         Graph g = new Graph(data[0]);
         for (int i = 2; i < data.length - 4; i += 3) {
-            int x = data[i] - 1;
-            int y = data[i + 1] - 1;
-            int w = data[i + 3] - 1;
+            int x = data[i];
+            int y = data[i + 1];
+            int w = data[i + 3];
             g.addEdge(x, y, w);
         }
         return g;
@@ -126,7 +126,7 @@ public class ShortestPaths {
                 ArrayList<Integer> weights = cost[i];
                 s.append("node " + i + ": ");
                 s.append("adjacencies: " + Arrays.toString(edges.toArray()));
-                s.append("weights: " + Arrays.toString(weights.toArray()));
+                s.append("; weights: " + Arrays.toString(weights.toArray()));
                 s.append("\n");
             }
     

@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Scanner;
 
 public class NegativeCycle {
@@ -32,16 +33,16 @@ public class NegativeCycle {
         Graph g = processData(data);
         int actual = negativeCycle(g);
         if (actual != expected)
-            System.out.println("Unexpected result for negative cycles for graph: " + g + "Expected: " + expected
+            System.out.println("Unexpected result for negative cycles for graph:\n" + g + "Expected: " + expected
                     + ", but got " + actual);
     }
 
     static Graph processData(int[] data) {
         Graph g = new Graph(data[0]);
         for (int i = 2; i < data.length - 3; i += 3) {
-            int x = data[i] - 1;
-            int y = data[i + 1] - 1;
-            int w = data[i + 3] - 1;
+            int x = data[i];
+            int y = data[i + 1];
+            int w = data[i + 3];
             g.addEdge(x, y, w);
         }
         return g;
@@ -62,7 +63,7 @@ public class NegativeCycle {
         }
 
         ArrayList<Integer>[] constructList(int s) {
-            ArrayList<Integer>[] adj = (ArrayList<Integer>[]) new ArrayList[length];
+            ArrayList<Integer>[] adj = (ArrayList<Integer>[]) new ArrayList[s];
             for (int i = 0; i < s; i++) {
                 adj[i] = new ArrayList<Integer>();
             }
@@ -83,7 +84,7 @@ public class NegativeCycle {
                 ArrayList<Integer> weights = cost[i];
                 s.append("node " + i + ": ");
                 s.append("adjacencies: " + Arrays.toString(edges.toArray()));
-                s.append("weights: " + Arrays.toString(weights.toArray()));
+                s.append("; weights: " + Arrays.toString(weights.toArray()));
                 s.append("\n");
             }
     

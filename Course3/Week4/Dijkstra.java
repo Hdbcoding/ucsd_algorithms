@@ -31,43 +31,69 @@ public class Dijkstra {
         runTest(new int[] { 3, 3, 1, 2, 7, 1, 3, 5, 2, 3, 2, 3, 2 }, -1);
     }
 
-    static void runTest(int[] data, int expected) {
+    static void runTest(int[] data, long expected) {
         Graph g = processData(data);
         int s = data[data.length - 2] - 1;
         int t = data[data.length - 1] - 1;
 
-        int actual = distance(g, s, t);
+        long actual = distance(g, s, t);
         if (actual != expected)
-            System.out.println("Unexpected distance between nodes s: " + s + " and t: " + t + " for graph: " + g
+            System.out.println("Unexpected distance between nodes s: " + s + " and t: " + t + " for graph:\n" + g
                     + "Expected " + expected + ", but got " + actual);
     }
 
     static Graph processData(int[] data) {
         Graph g = new Graph(data[0]);
         for (int i = 2; i < data.length - 5; i += 3) {
-            int x = data[i] - 1;
-            int y = data[i + 1] - 1;
-            int w = data[i + 3] - 1;
+            int x = data[i];
+            int y = data[i + 1];
+            int w = data[i + 3];
             g.addEdge(x, y, w);
         }
         return g;
     }
 
-    static int distance(Graph g, int s, int t) {
-        return -1;
+    static Long distance(Graph g, int s, int t) {
+        long[] dist = new long[g.s];
+        Arrays.fill(dist, -1);
+        int[] prev = new int[g.s];
+        Arrays.fill(prev, -1);
+        NodeHeap h = new NodeHeap(g.s);
+        dist[s] = 0l;
+        h.addOrUpdate(s, 0);
+        while (!h.isEmpty()){
+            Node u = h.extractMin();
+            ArrayList<Integer> neighbors = g.adj[u.nodeId];
+            ArrayList<Integer> weights = g.cost[u.nodeId];
+            for (int i = 0; i < neighbors.size(); i++){
+                int nodeId = neighbors.get(i);
+                int weight = weights.get(i);
+                long oldDist = dist[nodeId];
+                long newDist = u.distance + weight;
+                if (oldDist == -1 || oldDist > newDist){
+                    dist[nodeId] = newDist;
+                    prev[nodeId] = u.nodeId;
+                    h.addOrUpdate(nodeId, newDist);
+                }
+            }
+        }
+
+        return dist[t];
     }
 
     static class Graph {
         ArrayList<Integer>[] adj;
         ArrayList<Integer>[] cost;
+        int s;
 
         Graph(int s) {
             adj = constructList(s);
             cost = constructList(s);
+            this.s = s;
         }
 
         ArrayList<Integer>[] constructList(int s) {
-            ArrayList<Integer>[] adj = (ArrayList<Integer>[]) new ArrayList[length];
+            ArrayList<Integer>[] adj = (ArrayList<Integer>[]) new ArrayList[s];
             for (int i = 0; i < s; i++) {
                 adj[i] = new ArrayList<Integer>();
             }
@@ -88,7 +114,7 @@ public class Dijkstra {
                 ArrayList<Integer> weights = cost[i];
                 s.append("node " + i + ": ");
                 s.append("adjacencies: " + Arrays.toString(edges.toArray()));
-                s.append("weights: " + Arrays.toString(weights.toArray()));
+                s.append("; weights: " + Arrays.toString(weights.toArray()));
                 s.append("\n");
             }
 
@@ -115,20 +141,9 @@ public class Dijkstra {
             siftDown(0);
             return n;
         }
+        void addOrUpdate(int nodeId, long distance) {
+            if (nodeMap[nodeId] != -1) changePriority(nodeId, distance);
 
-        Node removeNode(int index) {
-            Node n = heap[index];
-            nodeMap[n.nodeId] = -1;
-            numNodes--;
-            Node lastNode = heap[numNodes];
-            if (numNodes != 0 && lastNode != n) {
-                heap[numNodes] = null;
-                updateNode(lastNode, index);
-            }
-            return n;
-        }
-
-        void add(int nodeId, long distance) {
             numNodes++;
             int index = numNodes - 1;
             Node n = new Node(nodeId, distance);
@@ -143,6 +158,25 @@ public class Dijkstra {
             removeNode(index);
             heapify(index);
         }
+
+        void changePriority(int nodeId, long distance){
+            int index = nodeMap[nodeId];
+            if (index == -1) return;
+            heapify(index);
+        }
+
+        Node removeNode(int index) {
+            Node n = heap[index];
+            nodeMap[n.nodeId] = -1;
+            numNodes--;
+            Node lastNode = heap[numNodes];
+            if (numNodes != 0 && lastNode != n) {
+                heap[numNodes] = null;
+                updateNode(lastNode, index);
+            }
+            return n;
+        }
+
 
         void heapify(int index) {
             if (rule(index))
