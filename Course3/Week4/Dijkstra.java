@@ -2,8 +2,8 @@ import java.util.*;
 
 public class Dijkstra {
     public static void main(String[] args) {
-        // runSolution();
-        testSolution();
+        runSolution();
+        // testSolution();
     }
 
     static void runSolution() {
