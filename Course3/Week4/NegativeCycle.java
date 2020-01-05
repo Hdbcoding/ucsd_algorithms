@@ -42,7 +42,7 @@ public class NegativeCycle {
         for (int i = 2; i < data.length - 3; i += 3) {
             int x = data[i];
             int y = data[i + 1];
-            int w = data[i + 3];
+            int w = data[i + 2];
             g.addEdge(x, y, w);
         }
         return g;

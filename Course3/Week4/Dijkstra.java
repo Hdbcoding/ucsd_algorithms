@@ -3,7 +3,8 @@ import java.util.*;
 public class Dijkstra {
     public static void main(String[] args) {
         // runSolution();
-        testSolution();
+        // testSolution();
+        runStressTest();
     }
 
     static void runSolution() {
@@ -29,6 +30,8 @@ public class Dijkstra {
         runTest(new int[] { 5, 9, 1, 2, 4, 1, 3, 2, 2, 3, 2, 3, 2, 1, 2, 4, 2, 3, 5, 4, 5, 4, 1, 2, 5, 3, 3, 4, 4, 1,
                 5 }, 6);
         runTest(new int[] { 3, 3, 1, 2, 7, 1, 3, 5, 2, 3, 2, 3, 2 }, -1);
+        runTest(new int[] { 1, 0, 1, 1 }, 0);
+        runTest(new int[] { 2, 2, 1, 2, 500, 1, 2, 1, 1, 2 }, 1);
     }
 
     static void runTest(int[] data, long expected) {
@@ -37,23 +40,114 @@ public class Dijkstra {
         int t = data[data.length - 1] - 1;
 
         long actual = distance(g, s, t);
+        complain(expected, g, s, t, actual);
+    }
+
+    private static void complain(long expected, Graph g, int s, int t, long actual) {
         if (actual != expected)
             System.out.println("Unexpected distance between nodes s: " + s + " and t: " + t + " for graph:\n" + g
                     + "Expected " + expected + ", but got " + actual);
     }
 
+    static void runStressTest(){
+        int graphSize = 5;
+        Random r = new Random();
+
+        for (int i = 0; i < 1000; i++){
+            int n = nextInt(graphSize, r) + 1;
+            int m = nextInt(n * n, r);
+            int[] data = new int[4 + m * 3];
+            int s = nextInt(n, r);
+            int t = nextInt(n, r);
+            data[0] = n;
+            data[1] = m;
+            data[data.length - 2] = s;
+            data[data.length - 1] = t;
+
+            fillEdges(data, n, m, r);
+
+            Graph g = processData(data);
+            long expected = distanceNaive(g, s, t);
+            try{
+                long actual = distance(g, s, t);
+                
+                complain(expected, g, s, t, actual);
+                
+                // if (i % 50 == 0){
+                //     System.out.println("Test run " + i + ", n = " + n + ", m = " + m);
+                //     if (expected == actual) System.out.println(g);
+                // }
+            }
+            catch (Exception e){
+                System.out.println("Error thrown during test run " + i);
+                System.out.println(Arrays.toString(data));
+                System.out.println(expected);
+                System.out.println(g);
+            }
+        }
+    }
+
+    private static int nextInt(int bound, Random r) {
+        return Math.abs(r.nextInt(bound));
+    }
+
+    static void fillEdges(int[] data, int n, int m, Random r){
+        int lengthBound = 5000;
+        for (int i = 0; i < m; i++){
+            int j = i * 3 + 2;
+            data[j] = nextInt(n, r) + 1;
+            data[j + 1] = nextInt(n, r) + 1;
+            data[j + 2] = nextInt(lengthBound, r);
+        }
+    }
+
     static Graph processData(int[] data) {
         Graph g = new Graph(data[0]);
-        for (int i = 2; i < data.length - 5; i += 3) {
+        for (int i = 2; i < data.length - 4; i += 3) {
             int x = data[i];
             int y = data[i + 1];
-            int w = data[i + 3];
+            int w = data[i + 2];
             g.addEdge(x, y, w);
         }
         return g;
     }
 
+    static long distanceNaive(Graph g, int s, int t){
+        if (s == t) return 0;
+        long[][] m = new long[g.s][g.s];
+        
+        for (int i = 0; i < g.s; i++){
+            Arrays.fill(m[i], -1);
+            ArrayList<Integer> adj = g.adj[i];
+            ArrayList<Integer> cst = g.cost[i];
+            for (int j = 0; j < adj.size(); j++){
+                int n = adj.get(j);
+                int w = cst.get(j);
+                long old = m[i][n];
+                m[i][n] = old == -1 || w < old ? w : old;
+            }
+            m[i][i] = 0;
+        }
+
+        for (int k = 0; k < g.s; k++){
+            for (int i = 0; i < g.s; i++){
+                for (int j = 0; j < g.s; j++){
+                    long oldD = m[i][j];
+                    long ik = m[i][k];
+                    long kj = m[k][j];
+
+                    if (ik == -1 || kj == -1) continue;
+                    if (oldD == -1 || oldD > ik + kj) m[i][j] = ik + kj;
+                }
+            }
+        }
+
+        return m[s][t];
+    }
+
     static Long distance(Graph g, int s, int t) {
+        if (s == t) return 0l;
+
         long[] dist = new long[g.s];
         Arrays.fill(dist, -1);
         int[] prev = new int[g.s];
@@ -100,9 +194,9 @@ public class Dijkstra {
             return adj;
         }
 
-        void addEdge(int s, int t, int w) {
-            adj[s - 1].add(t - 1);
-            cost[s - 1].add(w);
+        void addEdge(int x, int y, int w) {
+            adj[x - 1].add(y - 1);
+            cost[x - 1].add(w);
         }
 
         @Override
@@ -147,7 +241,7 @@ public class Dijkstra {
             numNodes++;
             int index = numNodes - 1;
             Node n = new Node(nodeId, distance);
-            updateNode(n, index);
+            updateNodeIndex(n, index);
             siftUp(index);
         }
 
@@ -172,7 +266,7 @@ public class Dijkstra {
             Node lastNode = heap[numNodes];
             if (numNodes != 0 && lastNode != n) {
                 heap[numNodes] = null;
-                updateNode(lastNode, index);
+                updateNodeIndex(lastNode, index);
             }
             return n;
         }
@@ -213,11 +307,11 @@ public class Dijkstra {
         void swap(int i, int j) {
             Node ni = heap[i];
             Node nj = heap[j];
-            updateNode(ni, j);
-            updateNode(nj, i);
+            updateNodeIndex(ni, j);
+            updateNodeIndex(nj, i);
         }
 
-        void updateNode(Node n, int i) {
+        void updateNodeIndex(Node n, int i) {
             heap[i] = n;
             if (n != null){
                 nodeMap[n.nodeId] = i;
