@@ -94,7 +94,7 @@ public class ShortestPaths {
         }
 
         ArrayList<Integer>[] constructList(int s) {
-            ArrayList<Integer>[] adj = (ArrayList<Integer>[]) new ArrayList[length];
+            ArrayList<Integer>[] adj = (ArrayList<Integer>[]) new ArrayList[s];
             for (int i = 0; i < s; i++) {
                 adj[i] = new ArrayList<Integer>();
             }

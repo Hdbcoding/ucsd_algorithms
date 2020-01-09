@@ -6,6 +6,20 @@
     "configurations": [
         {
             "type": "java",
+            "name": "CodeLens (Launch) - ShortestPaths",
+            "request": "launch",
+            "mainClass": "ShortestPaths",
+            "projectName": "ucsd_algorithms_9b09e84f"
+        },
+        {
+            "type": "java",
+            "name": "CodeLens (Launch) - NegativeCycle",
+            "request": "launch",
+            "mainClass": "NegativeCycle",
+            "projectName": "ucsd_algorithms_9b09e84f"
+        },
+        {
+            "type": "java",
             "name": "CodeLens (Launch) - Dijkstra",
             "request": "launch",
             "mainClass": "Dijkstra",
