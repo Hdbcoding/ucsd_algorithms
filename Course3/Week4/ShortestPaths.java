@@ -30,6 +30,9 @@ public class ShortestPaths {
         runTest(new int[] { 6, 7, 1, 2, 10, 2, 3, 5, 1, 3, 100, 3, 5, 7, 5, 4, 10, 4, 3, -18, 6, 1, -1, 1 },
                 new String[] { "0", "10", "-", "-", "-", "*" });
         runTest(new int[] { 5, 4, 1, 2, 1, 4, 1, 2, 2, 3, 2, 3, 1, -5, 4 }, new String[] { "-", "-", "-", "0", "*" });
+        runTest(new int[] { 3, 3, 1, 2, -1, 2, 3, -1, 3, 1, 5, 1 }, new String[] { "0", "-1", "-2" });
+        runTest(new int[] { 3, 3, 1, 2, -1, 2, 3, -1, 3, 1, -1, 1 }, new String[] { "-", "-", "-" });
+        runTest(new int[] { 3, 4, 1, 2, 500, 2, 3, -1, 3, 2, -1, 2, 1, 500, 1 }, new String[] { "-", "-", "-" });
     }
 
     static void runTest(int[] data, String[] expected) {
@@ -89,7 +92,32 @@ public class ShortestPaths {
                         toVisit.add(n);
                 }
             }
+        }
 
+        markReachableFromCyclesAsInCycle(g);
+    }
+
+    static void markReachableFromCyclesAsInCycle(Graph g) {
+        boolean[] visited = new boolean[g.s];
+        for (int i = 0; i < g.s; i++) {
+            if (g.hasCycle[i] && !visited[i])
+                markReachable(g, visited, i);
+        }
+    }
+
+    private static void markReachable(Graph g, boolean[] visited, int src) {
+        Stack<Integer> toVisit = new Stack<Integer>();
+        toVisit.add(src);
+        while (!toVisit.isEmpty()) {
+            int i = toVisit.pop();
+            visited[i] = true;
+            ArrayList<Integer> adj = g.adj[i];
+            for (int j = 0; j < adj.size(); j++) {
+                int n = adj.get(j);
+                g.hasCycle[n] = true;
+                if (!visited[n])
+                    toVisit.add(n);
+            }
         }
     }
 
@@ -118,7 +146,10 @@ public class ShortestPaths {
         Graph(int s) {
             adj = constructList(s);
             cost = constructList(s);
+
             dist = new long[s];
+            Arrays.fill(dist, Long.MAX_VALUE);
+
             hasCycle = new boolean[s];
 
             this.s = s;

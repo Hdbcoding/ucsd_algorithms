@@ -51,9 +51,12 @@ public class NegativeCycle {
 
     static int negativeCycle(Graph g) {
         boolean hasCycle = false;
-        Long[] dist = new Long[g.s];
+        long[] dist = new long[g.s];
+        for (int i = 0; i < g.s; i++) {
+            dist[i] = Long.MAX_VALUE;
+        }
         int src = 0;
-        while (!hasCycle && src != -1){
+        while (!hasCycle && src != -1) {
             hasCycle = bellmanFordCheck(g, dist, src);
             src = findNextUnvisitedNode(dist, src);
         }
@@ -61,49 +64,54 @@ public class NegativeCycle {
         return hasCycle ? 1 : 0;
     }
 
-    private static boolean bellmanFordCheck(Graph g, Long[] dist, int src) {
+    private static boolean bellmanFordCheck(Graph g, long[] dist, int src) {
         boolean hasCycle = false;
         dist[src] = 0l;
         Stack<Integer> toVisit = new Stack<Integer>();
 
-        for (int k = 0; k < g.s; k++){
+        for (int k = 0; k < g.s; k++) {
             boolean hasChanges = false;
             boolean[] justVisited = new boolean[g.s];
             toVisit.add(src);
 
-            while (!toVisit.isEmpty()){
+            while (!toVisit.isEmpty()) {
                 int i = toVisit.pop();
                 justVisited[i] = true;
                 ArrayList<Integer> adj = g.adj[i];
                 ArrayList<Integer> cost = g.cost[i];
-                for (int j = 0; j < adj.size(); j++){
+                for (int j = 0; j < adj.size(); j++) {
                     int n = adj.get(j);
                     int c = cost.get(j);
                     hasChanges |= relax(i, n, c, dist);
-                    if (!justVisited[n]) toVisit.add(n);
+                    if (!justVisited[n])
+                        toVisit.add(n);
                 }
             }
-            if (!hasChanges) break;
-            if (k == (g.s - 1)) hasCycle = true;
+            if (!hasChanges)
+                break;
+            if (k == (g.s - 1))
+                hasCycle = true;
         }
 
         return hasCycle;
     }
 
-    private static int findNextUnvisitedNode(Long[] dist, int src) {
-        for (int i = src; i < dist.length; i ++){
-            if (dist[i] == null) return i;
+    private static int findNextUnvisitedNode(long[] dist, int src) {
+        for (int i = src; i < dist.length; i++) {
+            if (dist[i] == Long.MAX_VALUE)
+                return i;
         }
         return -1;
     }
 
     // returns true if this edge was relaxed
-    private static boolean relax(int u, int v, int cost, Long[] dist) {
-        Long src = dist[u];
-        if (src == null) return false;
-        Long oldDist = dist[v];
-        Long newDist = src + cost;
-        if (oldDist == null || newDist < oldDist) {
+    private static boolean relax(int u, int v, int cost, long[] dist) {
+        long src = dist[u];
+        if (src == Long.MAX_VALUE)
+            return false;
+        long oldDist = dist[v];
+        long newDist = src + cost;
+        if (newDist < oldDist) {
             dist[v] = newDist;
             return true;
         }
@@ -136,9 +144,9 @@ public class NegativeCycle {
         }
 
         @Override
-        public String toString(){
+        public String toString() {
             StringBuilder s = new StringBuilder();
-    
+
             for (int i = 0; i < adj.length; i++) {
                 ArrayList<Integer> edges = adj[i];
                 ArrayList<Integer> weights = cost[i];
@@ -147,7 +155,7 @@ public class NegativeCycle {
                 s.append("; weights: " + Arrays.toString(weights.toArray()));
                 s.append("\n");
             }
-    
+
             return s.toString();
         }
     }
