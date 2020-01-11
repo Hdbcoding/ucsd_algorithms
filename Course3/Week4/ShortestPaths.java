@@ -2,8 +2,8 @@ import java.util.*;
 
 public class ShortestPaths {
     public static void main(String[] args) {
-        // runSolution();
-        testSolution();
+        runSolution();
+        // testSolution();
     }
 
     static void runSolution() {
@@ -22,13 +22,7 @@ public class ShortestPaths {
         scanner.close();
         shortestPaths(g, s);
         for (int i = 0; i < n; i++) {
-            if (g.reachable[i] == 0) {
-                System.out.println('*');
-            } else if (g.shortest[i] == 0) {
-                System.out.println('-');
-            } else {
-                System.out.println(g.distance[i]);
-            }
+            System.out.println(g.getResult(i));
         }
     }
 
@@ -40,7 +34,7 @@ public class ShortestPaths {
 
     static void runTest(int[] data, String[] expected) {
         Graph g = processData(data);
-        int s = data[data.length - 1];
+        int s = data[data.length - 1] - 1;
         shortestPaths(g, s);
         String[] actual = processResult(g);
         String eString = Arrays.toString(expected);
@@ -65,32 +59,69 @@ public class ShortestPaths {
         int n = g.adj.length;
         String[] result = new String[n];
         for (int i = 0; i < n; i++) {
-            if (g.reachable[i] == 0) {
-                result[i] = "*";
-            } else if (g.shortest[i] == 0) {
-                result[i] = "-";
-            } else {
-                result[i] = g.distance[i] + "";
-            }
+            result[i] = g.getResult(i);
         }
         return result;
     }
 
-    static void shortestPaths(Graph g, int s) {
-        // write your code here
+    static void shortestPaths(Graph g, int src) {
+        g.dist[src] = 0l;
+        Stack<Integer> toVisit = new Stack<Integer>();
+
+        for (int k = 0; k < g.s; k++) {
+            boolean[] visited = new boolean[g.s];
+            boolean lastRound = k == (g.s - 1);
+            toVisit.add(src);
+
+            while (!toVisit.isEmpty()) {
+                int i = toVisit.pop();
+                visited[i] = true;
+                ArrayList<Integer> adj = g.adj[i];
+                ArrayList<Integer> cost = g.cost[i];
+                for (int j = 0; j < adj.size(); j++) {
+                    int n = adj.get(j);
+                    int c = cost.get(j);
+                    if (relax(i, n, c, g.dist) && lastRound) {
+                        g.hasCycle[i] = true;
+                        g.hasCycle[n] = true;
+                    }
+                    if (!visited[n])
+                        toVisit.add(n);
+                }
+            }
+
+        }
+    }
+
+    // returns true if this edge was relaxed
+    private static boolean relax(int u, int v, int cost, long[] dist) {
+        long src = dist[u];
+        if (src == Long.MAX_VALUE)
+            return false;
+        long oldDist = dist[v];
+        long newDist = src + cost;
+        if (newDist < oldDist) {
+            dist[v] = newDist;
+            return true;
+        }
+
+        return false;
     }
 
     static class Graph {
         ArrayList<Integer>[] adj;
         ArrayList<Integer>[] cost;
-        long[] distance;
-        int[] reachable;
-        int[] shortest;
+        long[] dist;
+        boolean[] hasCycle;
+        int s;
 
         Graph(int s) {
             adj = constructList(s);
             cost = constructList(s);
-            constructResultLists(s);
+            dist = new long[s];
+            hasCycle = new boolean[s];
+
+            this.s = s;
         }
 
         ArrayList<Integer>[] constructList(int s) {
@@ -101,36 +132,37 @@ public class ShortestPaths {
             return adj;
         }
 
-        private void constructResultLists(int s) {
-            long distance[] = new long[s];
-            int reachable[] = new int[s];
-            int shortest[] = new int[s];
-            for (int i = 0; i < s; i++) {
-                distance[i] = Long.MAX_VALUE;
-                reachable[i] = 0;
-                shortest[i] = 1;
-            }
-        }
-
         void addEdge(int s, int t, int w) {
             adj[s - 1].add(t - 1);
             cost[s - 1].add(w);
         }
 
         @Override
-        public String toString(){
+        public String toString() {
             StringBuilder s = new StringBuilder();
-    
+
             for (int i = 0; i < adj.length; i++) {
                 ArrayList<Integer> edges = adj[i];
                 ArrayList<Integer> weights = cost[i];
                 s.append("node " + i + ": ");
                 s.append("adjacencies: " + Arrays.toString(edges.toArray()));
                 s.append("; weights: " + Arrays.toString(weights.toArray()));
+                s.append("; hasCycle: " + hasCycle[i]);
+                s.append("; distance: " + dist[i]);
                 s.append("\n");
             }
-    
+
             return s.toString();
+        }
+
+        String getResult(int i) {
+            if (dist[i] == Long.MAX_VALUE) {
+                return "*";
+            } else if (hasCycle[i]) {
+                return "-";
+            } else {
+                return dist[i] + "";
+            }
         }
     }
 

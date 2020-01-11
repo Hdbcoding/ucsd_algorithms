@@ -78,9 +78,9 @@ public class NegativeCycle {
                 ArrayList<Integer> cost = g.cost[i];
                 for (int j = 0; j < adj.size(); j++){
                     int n = adj.get(j);
-                    if (!justVisited[n]) toVisit.add(n);
                     int c = cost.get(j);
                     hasChanges |= relax(i, n, c, dist);
+                    if (!justVisited[n]) toVisit.add(n);
                 }
             }
             if (!hasChanges) break;
