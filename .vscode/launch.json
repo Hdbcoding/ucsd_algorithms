@@ -6,6 +6,20 @@
     "configurations": [
         {
             "type": "java",
+            "name": "CodeLens (Launch) - Clustering",
+            "request": "launch",
+            "mainClass": "Clustering",
+            "projectName": "ucsd_algorithms_9b09e84f"
+        },
+        {
+            "type": "java",
+            "name": "CodeLens (Launch) - ConnectingPoints",
+            "request": "launch",
+            "mainClass": "ConnectingPoints",
+            "projectName": "ucsd_algorithms_9b09e84f"
+        },
+        {
+            "type": "java",
             "name": "CodeLens (Launch) - ShortestPaths",
             "request": "launch",
             "mainClass": "ShortestPaths",
