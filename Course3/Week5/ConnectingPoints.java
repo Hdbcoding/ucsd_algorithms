@@ -1,4 +1,6 @@
 import java.util.Arrays;
+import java.util.Comparator;
+import java.util.PriorityQueue;
 import java.util.Scanner;
 
 public class ConnectingPoints {
@@ -15,7 +17,7 @@ public class ConnectingPoints {
             g.setPoint(i, scanner.nextInt(), scanner.nextInt());
         }
         scanner.close();
-        System.out.println(minimumDistance(g));
+        System.out.println(prim(g));
     }
 
     static void testSolution() {
@@ -25,10 +27,11 @@ public class ConnectingPoints {
 
     static void runTest(int[] data, double expected) {
         Graph g = parseGraph(data);
-        double actual = minimumDistance(g);
-        if (!closeEnough(expected, actual))
+        double aPrim = prim(g);
+        double aKruskal = kruskal(g);
+        if (!closeEnough(expected, aPrim) || !closeEnough(expected, aKruskal))
             System.out.println("Unexpected result for x: " + Arrays.toString(g.x) + ", y: " + Arrays.toString(g.y)
-                    + ", expected: " + expected + ", but got: " + actual);
+                    + ", expected: " + expected + ", but got (prim): " + aPrim + ", and got (kruskal): " + aKruskal);
     }
 
     private static Graph parseGraph(int[] data) {
@@ -46,10 +49,39 @@ public class ConnectingPoints {
         return (actual > expected - epsilon) && (actual < expected + epsilon);
     }
 
-    static double minimumDistance(Graph g) {
-        double result = 0.;
-        // write your code here
-        return result;
+    static double kruskal(Graph g) {
+        return 0.;
+    }
+
+    static double prim(Graph g) {
+        double totalCost = 0.;
+        boolean[] visited = new boolean[g.s];
+        int[] parent = new int[g.s];
+        Arrays.fill(parent, -1);
+        double[] cost = new double[g.s];
+        Arrays.fill(cost, Double.MAX_VALUE);
+        cost[0] = 0;
+        PriorityQueue<Integer> h = new PriorityQueue<Integer>(g.s, new HeapRule(cost));
+        h.add(0);
+
+        while (!h.isEmpty()){
+            int i = h.poll();
+            totalCost += cost[i];
+            visited[i] = true;
+            for (int j = 0; j < g.s; j++){
+                if (visited[j]) continue;
+                double oldC = cost[j];
+                double newC = g.distance(i, j);
+                if (newC < oldC){
+                    h.remove(j);
+                    cost[j] = newC;
+                    parent[j] = i;
+                    h.add(j);
+                }
+            }
+        }
+
+        return totalCost;
     }
 
     static class Graph {
@@ -67,5 +99,33 @@ public class ConnectingPoints {
             this.x[i] = x;
             this.y[i] = y;
         }
+
+        double distance(int i, int j) {
+            int dx = x[i] - x[j];
+            int dy = y[i] - y[j];
+            return Math.sqrt(dx * dx + dy * dy);
+        }
+    }
+
+    static class HeapRule implements Comparator<Integer> {
+        double[] cost;
+        public HeapRule(double[] cost) {
+            this.cost = cost;
+        }
+
+        @Override
+        public int compare(Integer i, Integer j) {
+            double ci = cost[i];
+            double cj = cost[j];
+            if (ci < cj) return -1;
+            if (ci > cj) return 1;
+            return 0;
+        }
+    }
+
+    static class Edge {
+        int i;
+        int j;
+        double cost;
     }
 }
