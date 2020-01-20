@@ -7,8 +7,8 @@ import java.util.Scanner;
 
 public class ConnectingPoints {
     public static void main(String[] args) {
-        // runSolution();
-        testSolution();
+        runSolution();
+        // testSolution();
     }
 
     static void runSolution() {

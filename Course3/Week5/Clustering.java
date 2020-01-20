@@ -5,8 +5,8 @@ import java.util.Scanner;
 
 public class Clustering {
     public static void main(String[] args) {
-        // runSolution();
-        testSolution();
+        runSolution();
+        // testSolution();
     }
 
     static void runSolution() {
@@ -16,8 +16,8 @@ public class Clustering {
         for (int i = 0; i < n; i++) {
             g.setPoint(i, scanner.nextInt(), scanner.nextInt());
         }
-        scanner.close();
         int k = scanner.nextInt();
+        scanner.close();
         System.out.println(clustering(g, k));
     }
 
