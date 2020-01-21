@@ -4,107 +4,22 @@ import java.util.Arrays;
 import java.util.PriorityQueue;
 
 public class FriendSuggestion {
-    private static class Impl {
-        // Number of nodes
-        int n;
-        // adj[0] and cost[0] store the initial graph, adj[1] and cost[1] store the reversed graph.
-        // Each graph is stored as array of adjacency lists for each node. adj stores the edges,
-        // and cost stores their costs.
-        ArrayList<Integer>[][] adj;
-        ArrayList<Integer>[][] cost;
-        // distance[0] and distance[1] correspond to distance estimates in the forward and backward searches.
-        Long[][] distance;
-        // Two priority queues, one for forward and one for backward search.
-        ArrayList<PriorityQueue<Entry>> queue;
-        // visited[v] == true iff v was visited either by forward or backward search.
-        boolean[] visited;
-        // List of all the nodes which were visited either by forward or backward search.
-        ArrayList<Integer> workset;
-        final Long INFINITY = Long.MAX_VALUE / 4;
-
-        Impl(int n) {
-            this.n = n;
-            visited = new boolean[n];
-            Arrays.fill(visited, false);
-            workset = new ArrayList<Integer>();
-            distance = new Long[][] {new Long[n], new Long[n]};
-            for (int i = 0; i < n; ++i) {
-                distance[0][i] = distance[1][i] = INFINITY;
-            }
-            queue = new ArrayList<PriorityQueue<Entry>>();
-            queue.add(new PriorityQueue<Entry>(n));
-            queue.add(new PriorityQueue<Entry>(n));
-        }
-
-        // Reinitialize the data structures before new query after the previous query
-        void clear() {
-            for (int v : workset) {
-                distance[0][v] = distance[1][v] = INFINITY;
-                visited[v] = false;
-            }
-            workset.clear();
-            queue.get(0).clear();
-            queue.get(1).clear();
-        }
-
-        // Try to relax the distance from direction side to node v using value dist.
-        void visit(int side, int v, Long dist) {
-            // Implement this method yourself
-        }
-
-        // Returns the distance from s to t in the graph.
-        Long query(int s, int t) {
-            clear();
-            visit(0, s, 0L);
-            visit(1, t, 0L);
-            // Implement the rest of the algorithm yourself
- 
-            return -1L;
-        }
-
-        class Entry implements Comparable<Entry>
-        {
-            Long cost;
-            int node;
-          
-            public Entry(Long cost, int node)
-            {
-                this.cost = cost;
-                this.node = node;
-            }
-         
-            public int compareTo(Entry other)
-            {
-                return cost < other.cost ? -1 : cost > other.cost ? 1 : 0;
-            }
-        }
+    public static void main(String args[]) {
+        runSolution();
     }
 
-    public static void main(String args[]) {
+    static void runSolution(){
         Scanner in = new Scanner(System.in);
         int n = in.nextInt();
         int m = in.nextInt();
-        Impl bidij = new Impl(n);
-        bidij.adj = (ArrayList<Integer>[][])new ArrayList[2][];
-        bidij.cost = (ArrayList<Integer>[][])new ArrayList[2][];
-        for (int side = 0; side < 2; ++side) {
-            bidij.adj[side] = (ArrayList<Integer>[])new ArrayList[n];
-            bidij.cost[side] = (ArrayList<Integer>[])new ArrayList[n];
-            for (int i = 0; i < n; i++) {
-                bidij.adj[side][i] = new ArrayList<Integer>();
-                bidij.cost[side][i] = new ArrayList<Integer>();
-            }
-        }
+        BidirectionalDijkstra bd = new BidirectionalDijkstra(n);
 
         for (int i = 0; i < m; i++) {
             int x, y, c;
             x = in.nextInt();
             y = in.nextInt();
             c = in.nextInt();
-            bidij.adj[0][x - 1].add(y - 1);
-            bidij.cost[0][x - 1].add(c);
-            bidij.adj[1][y - 1].add(x - 1);
-            bidij.cost[1][y - 1].add(c);
+            bd.addEdge(x - 1, y - 1, c);
         }
 
         int t = in.nextInt();
@@ -113,7 +28,112 @@ public class FriendSuggestion {
             int u, v;
             u = in.nextInt();
             v = in.nextInt();
-            System.out.println(bidij.query(u-1, v-1));
+            System.out.println(bd.query(u-1, v-1));
+        }
+        in.close();
+    }
+
+    static class BidirectionalDijkstra {
+        // Number of nodes
+        int n;
+        Graph g;
+        Graph gr;
+        // visited[v] == true iff v was visited either by forward or backward search.
+        boolean[] visited;
+
+        BidirectionalDijkstra(int n) {
+            this.n = n;
+
+            this.g = new Graph(n);
+            this.gr = new Graph(n);
+
+            visited = new boolean[n];
+        }
+
+        void addEdge(int x, int y, int c) {
+            g.addEdge(x, y, c);
+            gr.addEdge(x, y, c);
+        }
+
+        // Returns the distance from s to t in the graph.
+        long query(int s, int t) {
+            clear();
+            g.visit(s, 0l);
+            gr.visit(t, 0l);
+            // Implement the rest of the algorithm yourself
+ 
+            return -1l;
+        }
+
+        // Reinitialize the data structures before new query after the previous query
+        void clear() {
+            g.clear();
+            gr.clear();
+            Arrays.fill(visited, false);
+        }
+
+        void visit (Graph g, int i, long distance){
+            g.visit(i, distance);
+            visited[i] = true;
+        }
+    }
+
+    static class Graph{
+        int n;
+        ArrayList<Integer>[] adj;
+        ArrayList<Integer>[] cost;
+        long[] dist;
+        PriorityQueue<Entry> queue;
+
+        Graph(int n){
+            this.n = n;
+
+            this.adj = generateAdjacency();
+            this.cost = generateAdjacency();
+            this.dist = new long[n];
+            Arrays.fill(dist, Long.MAX_VALUE);
+            this.queue = new PriorityQueue<Entry>(n);
+        }
+
+        ArrayList<Integer>[] generateAdjacency(){
+            ArrayList<Integer>[] adj = (ArrayList<Integer>[])new ArrayList[n];
+            for(int i = 0; i < n; i++){
+                adj[i] = new ArrayList<Integer>();
+            }
+            return adj;
+        }
+
+        void addEdge(int x, int y, int c){
+            adj[x].add(y);
+            cost[x].add(c);
+        }
+
+        void clear(){
+            Arrays.fill(dist, Long.MAX_VALUE);
+            this.queue.clear();
+        }
+
+        // todo - implement
+        void visit(int i, long d){
+
+        }
+    }
+
+
+    static class Entry implements Comparable<Entry>
+    {
+        Long cost;
+        int node;
+      
+        public Entry(Long cost, int node)
+        {
+            this.cost = cost;
+            this.node = node;
+        }
+     
+        public int compareTo(Entry other)
+        {
+            return cost < other.cost ? -1 : cost > other.cost ? 1 : 0;
         }
     }
 }
