@@ -1,11 +1,13 @@
 import java.util.Scanner;
+import java.util.function.Predicate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.PriorityQueue;
 
 public class FriendSuggestion {
     public static void main(String args[]) {
-        runSolution();
+        // runSolution();
+        testSolution();
     }
 
     static void runSolution() {
@@ -33,22 +35,43 @@ public class FriendSuggestion {
         in.close();
     }
 
-    void testSolution() {
-        runTest(new int[] {}, new long[] {});
+    static void testSolution() {
+        runTest(new int[] { 2, 1, 1, 2, 1, 4, 1, 1, 2, 2, 1, 2, 2, 1 }, new long[] { 0, 0, 1, -1 });
+        runTest(new int[] { 4, 4, 1, 2, 1, 4, 1, 2, 2, 3, 2, 1, 3, 5, 1, 1, 3 }, new long[] { 3 });
+        runTest(new int[] { 5, 20, 1, 2, 667, 1, 3, 677, 1, 4, 700, 1, 5, 622, 2, 1, 118, 2, 3, 325, 2, 4, 784, 2, 5,
+                11, 3, 1, 585, 3, 2, 956, 3, 4, 551, 3, 5, 559, 4, 1, 503, 4, 2, 722, 4, 3, 331, 4, 5, 366, 5, 1, 880,
+                5, 2, 883, 5, 3, 461, 5, 4, 228, 10, 1, 1, 1, 2, 1, 3, 1, 4, 1, 5, 2, 1, 2, 2, 2, 3, 2, 4, 2, 5 },
+                new long[] { 0, 667, 677, 700, 622, 118, 0, 325, 239, 11 });
     }
 
-    private void runTest(int[] data, long[] expected) {
+    static void runTest(int[] data, long[] expected) {
         // todo - parse data to fill bd and q
         int n = data[0];
         int m = data[1];
 
-        BidirectionalDijkstra bd = new BidirectionalDijkstra(0);
-        ArrayList<Query> queries = new ArrayList<Query>();
-        long[] actual = new long[queries.size()];
+        BidirectionalDijkstra bd = new BidirectionalDijkstra(n);
+        for (int i = 0; i < m; i++) {
+            int x, y, c;
+            x = data[i * 3 + 2];
+            y = data[i * 3 + 3];
+            c = data[i * 3 + 4];
+            bd.addEdge(x - 1, y - 1, c);
+        }
+
+        int qIndex = m * 3 + 2;
+        int q = data[qIndex];
+        ArrayList<Query> queries = new ArrayList<Query>(q);
+        long[] actual = new long[q];
+        for (int i = 0; i < q; i++) {
+            int u, v;
+            u = data[i * 2 + qIndex + 1];
+            v = data[i * 2 + qIndex + 2];
+            queries.add(new Query(u - 1, v - 1));
+        }
 
         for (int i = 0; i < queries.size(); i++) {
-            Query q = queries.get(i);
-            actual[i] = bd.query(q.u, q.v);
+            Query query = queries.get(i);
+            actual[i] = bd.query(query.u, query.v);
         }
 
         String eString = Arrays.toString(expected);
@@ -59,7 +82,6 @@ public class FriendSuggestion {
             System.out.println("Unexpected result for graph:\n" + bd.g + "\n and queries " + qString + ".\nExpected: "
                     + eString + ", but got: " + aString);
         }
-
     }
 
     static class BidirectionalDijkstra {
@@ -67,16 +89,12 @@ public class FriendSuggestion {
         int n;
         Graph g;
         Graph gr;
-        // visited[v] == true iff v was visited either by forward or backward search.
-        boolean[] visited;
 
         BidirectionalDijkstra(int n) {
             this.n = n;
 
             this.g = new Graph(n);
             this.gr = new Graph(n);
-
-            visited = new boolean[n];
         }
 
         void addEdge(int x, int y, int c) {
@@ -91,19 +109,56 @@ public class FriendSuggestion {
             gr.visit(t, 0l);
             // Implement the rest of the algorithm yourself
 
+            boolean getFromG = true;
+            while (!g.queue.isEmpty() && !gr.queue.isEmpty()) {
+                boolean foundMatch = false;
+                int nodeId;
+                if (getFromG) {
+                    nodeId = g.advanceStep();
+                    foundMatch = gr.dist[nodeId] < Long.MAX_VALUE;
+                } else {
+                    nodeId = gr.advanceStep();
+                    foundMatch = g.dist[nodeId] < Long.MAX_VALUE;
+                }
+                if (foundMatch)
+                    return smallestCrossingDistance(nodeId);
+                getFromG = !getFromG;
+            }
+
             return -1l;
+        }
+
+        private long smallestCrossingDistance(int nodeId) {
+            long dist = g.dist[nodeId] + gr.dist[nodeId];
+            for (int i = 0; i < n; i++) {
+                if (i == nodeId)
+                    continue;
+                if (g.dist[i] == Long.MAX_VALUE)
+                    continue;
+                long di = g.dist[i];
+
+                ArrayList<Integer> neighbors = g.adj[i];
+                ArrayList<Integer> costs = g.cost[i];
+                for (int j = 0; j < neighbors.size(); j++) {
+                    int n = neighbors.get(j);
+                    if (gr.dist[n] == Long.MAX_VALUE)
+                        continue;
+                    long cost = costs.get(j);
+                    long newDist = g.dist[i] + gr.dist[n] + cost;
+                    dist = Math.min(newDist, dist);
+                }
+            }
+            return dist;
         }
 
         // Reinitialize the data structures before new query after the previous query
         void clear() {
             g.clear();
             gr.clear();
-            Arrays.fill(visited, false);
         }
 
         void visit(Graph g, int i, long distance) {
             g.visit(i, distance);
-            visited[i] = true;
         }
     }
 
@@ -113,6 +168,7 @@ public class FriendSuggestion {
         ArrayList<Integer>[] cost;
         long[] dist;
         PriorityQueue<Entry> queue;
+        Entry[] entries;
 
         Graph(int n) {
             this.n = n;
@@ -122,6 +178,24 @@ public class FriendSuggestion {
             this.dist = new long[n];
             Arrays.fill(dist, Long.MAX_VALUE);
             this.queue = new PriorityQueue<Entry>(n);
+            this.entries = new Entry[n];
+        }
+
+        public int advanceStep() {
+            Entry e = queue.poll();
+            ArrayList<Integer> neighbors = adj[e.node];
+            ArrayList<Integer> costs = cost[e.node];
+            for (int i = 0; i < neighbors.size(); i++) {
+                int nodeId = neighbors.get(i);
+                int cost = costs.get(i);
+                long oldDist = dist[nodeId];
+                long newDist = e.cost + cost;
+                if (oldDist > newDist) {
+                    queue.remove(entries[i]);
+                    visit(nodeId, newDist);
+                }
+            }
+            return e.node;
         }
 
         ArrayList<Integer>[] generateAdjacency() {
@@ -142,9 +216,10 @@ public class FriendSuggestion {
             this.queue.clear();
         }
 
-        // todo - implement
         void visit(int i, long d) {
-
+            entries[i] = new Entry(d, i);
+            dist[i] = d;
+            queue.add(entries[i]);
         }
 
         @Override
@@ -182,6 +257,11 @@ public class FriendSuggestion {
     static class Query {
         int u;
         int v;
+
+        Query(int u, int v) {
+            this.u = u;
+            this.v = v;
+        }
 
         @Override
         public String toString() {
