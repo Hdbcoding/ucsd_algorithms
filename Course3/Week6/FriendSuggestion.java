@@ -42,6 +42,41 @@ public class FriendSuggestion {
                 11, 3, 1, 585, 3, 2, 956, 3, 4, 551, 3, 5, 559, 4, 1, 503, 4, 2, 722, 4, 3, 331, 4, 5, 366, 5, 1, 880,
                 5, 2, 883, 5, 3, 461, 5, 4, 228, 10, 1, 1, 1, 2, 1, 3, 1, 4, 1, 5, 2, 1, 2, 2, 2, 3, 2, 4, 2, 5 },
                 new long[] { 0, 667, 677, 700, 622, 118, 0, 325, 239, 11 });
+
+// Unexpected distance between nodes 3, and 2. Expected 102, but got -1
+// node 0: adjacencies: [0, 1]; weights: [72, 26]
+// node 1: adjacencies: [2, 2]; weights: [10, 46]
+// node 2: adjacencies: [2]; weights: [13]
+// node 3: adjacencies: [1, 0]; weights: [92, 67]
+
+// error for nodes 2, and 2
+// java.lang.ArrayIndexOutOfBoundsException: 3
+//         at FriendSuggestion$Graph.advanceStep(FriendSuggestion.java:288)
+//         at FriendSuggestion$BidirectionalDijkstra.query(FriendSuggestion.java:210)
+//         at FriendSuggestion.stressTest(FriendSuggestion.java:108)
+//         at FriendSuggestion.testSolution(FriendSuggestion.java:45)
+//         at FriendSuggestion.main(FriendSuggestion.java:10)
+// node 0: adjacencies: []; weights: []
+// node 1: adjacencies: [2]; weights: [72]
+// node 2: adjacencies: [0, 2, 1, 1]; weights: [10, 60, 36, 19]
+
+// Error thrown during test run 56, java.lang.ArrayIndexOutOfBoundsException: 2
+// error for nodes 1, and 0
+// java.lang.ArrayIndexOutOfBoundsException: 2
+//         at FriendSuggestion$Graph.advanceStep(FriendSuggestion.java:288)
+//         at FriendSuggestion$BidirectionalDijkstra.query(FriendSuggestion.java:213)
+//         at FriendSuggestion.stressTest(FriendSuggestion.java:108)
+//         at FriendSuggestion.testSolution(FriendSuggestion.java:45)
+//         at FriendSuggestion.main(FriendSuggestion.java:10)
+// node 0: adjacencies: [0]; weights: [5]
+// node 1: adjacencies: [0, 0]; weights: [28, 10]
+
+// Unexpected distance between nodes 0, and 2. Expected 123, but got -1
+// node 0: adjacencies: [1, 3]; weights: [54, 44]
+// node 1: adjacencies: [0, 2]; weights: [14, 69]
+// node 2: adjacencies: []; weights: []
+// node 3: adjacencies: []; weights: []
+        
         stressTest();
     }
 
@@ -90,12 +125,12 @@ public class FriendSuggestion {
 
     private static void stressTest() {
         int graphSize = 5;
-        int numTests = 30;
+        int numTests = 100;
         Random r = new Random();
 
         for (int i = 0; i < numTests; i++) {
             int n = nextInt(graphSize, r) + 1;
-            int m = nextInt(n * n, r);
+            int m = nextInt(n * 2, r);
             int[] data = fillEdges(n, m, r);
             BidirectionalDijkstra bd = parseData(data);
             long[][] distances = calculateDistancesNaive(bd.g);
@@ -223,6 +258,7 @@ public class FriendSuggestion {
 
         private long smallestCrossingDistance(int nodeId) {
             long dist = g.dist[nodeId] + gr.dist[nodeId];
+            // todo - forgot the reverse direction
             for (int i = 0; i < n; i++) {
                 if (i == nodeId)
                     continue;
