@@ -1,8 +1,8 @@
 import java.util.Scanner;
-import java.util.function.Predicate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.PriorityQueue;
+import java.util.Random;
 
 public class FriendSuggestion {
     public static void main(String args[]) {
@@ -42,23 +42,13 @@ public class FriendSuggestion {
                 11, 3, 1, 585, 3, 2, 956, 3, 4, 551, 3, 5, 559, 4, 1, 503, 4, 2, 722, 4, 3, 331, 4, 5, 366, 5, 1, 880,
                 5, 2, 883, 5, 3, 461, 5, 4, 228, 10, 1, 1, 1, 2, 1, 3, 1, 4, 1, 5, 2, 1, 2, 2, 2, 3, 2, 4, 2, 5 },
                 new long[] { 0, 667, 677, 700, 622, 118, 0, 325, 239, 11 });
+        stressTest();
     }
 
     static void runTest(int[] data, long[] expected) {
         // todo - parse data to fill bd and q
-        int n = data[0];
-        int m = data[1];
-
-        BidirectionalDijkstra bd = new BidirectionalDijkstra(n);
-        for (int i = 0; i < m; i++) {
-            int x, y, c;
-            x = data[i * 3 + 2];
-            y = data[i * 3 + 3];
-            c = data[i * 3 + 4];
-            bd.addEdge(x - 1, y - 1, c);
-        }
-
-        int qIndex = m * 3 + 2;
+        BidirectionalDijkstra bd = parseData(data);
+        int qIndex = data[1] * 3 + 2;
         int q = data[qIndex];
         ArrayList<Query> queries = new ArrayList<Query>(q);
         long[] actual = new long[q];
@@ -84,6 +74,109 @@ public class FriendSuggestion {
         }
     }
 
+    static BidirectionalDijkstra parseData(int[] data) {
+        int n = data[0];
+        int m = data[1];
+        BidirectionalDijkstra bd = new BidirectionalDijkstra(n);
+        for (int i = 0; i < m; i++) {
+            int x, y, c;
+            x = data[i * 3 + 2];
+            y = data[i * 3 + 3];
+            c = data[i * 3 + 4];
+            bd.addEdge(x - 1, y - 1, c);
+        }
+        return bd;
+    }
+
+    private static void stressTest() {
+        int graphSize = 5;
+        int numTests = 30;
+        Random r = new Random();
+
+        for (int i = 0; i < numTests; i++) {
+            int n = nextInt(graphSize, r) + 1;
+            int m = nextInt(n * n, r);
+            int[] data = fillEdges(n, m, r);
+            BidirectionalDijkstra bd = parseData(data);
+            long[][] distances = calculateDistancesNaive(bd.g);
+
+            boolean anyMistakes = false;
+            for (int j = 0; j < n; j++) {
+                for (int k = 0; k < n; k++) {
+                    long expected = distances[j][k];
+                    try {
+                        long actual = bd.query(j, k);
+
+                        if (expected != actual) {
+                            anyMistakes = true;
+                            System.out.println("Unexpected distance between nodes " + j + ", and " + k + ". Expected "
+                                    + expected + ", but got " + actual);
+                        }
+                    } catch (Exception e) {
+                        System.out.println("\nError thrown during test run " + i + ", " + e);
+                        System.out.println("error for nodes " + j + ", and " + k);
+                        e.printStackTrace();
+                        System.out.println(bd.g);
+                    }
+                }
+            }
+            if (anyMistakes) {
+                System.out.println(bd.g);
+            }
+        }
+    }
+
+    private static long[][] calculateDistancesNaive(Graph g) {
+        long[][] m = new long[g.n][g.n];
+
+        for (int i = 0; i < g.n; i++) {
+            Arrays.fill(m[i], -1);
+            ArrayList<Integer> adj = g.adj[i];
+            ArrayList<Integer> cst = g.cost[i];
+            for (int j = 0; j < adj.size(); j++) {
+                int n = adj.get(j);
+                int w = cst.get(j);
+                long old = m[i][n];
+                m[i][n] = old == -1 || w < old ? w : old;
+            }
+            m[i][i] = 0;
+        }
+
+        for (int k = 0; k < g.n; k++) {
+            for (int i = 0; i < g.n; i++) {
+                for (int j = 0; j < g.n; j++) {
+                    long oldD = m[i][j];
+                    long ik = m[i][k];
+                    long kj = m[k][j];
+
+                    if (ik == -1 || kj == -1)
+                        continue;
+                    if (oldD == -1 || oldD > ik + kj)
+                        m[i][j] = ik + kj;
+                }
+            }
+        }
+        return m;
+    }
+
+    static int[] fillEdges(int n, int m, Random r) {
+        int[] data = new int[m * 3 + 2];
+        data[0] = n;
+        data[1] = m;
+        int lengthBound = 100;
+        for (int i = 0; i < m; i++) {
+            int j = i * 3 + 2;
+            data[j] = nextInt(n, r) + 1;
+            data[j + 1] = nextInt(n, r) + 1;
+            data[j + 2] = nextInt(lengthBound, r) + 1;
+        }
+        return data;
+    }
+
+    static int nextInt(int bound, Random r) {
+        return Math.abs(r.nextInt(bound));
+    }
+
     static class BidirectionalDijkstra {
         // Number of nodes
         int n;
@@ -99,7 +192,7 @@ public class FriendSuggestion {
 
         void addEdge(int x, int y, int c) {
             g.addEdge(x, y, c);
-            gr.addEdge(x, y, c);
+            gr.addEdge(y, x, c);
         }
 
         // Returns the distance from s to t in the graph.
@@ -144,7 +237,7 @@ public class FriendSuggestion {
                     if (gr.dist[n] == Long.MAX_VALUE)
                         continue;
                     long cost = costs.get(j);
-                    long newDist = g.dist[i] + gr.dist[n] + cost;
+                    long newDist = di + gr.dist[n] + cost;
                     dist = Math.min(newDist, dist);
                 }
             }
