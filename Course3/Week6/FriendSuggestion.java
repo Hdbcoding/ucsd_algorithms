@@ -42,61 +42,51 @@ public class FriendSuggestion {
                 11, 3, 1, 585, 3, 2, 956, 3, 4, 551, 3, 5, 559, 4, 1, 503, 4, 2, 722, 4, 3, 331, 4, 5, 366, 5, 1, 880,
                 5, 2, 883, 5, 3, 461, 5, 4, 228, 10, 1, 1, 1, 2, 1, 3, 1, 4, 1, 5, 2, 1, 2, 2, 2, 3, 2, 4, 2, 5 },
                 new long[] { 0, 667, 677, 700, 622, 118, 0, 325, 239, 11 });
+        // getting bad distances with multiple edges out of the same node -- fixed
+        runTest(new int[] { 4, 4, 2, 3, 72, 2, 3, 89, 2, 1, 62, 3, 4, 21, 1, 2, 4 }, new long[] { 93 });
+        // getting errors with self-referencing nodes
+        runTest(new int[] { 4, 7, 1, 2, 72, 1, 2, 29, 2, 2, 7, 2, 2, 8, 3, 4, 79, 3, 4, 76, 3, 2, 78, 2, 1, 2, 3, 2 },
+                new long[] { 29, 78 });
+        // some null pointer exception
+        runTest(new int[] { 3, 5, 2, 3, 58, 2, 3, 2, 3, 1, 47, 3, 3, 40, 3, 3, 21, 1, 1, 3 }, new long[] { -1 });
 
-// Unexpected distance between nodes 3, and 2. Expected 102, but got -1
-// node 0: adjacencies: [0, 1]; weights: [72, 26]
-// node 1: adjacencies: [2, 2]; weights: [10, 46]
-// node 2: adjacencies: [2]; weights: [13]
-// node 3: adjacencies: [1, 0]; weights: [92, 67]
+        // some shorter-than-possible distance issue
+        // Unexpected distance during test run 2350
+        // for nodes 5 to 6
+        // n: 7, m: 13
+        // expected 79
+        // actual 85
+        // node 0: adjacencies: [0, 1, 1, 4]; weights: [83, 13, 78, 63]
+        // node 1: adjacencies: [4]; weights: [4]
+        // node 2: adjacencies: [1, 6]; weights: [10, 1]
+        // node 3: adjacencies: [4]; weights: [98]
+        // node 4: adjacencies: [2]; weights: [23]
+        // node 5: adjacencies: [1, 0, 6]; weights: [51, 94, 85]
+        // node 6: adjacencies: [1]; weights: [40]
+        // node 0: adjacencies: [0, 1, 1, 4]; weights: [83, 13, 78, 63]
+        // node 1: adjacencies: [4]; weights: [4]
+        // node 2: adjacencies: [1, 6]; weights: [10, 1]
+        // node 3: adjacencies: [4]; weights: [98]
+        // node 4: adjacencies: [2]; weights: [23]
+        // node 5: adjacencies: [1, 0, 6]; weights: [51, 94, 85]
+        // node 6: adjacencies: [1]; weights: [40]
 
-// error for nodes 2, and 2
-// java.lang.ArrayIndexOutOfBoundsException: 3
-//         at FriendSuggestion$Graph.advanceStep(FriendSuggestion.java:288)
-//         at FriendSuggestion$BidirectionalDijkstra.query(FriendSuggestion.java:210)
-//         at FriendSuggestion.stressTest(FriendSuggestion.java:108)
-//         at FriendSuggestion.testSolution(FriendSuggestion.java:45)
-//         at FriendSuggestion.main(FriendSuggestion.java:10)
-// node 0: adjacencies: []; weights: []
-// node 1: adjacencies: [2]; weights: [72]
-// node 2: adjacencies: [0, 2, 1, 1]; weights: [10, 60, 36, 19]
-
-// Error thrown during test run 56, java.lang.ArrayIndexOutOfBoundsException: 2
-// error for nodes 1, and 0
-// java.lang.ArrayIndexOutOfBoundsException: 2
-//         at FriendSuggestion$Graph.advanceStep(FriendSuggestion.java:288)
-//         at FriendSuggestion$BidirectionalDijkstra.query(FriendSuggestion.java:213)
-//         at FriendSuggestion.stressTest(FriendSuggestion.java:108)
-//         at FriendSuggestion.testSolution(FriendSuggestion.java:45)
-//         at FriendSuggestion.main(FriendSuggestion.java:10)
-// node 0: adjacencies: [0]; weights: [5]
-// node 1: adjacencies: [0, 0]; weights: [28, 10]
-
-// Unexpected distance between nodes 0, and 2. Expected 123, but got -1
-// node 0: adjacencies: [1, 3]; weights: [54, 44]
-// node 1: adjacencies: [0, 2]; weights: [14, 69]
-// node 2: adjacencies: []; weights: []
-// node 3: adjacencies: []; weights: []
-        
         stressTest();
     }
 
     static void runTest(int[] data, long[] expected) {
-        // todo - parse data to fill bd and q
-        BidirectionalDijkstra bd = parseData(data);
-        int qIndex = data[1] * 3 + 2;
-        int q = data[qIndex];
-        ArrayList<Query> queries = new ArrayList<Query>(q);
-        long[] actual = new long[q];
-        for (int i = 0; i < q; i++) {
-            int u, v;
-            u = data[i * 2 + qIndex + 1];
-            v = data[i * 2 + qIndex + 2];
-            queries.add(new Query(u - 1, v - 1));
-        }
-
+        BidirectionalDijkstra bd = parseGraphs(data);
+        ArrayList<Query> queries = parseQueries(data);
+        long[] actual = new long[queries.size()];
         for (int i = 0; i < queries.size(); i++) {
             Query query = queries.get(i);
-            actual[i] = bd.query(query.u, query.v);
+            try {
+                actual[i] = bd.query(query.u, query.v);
+            } catch (Exception e) {
+                System.out.println("exception thrown on query " + i);
+                e.printStackTrace();
+                actual[i] = -2;
+            }
         }
 
         String eString = Arrays.toString(expected);
@@ -109,7 +99,7 @@ public class FriendSuggestion {
         }
     }
 
-    static BidirectionalDijkstra parseData(int[] data) {
+    static BidirectionalDijkstra parseGraphs(int[] data) {
         int n = data[0];
         int m = data[1];
         BidirectionalDijkstra bd = new BidirectionalDijkstra(n);
@@ -123,16 +113,31 @@ public class FriendSuggestion {
         return bd;
     }
 
+    private static ArrayList<Query> parseQueries(int[] data) {
+        int qIndex = data[1] * 3 + 2;
+        int q = data[qIndex];
+        ArrayList<Query> queries = new ArrayList<Query>(q);
+        for (int i = 0; i < q; i++) {
+            int u, v;
+            u = data[i * 2 + qIndex + 1];
+            v = data[i * 2 + qIndex + 2];
+            queries.add(new Query(u - 1, v - 1));
+        }
+        return queries;
+    }
+
     private static void stressTest() {
-        int graphSize = 5;
-        int numTests = 100;
+        int graphSize = 10;
+        int numTests = 10000;
         Random r = new Random();
 
         for (int i = 0; i < numTests; i++) {
+            if (i > 0 && i % 100 == 0)
+                System.out.println("test run " + i);
             int n = nextInt(graphSize, r) + 1;
             int m = nextInt(n * 2, r);
             int[] data = fillEdges(n, m, r);
-            BidirectionalDijkstra bd = parseData(data);
+            BidirectionalDijkstra bd = parseGraphs(data);
             long[][] distances = calculateDistancesNaive(bd.g);
 
             boolean anyMistakes = false;
@@ -144,12 +149,18 @@ public class FriendSuggestion {
 
                         if (expected != actual) {
                             anyMistakes = true;
-                            System.out.println("Unexpected distance between nodes " + j + ", and " + k + ". Expected "
-                                    + expected + ", but got " + actual);
+                            System.out.println("\nUnexpected distance during test run " + i);
+                            System.out.println("for nodes " + j + " to " + k);
+                            System.out.println("n: " + n + ", m: " + m);
+                            System.out.println("expected " + expected);
+                            System.out.println("actual " + actual);
+                            System.out.println(bd.g);
                         }
                     } catch (Exception e) {
-                        System.out.println("\nError thrown during test run " + i + ", " + e);
-                        System.out.println("error for nodes " + j + ", and " + k);
+                        System.out.println("\nError thrown during test run " + i);
+                        System.out.println("for nodes " + j + " to " + k);
+                        System.out.println("n: " + n + ", m: " + m);
+                        System.out.println("expected " + expected);
                         e.printStackTrace();
                         System.out.println(bd.g);
                     }
@@ -238,10 +249,10 @@ public class FriendSuggestion {
             // Implement the rest of the algorithm yourself
 
             boolean getFromG = true;
-            while (!g.queue.isEmpty() && !gr.queue.isEmpty()) {
+            while (!g.queue.isEmpty() || !gr.queue.isEmpty()) {
                 boolean foundMatch = false;
                 int nodeId;
-                if (getFromG) {
+                if (!g.queue.isEmpty() && getFromG || gr.queue.isEmpty()) {
                     nodeId = g.advanceStep();
                     foundMatch = gr.dist[nodeId] < Long.MAX_VALUE;
                 } else {
@@ -320,7 +331,8 @@ public class FriendSuggestion {
                 long oldDist = dist[nodeId];
                 long newDist = e.cost + cost;
                 if (oldDist > newDist) {
-                    queue.remove(entries[i]);
+                    if (entries[nodeId] != null)
+                        queue.remove(entries[nodeId]);
                     visit(nodeId, newDist);
                 }
             }
