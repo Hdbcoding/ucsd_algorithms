@@ -7,6 +7,7 @@ import java.util.Random;
 public class FriendSuggestion {
     public static void main(String args[]) {
         // runSolution();
+        // runSolutionNaive();
         testSolution();
     }
 
@@ -35,6 +36,31 @@ public class FriendSuggestion {
         in.close();
     }
 
+    static void runSolutionNaive() {
+        Scanner in = new Scanner(System.in);
+        int n = in.nextInt();
+        int m = in.nextInt();
+
+        Graph g = new Graph(n);
+        for (int i = 0; i < m; i++) {
+            int x, y, c;
+            x = in.nextInt();
+            y = in.nextInt();
+            c = in.nextInt();
+            g.addEdge(x - 1, y - 1, c);
+        }
+
+        int t = in.nextInt();
+        long[][] distances = calculateDistancesNaive(g);
+        for (int i = 0; i < t; i++) {
+            int u, v;
+            u = in.nextInt();
+            v = in.nextInt();
+            System.out.println(distances[u - 1][v - 1]);
+        }
+        in.close();
+    }
+
     static void testSolution() {
         runTest(new int[] { 2, 1, 1, 2, 1, 4, 1, 1, 2, 2, 1, 2, 2, 1 }, new long[] { 0, 0, 1, -1 });
         runTest(new int[] { 4, 4, 1, 2, 1, 4, 1, 2, 2, 3, 2, 1, 3, 5, 1, 1, 3 }, new long[] { 3 });
@@ -50,26 +76,11 @@ public class FriendSuggestion {
         // some null pointer exception
         runTest(new int[] { 3, 5, 2, 3, 58, 2, 3, 2, 3, 1, 47, 3, 3, 40, 3, 3, 21, 1, 1, 3 }, new long[] { -1 });
 
-        // some shorter-than-possible distance issue
-        // Unexpected distance during test run 2350
-        // for nodes 5 to 6
-        // n: 7, m: 13
-        // expected 79
-        // actual 85
-        // node 0: adjacencies: [0, 1, 1, 4]; weights: [83, 13, 78, 63]
-        // node 1: adjacencies: [4]; weights: [4]
-        // node 2: adjacencies: [1, 6]; weights: [10, 1]
-        // node 3: adjacencies: [4]; weights: [98]
-        // node 4: adjacencies: [2]; weights: [23]
-        // node 5: adjacencies: [1, 0, 6]; weights: [51, 94, 85]
-        // node 6: adjacencies: [1]; weights: [40]
-        // node 0: adjacencies: [0, 1, 1, 4]; weights: [83, 13, 78, 63]
-        // node 1: adjacencies: [4]; weights: [4]
-        // node 2: adjacencies: [1, 6]; weights: [10, 1]
-        // node 3: adjacencies: [4]; weights: [98]
-        // node 4: adjacencies: [2]; weights: [23]
-        // node 5: adjacencies: [1, 0, 6]; weights: [51, 94, 85]
-        // node 6: adjacencies: [1]; weights: [40]
+        // some miscalculation, not sure why yet
+        // was because of counting matches when a node has been considered but not
+        // finalized
+        runTest(new int[] { 7, 13, 1, 1, 83, 1, 2, 13, 1, 2, 78, 1, 5, 63, 2, 5, 4, 3, 2, 10, 3, 7, 1, 4, 5, 98, 5, 3,
+                23, 6, 2, 51, 6, 1, 94, 6, 7, 85, 7, 2, 40, 1, 6, 7 }, new long[] { 79 });
 
         stressTest();
     }
@@ -128,7 +139,7 @@ public class FriendSuggestion {
 
     private static void stressTest() {
         int graphSize = 10;
-        int numTests = 10000;
+        int numTests = 100;
         Random r = new Random();
 
         for (int i = 0; i < numTests; i++) {
@@ -154,15 +165,14 @@ public class FriendSuggestion {
                             System.out.println("n: " + n + ", m: " + m);
                             System.out.println("expected " + expected);
                             System.out.println("actual " + actual);
-                            System.out.println(bd.g);
                         }
                     } catch (Exception e) {
+                        anyMistakes = true;
                         System.out.println("\nError thrown during test run " + i);
                         System.out.println("for nodes " + j + " to " + k);
                         System.out.println("n: " + n + ", m: " + m);
                         System.out.println("expected " + expected);
                         e.printStackTrace();
-                        System.out.println(bd.g);
                     }
                 }
             }
@@ -228,12 +238,15 @@ public class FriendSuggestion {
         int n;
         Graph g;
         Graph gr;
+        boolean[] visited;
+        ArrayList<Integer> workset = new ArrayList<Integer>();
 
         BidirectionalDijkstra(int n) {
             this.n = n;
 
             this.g = new Graph(n);
             this.gr = new Graph(n);
+            this.visited = new boolean[n];
         }
 
         void addEdge(int x, int y, int c) {
@@ -248,57 +261,76 @@ public class FriendSuggestion {
             gr.visit(t, 0l);
             // Implement the rest of the algorithm yourself
 
-            boolean getFromG = true;
-            while (!g.queue.isEmpty() || !gr.queue.isEmpty()) {
-                boolean foundMatch = false;
-                int nodeId;
-                if (!g.queue.isEmpty() && getFromG || gr.queue.isEmpty()) {
-                    nodeId = g.advanceStep();
-                    foundMatch = gr.dist[nodeId] < Long.MAX_VALUE;
-                } else {
-                    nodeId = gr.advanceStep();
-                    foundMatch = g.dist[nodeId] < Long.MAX_VALUE;
-                }
-                if (foundMatch)
-                    return smallestCrossingDistance(nodeId);
-                getFromG = !getFromG;
+            while (!g.queue.isEmpty() && !gr.queue.isEmpty()) {
+                int nodeId = g.advanceStep();
+                if (visited[nodeId]) return smallestCrossingDistance(nodeId);
+                visited[nodeId] = true;
+                workset.add(nodeId);
+
+                nodeId = gr.advanceStep();
+                if (visited[nodeId]) return smallestCrossingDistance(nodeId);
+                visited[nodeId] = true;
+                workset.add(nodeId);
             }
 
             return -1l;
         }
 
         private long smallestCrossingDistance(int nodeId) {
-            long dist = g.dist[nodeId] + gr.dist[nodeId];
-            // todo - forgot the reverse direction
-            for (int i = 0; i < n; i++) {
-                if (i == nodeId)
-                    continue;
-                if (g.dist[i] == Long.MAX_VALUE)
-                    continue;
-                long di = g.dist[i];
+            long dist = Long.MAX_VALUE;
+            for (int i : workset)
+            for (int j : workset) {
+                long gd = g.dist[i];
+                if (gd == Long.MAX_VALUE) continue;
+                long grd = gr.dist[j];
+                if (grd == Long.MAX_VALUE) continue;
+                int edge = getEdge(i, j);
+                if (edge == -1) continue;
 
-                ArrayList<Integer> neighbors = g.adj[i];
-                ArrayList<Integer> costs = g.cost[i];
-                for (int j = 0; j < neighbors.size(); j++) {
-                    int n = neighbors.get(j);
-                    if (gr.dist[n] == Long.MAX_VALUE)
-                        continue;
-                    long cost = costs.get(j);
-                    long newDist = di + gr.dist[n] + cost;
-                    dist = Math.min(newDist, dist);
+                long d = gd + grd + edge;
+                if ( d < dist) dist = d;
+            }
+            // for (int i = 0; i < n; i++) {
+            //     if (i == nodeId)
+            //         continue;
+            //     if (g.dist[i] == Long.MAX_VALUE)
+            //         continue;
+            //     long di = g.dist[i];
+
+            //     ArrayList<Integer> neighbors = g.adj[i];
+            //     ArrayList<Integer> costs = g.cost[i];
+            //     for (int j = 0; j < neighbors.size(); j++) {
+            //         int n = neighbors.get(j);
+            //         if (gr.dist[n] == Long.MAX_VALUE)
+            //             continue;
+            //         long cost = costs.get(j);
+            //         long newDist = di + gr.dist[n] + cost;
+            //         dist = Math.min(newDist, dist);
+            //     }
+            // }
+            return dist;
+        }
+
+        private int getEdge(int i, int j) {
+            if (i == j) return 0;
+            ArrayList<Integer> neighbors = g.adj[i];
+            ArrayList<Integer> costs = g.cost[i];
+            int distance = -1;
+            for (int k = 0; k < neighbors.size(); k++){
+                if (neighbors.get(k) == j){
+                    if (distance == -1) distance = costs.get(k);
+                    else distance = Math.min(distance, costs.get(k));
                 }
             }
-            return dist;
+            return distance;
         }
 
         // Reinitialize the data structures before new query after the previous query
         void clear() {
             g.clear();
             gr.clear();
-        }
-
-        void visit(Graph g, int i, long distance) {
-            g.visit(i, distance);
+            Arrays.fill(visited, false);
+            workset.clear();
         }
     }
 
@@ -323,6 +355,7 @@ public class FriendSuggestion {
 
         public int advanceStep() {
             Entry e = queue.poll();
+            entries[e.node] = null;
             ArrayList<Integer> neighbors = adj[e.node];
             ArrayList<Integer> costs = cost[e.node];
             for (int i = 0; i < neighbors.size(); i++) {
@@ -331,8 +364,6 @@ public class FriendSuggestion {
                 long oldDist = dist[nodeId];
                 long newDist = e.cost + cost;
                 if (oldDist > newDist) {
-                    if (entries[nodeId] != null)
-                        queue.remove(entries[nodeId]);
                     visit(nodeId, newDist);
                 }
             }
@@ -354,13 +385,13 @@ public class FriendSuggestion {
 
         void clear() {
             Arrays.fill(dist, Long.MAX_VALUE);
+            Arrays.fill(entries, null);
             this.queue.clear();
         }
 
         void visit(int i, long d) {
-            entries[i] = new Entry(d, i);
             dist[i] = d;
-            queue.add(entries[i]);
+            queue.add(new Entry(d, i));
         }
 
         @Override
