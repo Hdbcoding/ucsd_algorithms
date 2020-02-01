@@ -6,9 +6,9 @@ import java.util.Random;
 
 public class FriendSuggestion {
     public static void main(String args[]) {
-        // runSolution();
+        runSolution();
         // runSolutionNaive();
-        testSolution();
+        // testSolution();
     }
 
     static void runSolution() {
@@ -87,64 +87,13 @@ public class FriendSuggestion {
                 6, 61, 8, 1, 89, 8, 1, 4, 9, 9, 98, 9, 4, 60, 9, 6, 47, 9, 10, 89, 10, 7, 46, 4, 6, 1, 7, 1, 9, 1, 10,
                 1 }, new long[] { -1, -1, -1, -1 });
 
-        // some erroneously missing paths
-        // Unexpected distance during test run 68
-        // for nodes 4 to 5
-        // expected 245
-        // n: 6, m: 9
-        // node 0: adjacencies: [5, 0, 1, 5]; weights: [97, 54, 53, 89]
-        // node 1: adjacencies: [0]; weights: [71]
-        // node 2: adjacencies: [3]; weights: [13]
-        // node 3: adjacencies: []; weights: []
-        // node 4: adjacencies: [2, 1]; weights: [60, 85]
-        // node 5: adjacencies: [0]; weights: [9]
+        // missing path problem
+        runTest(new int[] { 6, 9, 1, 6, 97, 1, 1, 54, 1, 2, 53, 1, 6, 89, 2, 1, 71, 3, 4, 13, 5, 3, 60, 5, 2, 85, 6, 1,
+                9, 1, 5, 6 }, new long[] { 245 });
 
-        // Unexpected distance during test run 79
-        // for nodes 3 to 0
-        // expected 189
-        // Unexpected distance during test run 79
-        // for nodes 5 to 4
-        // expected 171
-        // n: 8, m: 15
-        // node 0: adjacencies: [2]; weights: [87]
-        // node 1: adjacencies: [6, 6, 1]; weights: [78, 42, 6]
-        // node 2: adjacencies: [0]; weights: [100]
-        // node 3: adjacencies: [7, 2, 7]; weights: [24, 89, 12]
-        // node 4: adjacencies: [7]; weights: [78]
-        // node 5: adjacencies: [2, 2, 3, 0]; weights: [70, 40, 96, 88]
-        // node 6: adjacencies: [3]; weights: [29]
-        // node 7: adjacencies: [4]; weights: [63]
-
-        // Unexpected distance during test run 89
-        // for nodes 3 to 0
-        // expected 247
-        // Unexpected distance during test run 89
-        // for nodes 6 to 1
-        // expected 180
-        // Unexpected distance during test run 89
-        // for nodes 6 to 2
-        // expected 257
-        // Unexpected distance during test run 89
-        // for nodes 6 to 5
-        // expected 233
-        // n: 7, m: 13
-        // node 0: adjacencies: [4]; weights: [75]
-        // node 1: adjacencies: [1, 2, 6]; weights: [9, 77, 69]
-        // node 2: adjacencies: [5]; weights: [45]
-        // node 3: adjacencies: [2]; weights: [35]
-        // node 4: adjacencies: [5, 4, 4, 1]; weights: [72, 18, 60, 19]
-        // node 5: adjacencies: [1]; weights: [12]
-        // node 6: adjacencies: [0, 0]; weights: [88, 86]
-
-        // Unexpected distance during test run 93
-        // for nodes 0 to 2
-        // expected 130
-        // n: 5, m: 8
-        // node 0: adjacencies: [3, 3]; weights: [46, 15]
-        // node 1: adjacencies: [2]; weights: [71]
-        // node 2: adjacencies: [4]; weights: [75]
-        // node 3: adjacencies: [0, 4]; weights: [89, 34]
-        // node 4: adjacencies: [1, 4]; weights: [10, 53]
+        // missing path problem
+        runTest(new int[] { 8, 10, 1, 5, 2, 1, 7, 77, 2, 7, 98, 2, 3, 29, 3, 6, 21, 4, 6, 18, 5, 8, 19, 6, 8, 58, 7, 3,
+                64, 7, 2, 24, 1, 7, 8 }, new long[] { 132 });
 
         stressTest();
     }
@@ -202,8 +151,8 @@ public class FriendSuggestion {
     }
 
     private static void stressTest() {
-        int graphSize = 10;
-        int numTests = 100;
+        int graphSize = 100;
+        int numTests = 10000;
         Random r = new Random();
 
         for (int i = 0; i < numTests; i++) {
@@ -302,7 +251,6 @@ public class FriendSuggestion {
         Graph g;
         Graph gr;
         boolean[] visited;
-        ArrayList<Integer> workset = new ArrayList<Integer>();
 
         BidirectionalDijkstra(int n) {
             this.n = n;
@@ -329,19 +277,11 @@ public class FriendSuggestion {
                 if (visited[nodeId])
                     return smallestCrossingDistance(nodeId);
                 visited[nodeId] = true;
-                workset.add(nodeId);
 
                 nodeId = gr.advanceStep();
                 if (visited[nodeId])
                     return smallestCrossingDistance(nodeId);
                 visited[nodeId] = true;
-                workset.add(nodeId);
-
-                // // pop off visited nodes
-                // while (!g.queue.isEmpty() && visited[g.queue.peek().node])
-                //     g.queue.poll();
-                // while (!gr.queue.isEmpty() && visited[gr.queue.peek().node])
-                //     gr.queue.poll();
             }
 
             return -1l;
@@ -349,14 +289,11 @@ public class FriendSuggestion {
 
         private long smallestCrossingDistance(int nodeId) {
             long dist = -1;
-            for (int i : workset)
-                for (int j : workset) {
-                    long gd = g.dist[i];
-                    if (gd == Long.MAX_VALUE)
-                        continue;
+            for (int i : g.workset) {
+                long gd = g.dist[i];
+
+                for (int j : gr.workset) {
                     long grd = gr.dist[j];
-                    if (grd == Long.MAX_VALUE)
-                        continue;
                     int edge = getEdge(i, j);
                     if (edge == -1)
                         continue;
@@ -365,21 +302,21 @@ public class FriendSuggestion {
                     if (d < dist || dist == -1)
                         dist = d;
                 }
+            }
             return dist;
         }
 
         private int getEdge(int i, int j) {
             if (i == j)
                 return 0;
+
             ArrayList<Integer> neighbors = g.adj[i];
             ArrayList<Integer> costs = g.cost[i];
             int distance = -1;
             for (int k = 0; k < neighbors.size(); k++) {
                 if (neighbors.get(k) == j) {
-                    if (distance == -1)
-                        distance = costs.get(k);
-                    else
-                        distance = Math.min(distance, costs.get(k));
+                    int cost = costs.get(k);
+                    distance = distance == -1 ? cost : Math.min(distance, cost);
                 }
             }
             return distance;
@@ -390,7 +327,6 @@ public class FriendSuggestion {
             g.clear();
             gr.clear();
             Arrays.fill(visited, false);
-            workset.clear();
         }
     }
 
@@ -400,6 +336,8 @@ public class FriendSuggestion {
         ArrayList<Integer>[] cost;
         long[] dist;
         PriorityQueue<Entry> queue;
+        boolean[] visited;
+        ArrayList<Integer> workset = new ArrayList<Integer>();
 
         Graph(int n) {
             this.n = n;
@@ -409,21 +347,25 @@ public class FriendSuggestion {
             this.dist = new long[n];
             Arrays.fill(dist, Long.MAX_VALUE);
             this.queue = new PriorityQueue<Entry>(n);
+            this.visited = new boolean[n];
         }
 
         public int advanceStep() {
             Entry e = queue.poll();
+            visited[e.node] = true;
             ArrayList<Integer> neighbors = adj[e.node];
             ArrayList<Integer> costs = cost[e.node];
             for (int i = 0; i < neighbors.size(); i++) {
                 int nodeId = neighbors.get(i);
+                // if (visited[nodeId] || nodeId == e.node) continue;
                 int cost = costs.get(i);
-                long oldDist = dist[nodeId];
-                long newDist = e.cost + cost;
-                if (oldDist > newDist) {
-                    visit(nodeId, newDist);
-                }
+                visit(nodeId, e.cost + cost);
             }
+
+            // clear out visited nodes
+            while (!queue.isEmpty() && visited[queue.peek().node])
+                queue.poll();
+
             return e.node;
         }
 
@@ -442,12 +384,17 @@ public class FriendSuggestion {
 
         void clear() {
             Arrays.fill(dist, Long.MAX_VALUE);
-            this.queue.clear();
+            Arrays.fill(visited, false);
+            queue.clear();
+            workset.clear();
         }
 
         void visit(int i, long d) {
-            dist[i] = d;
-            queue.add(new Entry(d, i));
+            if (dist[i] > d){
+                dist[i] = d;
+                queue.add(new Entry(d, i));
+                workset.add(i);
+            }
         }
 
         @Override
