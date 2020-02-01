@@ -6,16 +6,41 @@ import java.util.Random;
 
 public class FriendSuggestion {
     public static void main(String args[]) {
-        runSolution();
+        // runSolution1();
+        runSolution2();
         // runSolutionNaive();
         // testSolution();
     }
-
-    static void runSolution() {
+    static void runSolution1() {
         Scanner in = new Scanner(System.in);
         int n = in.nextInt();
         int m = in.nextInt();
         BidirectionalDijkstra bd = new BidirectionalDijkstra(n);
+
+        for (int i = 0; i < m; i++) {
+            int x, y, c;
+            x = in.nextInt();
+            y = in.nextInt();
+            c = in.nextInt();
+            bd.addEdge(x - 1, y - 1, c);
+        }
+
+        int t = in.nextInt();
+
+        for (int i = 0; i < t; i++) {
+            int u, v;
+            u = in.nextInt();
+            v = in.nextInt();
+            System.out.println(bd.query(u - 1, v - 1));
+        }
+        in.close();
+    }
+
+    static void runSolution2() {
+        Scanner in = new Scanner(System.in);
+        int n = in.nextInt();
+        int m = in.nextInt();
+        BidirectionalDijkstra2 bd = new BidirectionalDijkstra2(n);
 
         for (int i = 0; i < m; i++) {
             int x, y, c;
@@ -75,37 +100,38 @@ public class FriendSuggestion {
                 new long[] { 29, 78 });
         // some null pointer exception
         runTest(new int[] { 3, 5, 2, 3, 58, 2, 3, 2, 3, 1, 47, 3, 3, 40, 3, 3, 21, 1, 1, 3 }, new long[] { -1 });
-
-        // some miscalculation, not sure why yet
-        // was because of counting matches when a node has been considered but not
-        // finalized
+        // counting matches when a node has been considered but not finalized
         runTest(new int[] { 7, 13, 1, 1, 83, 1, 2, 13, 1, 2, 78, 1, 5, 63, 2, 5, 4, 3, 2, 10, 3, 7, 1, 4, 5, 98, 5, 3,
                 23, 6, 2, 51, 6, 1, 94, 6, 7, 85, 7, 2, 40, 1, 6, 7 }, new long[] { 79 });
-
         // incorrect results in some cases with no-available-path situations
         runTest(new int[] { 10, 16, 1, 4, 95, 3, 1, 57, 3, 8, 85, 5, 8, 66, 6, 7, 31, 6, 4, 13, 6, 7, 17, 7, 9, 19, 8,
                 6, 61, 8, 1, 89, 8, 1, 4, 9, 9, 98, 9, 4, 60, 9, 6, 47, 9, 10, 89, 10, 7, 46, 4, 6, 1, 7, 1, 9, 1, 10,
                 1 }, new long[] { -1, -1, -1, -1 });
-
         // missing path problem
         runTest(new int[] { 6, 9, 1, 6, 97, 1, 1, 54, 1, 2, 53, 1, 6, 89, 2, 1, 71, 3, 4, 13, 5, 3, 60, 5, 2, 85, 6, 1,
                 9, 1, 5, 6 }, new long[] { 245 });
-
         // missing path problem
         runTest(new int[] { 8, 10, 1, 5, 2, 1, 7, 77, 2, 7, 98, 2, 3, 29, 3, 6, 21, 4, 6, 18, 5, 8, 19, 6, 8, 58, 7, 3,
                 64, 7, 2, 24, 1, 7, 8 }, new long[] { 132 });
+        // missing path
+        runTest(new int[] { 7, 13, 1, 6, 68, 1, 2, 19, 2, 1, 76, 2, 1, 10, 4, 2, 20, 4, 5, 88, 4, 3, 24, 4, 3, 40, 4, 1,
+                13, 5, 7, 20, 5, 6, 1, 6, 4, 64, 7, 2, 94, 1, 2, 7 }, new long[] { 250 });
 
-        stressTest();
+        // stressTest();
+        stressCompare();
     }
 
     static void runTest(int[] data, long[] expected) {
-        BidirectionalDijkstra bd = parseGraphs(data);
+        BidirectionalDijkstra bd = parseBD1(data);
+        BidirectionalDijkstra2 bd2 = parseBD2(data);
         ArrayList<Query> queries = parseQueries(data);
         long[] actual = new long[queries.size()];
+        long[] actual2 = new long[queries.size()];
         for (int i = 0; i < queries.size(); i++) {
             Query query = queries.get(i);
             try {
                 actual[i] = bd.query(query.u, query.v);
+                actual2[i] = bd2.query(query.u, query.v);
             } catch (Exception e) {
                 System.out.println("exception thrown on query " + i);
                 e.printStackTrace();
@@ -115,15 +141,20 @@ public class FriendSuggestion {
 
         String eString = Arrays.toString(expected);
         String aString = Arrays.toString(actual);
+        String a2String = Arrays.toString(actual2);
         String qString = Arrays.toString(queries.toArray());
 
         if (!eString.equals(aString)) {
-            System.out.println("Unexpected result for graph:\n" + bd.g + "\n and queries " + qString + ".\nExpected: "
-                    + eString + ", but got: " + aString);
+            System.out.println("imp1: Unexpected result for graph:\n" + bd.g + "\n and queries " + qString
+                    + ".\nExpected: " + eString + ", but got: " + aString);
+        }
+        if (!eString.equals(a2String)) {
+            System.out.println("imp2: Unexpected result for graph:\n" + bd.g + "\n and queries " + qString
+                    + ".\nExpected: " + eString + ", but got: " + a2String);
         }
     }
 
-    static BidirectionalDijkstra parseGraphs(int[] data) {
+    static BidirectionalDijkstra parseBD1(int[] data) {
         int n = data[0];
         int m = data[1];
         BidirectionalDijkstra bd = new BidirectionalDijkstra(n);
@@ -137,7 +168,21 @@ public class FriendSuggestion {
         return bd;
     }
 
-    private static ArrayList<Query> parseQueries(int[] data) {
+    static BidirectionalDijkstra2 parseBD2(int[] data) {
+        int n = data[0];
+        int m = data[1];
+        BidirectionalDijkstra2 bd = new BidirectionalDijkstra2(n);
+        for (int i = 0; i < m; i++) {
+            int x, y, c;
+            x = data[i * 3 + 2];
+            y = data[i * 3 + 3];
+            c = data[i * 3 + 4];
+            bd.addEdge(x - 1, y - 1, c);
+        }
+        return bd;
+    }
+
+    static ArrayList<Query> parseQueries(int[] data) {
         int qIndex = data[1] * 3 + 2;
         int q = data[qIndex];
         ArrayList<Query> queries = new ArrayList<Query>(q);
@@ -150,7 +195,7 @@ public class FriendSuggestion {
         return queries;
     }
 
-    private static void stressTest() {
+    static void stressTest() {
         int graphSize = 100;
         int numTests = 10000;
         Random r = new Random();
@@ -161,32 +206,35 @@ public class FriendSuggestion {
             int n = nextInt(graphSize, r) + 1;
             int m = nextInt(n * 2, r);
             int[] data = fillEdges(n, m, r);
-            BidirectionalDijkstra bd = parseGraphs(data);
+            BidirectionalDijkstra bd = parseBD1(data);
             long[][] distances = calculateDistancesNaive(bd.g);
+            BidirectionalDijkstra2 bd2 = parseBD2(data);
 
             boolean anyMistakes = false;
-            for (int j = 0; j < n; j++) {
-                for (int k = 0; k < n; k++) {
-                    long expected = distances[j][k];
-                    try {
-                        long actual = bd.query(j, k);
+            for (int j = 0; j < n; j++)
+            for (int k = 0; k < n; k++) {
+                long expected = distances[j][k];
+                try {
+                    long actual = bd.query(j, k);
+                    long actual2 = bd2.query(j, k);
 
-                        if (expected != actual) {
-                            anyMistakes = true;
-                            System.out.println("\nUnexpected distance during test run " + i);
-                            System.out.println("for nodes " + j + " to " + k);
-                            System.out.println("expected " + expected);
-                            System.out.println("actual " + actual);
-                        }
-                    } catch (Exception e) {
+                    if (expected != actual || expected != actual2) {
                         anyMistakes = true;
-                        System.out.println("\nError thrown during test run " + i);
+                        System.out.println("\nUnexpected distance during test run " + i);
                         System.out.println("for nodes " + j + " to " + k);
                         System.out.println("expected " + expected);
-                        e.printStackTrace();
+                        System.out.println("actual " + actual);
+                        System.out.println("actual2 " + actual2);
                     }
+                } catch (Exception e) {
+                    anyMistakes = true;
+                    System.out.println("\nError thrown during test run " + i);
+                    System.out.println("for nodes " + j + " to " + k);
+                    System.out.println("expected " + expected);
+                    e.printStackTrace();
                 }
             }
+
             if (anyMistakes) {
                 System.out.println("\nn: " + n + ", m: " + m);
                 System.out.println(bd.g);
@@ -194,7 +242,57 @@ public class FriendSuggestion {
         }
     }
 
-    private static long[][] calculateDistancesNaive(Graph g) {
+    static void stressCompare() {
+        int graphSize = 100;
+        int numTests = 10000;
+        Random r = new Random();
+        for (int i = 0; i < numTests; i++) {
+            if (i > 0 && i % 100 == 0)
+                System.out.println("naive - test run " + i);
+            int n = nextInt(graphSize, r) + 1;
+            int m = nextInt(n * 2, r);
+            int[] data = fillEdges(n, m, r);
+
+            BidirectionalDijkstra bd = parseBD1(data);
+            long[][] distances = calculateDistancesNaive(bd.g);
+            long a = 0;
+            for (int j = 0; j < n; j++)
+            for (int k = 0; k < n; k++)
+                a = distances[j][k];
+            if (i > numTests) System.out.println(a);
+
+        }
+
+        for (int i = 0; i < numTests; i++){
+            if (i > 0 && i % 100 == 0)
+                System.out.println("bd - test run " + i);
+            int n = nextInt(graphSize, r) + 1;
+            int m = nextInt(n * 2, r);
+            int[] data = fillEdges(n, m, r);
+            BidirectionalDijkstra bd = parseBD1(data);
+            long a = 0;
+            for (int j = 0; j < n; j++)
+            for (int k = 0; k < n; k++)
+                a = bd.query(j, k);
+            if (i > numTests) System.out.println(a);
+        }
+
+        for (int i = 0; i < numTests; i++){
+            if (i > 0 && i % 100 == 0)
+                System.out.println("bd - test run " + i);
+            int n = nextInt(graphSize, r) + 1;
+            int m = nextInt(n * 2, r);
+            int[] data = fillEdges(n, m, r);
+            BidirectionalDijkstra2 bd2 = parseBD2(data);
+            long a = 0;
+            for (int j = 0; j < n; j++)
+            for (int k = 0; k < n; k++)
+                a = bd2.query(j, k);
+            if (i > numTests) System.out.println(a);
+        }
+    }
+
+    static long[][] calculateDistancesNaive(Graph g) {
         long[][] m = new long[g.n][g.n];
 
         for (int i = 0; i < g.n; i++) {
@@ -390,7 +488,7 @@ public class FriendSuggestion {
         }
 
         void visit(int i, long d) {
-            if (dist[i] > d){
+            if (dist[i] > d) {
                 dist[i] = d;
                 queue.add(new Entry(d, i));
                 workset.add(i);
@@ -441,6 +539,129 @@ public class FriendSuggestion {
         @Override
         public String toString() {
             return "{u: " + u + ", v: " + v + "}";
+        }
+    }
+
+    static class BidirectionalDijkstra2 {
+        // Number of nodes
+        int n;
+        // adj[0] and cost[0] store the initial graph, adj[1] and cost[1] store the
+        // reversed graph.
+        // Each graph is stored as array of adjacency lists for each node. adj stores
+        // the edges,
+        // and cost stores their costs.
+        ArrayList<Integer>[][] adj;
+        ArrayList<Integer>[][] cost;
+        // distance[0] and distance[1] correspond to distance estimates in the forward
+        // and backward searches.
+        Long[][] distance;
+        // Two priority queues, one for forward and one for backward search.
+        ArrayList<PriorityQueue<Entry>> queue;
+        // visited[v] == true iff v was visited either by forward or backward search.
+        boolean[][] visited;
+        // List of all the nodes which were visited either by forward or backward
+        // search.
+        ArrayList<Integer> workset;
+        final Long INFINITY = Long.MAX_VALUE / 4;
+
+        BidirectionalDijkstra2(int n) {
+            this.n = n;
+            visited = new boolean[2][n];
+            workset = new ArrayList<Integer>();
+            distance = new Long[][] { new Long[n], new Long[n] };
+            for (int i = 0; i < n; ++i) {
+                distance[0][i] = distance[1][i] = INFINITY;
+            }
+            queue = new ArrayList<PriorityQueue<Entry>>();
+            queue.add(new PriorityQueue<Entry>(n));
+            queue.add(new PriorityQueue<Entry>(n));
+
+            adj = (ArrayList<Integer>[][]) new ArrayList[2][];
+            cost = (ArrayList<Integer>[][]) new ArrayList[2][];
+            for (int side = 0; side < 2; ++side) {
+                adj[side] = (ArrayList<Integer>[]) new ArrayList[n];
+                cost[side] = (ArrayList<Integer>[]) new ArrayList[n];
+                for (int i = 0; i < n; i++) {
+                    adj[side][i] = new ArrayList<Integer>();
+                    cost[side][i] = new ArrayList<Integer>();
+                }
+            }
+        }
+
+        void addEdge(int x, int y, int c) {
+            adj[0][x].add(y);
+            cost[0][x].add(c);
+            adj[1][y].add(x);
+            cost[1][y].add(c);
+        }
+
+        // Reinitialize the data structures before new query after the previous query
+        void clear() {
+            for (int v : workset) {
+                distance[0][v] = distance[1][v] = INFINITY;
+                visited[0][v] = visited[1][v] = false;
+            }
+            workset.clear();
+            queue.get(0).clear();
+            queue.get(1).clear();
+        }
+
+        // Try to relax the distance from direction side to node v using value dist.
+        void visit(int side, int v, Long dist) {
+            // Implement this method yourself
+            if (distance[side][v] > dist) {
+                distance[side][v] = dist;
+                queue.get(side).add(new Entry(distance[side][v], v));
+                workset.add(v);
+            }
+        }
+
+        int extractMin(int side) {
+            Entry e = queue.get(side).poll();
+            return e.node;
+        }
+
+        void Process(int side, int u, ArrayList<Integer>[] adj, ArrayList<Integer>[] cost) {
+            for (int i = 0; i < adj[u].size(); ++i) {
+                int v = adj[u].get(i);
+                int w = cost[u].get(i);
+                visit(side, v, distance[side][u] + w);
+            }
+
+        }
+
+        Long ShortestPath(int v) {
+            Long dist = INFINITY;
+            for (int u : workset) {
+                if (distance[0][u] + distance[1][u] < dist) {
+                    dist = distance[0][u] + distance[1][u];
+                }
+            }
+            if (dist == INFINITY)
+                return -1L;
+            return dist;
+        }
+
+        // Returns the distance from s to t in the graph.
+        Long query(int s, int t) {
+            clear();
+            visit(0, s, 0L);
+            visit(1, t, 0L);
+            // Implement the rest of the algorithm yourself
+            while (!queue.get(0).isEmpty() && !queue.get(1).isEmpty()) {
+                int v = extractMin(0);
+                Process(0, v, adj[0], cost[0]);
+                if (visited[1][v] == true)
+                    return ShortestPath(v);
+                visited[0][v] = true;
+
+                int v_r = extractMin(1);
+                Process(1, v_r, adj[1], cost[1]);
+                if (visited[0][v_r] == true)
+                    return ShortestPath(v_r);
+                visited[1][v_r] = true;
+            }
+            return -1L;
         }
     }
 }
