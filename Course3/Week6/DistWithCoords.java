@@ -158,7 +158,30 @@ public class DistWithCoords {
         }
 
         public long distance(int s, int t) {
-            return -1l;
+            if (s == t) return 0l;
+
+            long[] dist = new long[g.s];
+            Arrays.fill(dist, -1);
+            NodeHeap h = new NodeHeap(g.s);
+            dist[s] = 0;
+            h.addOrUpdate(s, 0);
+            while (!h.isEmpty()){
+                Node u = h.extractMin();
+                ArrayList<Integer> neighbors = g.adj[u.nodeId];
+                ArrayList<Integer> weights = g.cost[u.nodeId];
+                for (int i = 0; i < neighbors.size(); i++){
+                    int nodeId = neighbors.get(i);
+                    int weight = weights.get(i);
+                    long oldDist = dist[nodeId];
+                    long newDist = u.distance + weight;
+                    if (oldDist == -1 || oldDist > newDist){
+                        dist[nodeId] = newDist;
+                        h.addOrUpdate(nodeId, newDist);
+                    }
+                }
+            }
+
+            return dist[t];
         }
     }
 
