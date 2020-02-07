@@ -1,7 +1,6 @@
 import java.util.Scanner;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.PriorityQueue;
 import java.lang.Math;
 
 public class DistWithCoords {
@@ -229,6 +228,137 @@ public class DistWithCoords {
         Node[] heap;
         int[] nodeMap;
         int numNodes;
+
+        NodeHeap(int numNodes){
+            heap = new Node[numNodes];
+            nodeMap = new int[numNodes];
+            Arrays.fill(nodeMap, -1);
+            this.numNodes = 0;
+        }
+
+        boolean isEmpty(){
+            return numNodes == 0;
+        }
+
+        Node extractMin(){
+            if (isEmpty())
+                return null;
+            Node n = removeNode(0);
+            siftDown(0);
+            return n;
+        }
+
+        void addOrUpdate(int nodeId, long distance){
+            if (nodeMap[nodeId] != -1)
+                changePriority(nodeId, distance);
+            else add(nodeId, distance);
+        }
+
+        void delete(int nodeId){
+            int index = nodeMap[nodeId];
+            if (index == -1) return;
+            removeNode(index);
+            heapify(index);
+        }
+
+        void add(int nodeId, long distance){
+            numNodes++;
+            int index = numNodes - 1;
+            Node n = new Node(nodeId, distance);
+            updateNodeIndex(n, index);
+            siftUp(index);
+        }
+
+        void changePriority(int nodeId, long distance){
+            int index = nodeMap[nodeId];
+            if (index == -1) return;
+            Node n = heap[index];
+            heapify(index);
+        }
+
+        Node removeNode(int index){
+            Node n = heap[index];
+            nodeMap[n.nodeId] = -1;
+            numNodes--;
+            Node lastNode = heap[numNodes];
+            if (numNodes != 0 && lastNode != n){
+                heap[numNodes] = null;
+                updateNodeIndex(lastNode, index);
+            }
+            return n;
+        }
+
+        void heapify(int index){
+            if (rule(index)) siftDown(index);
+            else siftUp(index);
+        }
+
+        void siftUp(int i){
+            if (i == 0) return;
+            int p = parent(i);
+            if (!rule(p, i)) {
+                swap(p, i);
+                siftUp(p);
+            }
+        }
+
+        void siftDown(int i){
+            int l = left(i), r = right(i), swapIndex = i;
+
+            if (l < numNodes && !rule(swapIndex, l))
+                swapIndex = l;
+            
+            if (r < numNodes && !rule(swapIndex, r))
+                swapIndex = r;
+
+            if (swapIndex != i){
+                swap(i, swapIndex);
+                siftDown(swapIndex);
+            }
+        }
+
+        void swap(int i, int j){
+            Node ni = heap[i];
+            Node nj = heap[j];
+            updateNodeIndex(ni, j);
+            updateNodeIndex(nj, i);
+        }
+
+        void updateNodeIndex(Node n, int i){
+            heap[i] = n;
+            if (n != null) nodeMap[n.nodeId] = i;
+        }
+
+        int parent(int i){
+            return (i - 1) / 2;
+        }
+
+        int left(int i){
+            return i * 2 + 1;
+        }
+
+        int right(int i){
+            return i * 2 + 2;
+        }
+
+        // when checking the rule for a single index, compare the element with its
+        // parent
+        // if it has no parent, the rule is satisifed
+        boolean rule(int cIndex) {
+            if (cIndex == 0)
+                return true;
+            return rule(parent(cIndex), cIndex);
+        }
+
+        // rule must be true for the heap property to be satisfied
+        // in this heap, the node with the shortest overall distance is on top
+        boolean rule(int pIndex, int cIndex) {
+            Node p = heap[pIndex];
+            Node c = heap[cIndex];
+            if (p.distance == c.distance)
+                return p.nodeId <= c.nodeId;
+            return p.distance < c.distance;
+        }
     }
 
     static class Node {
