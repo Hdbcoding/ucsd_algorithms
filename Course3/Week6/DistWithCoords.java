@@ -1,6 +1,7 @@
 import java.util.Scanner;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Random;
 import java.lang.Math;
 
 public class DistWithCoords {
@@ -21,6 +22,8 @@ public class DistWithCoords {
         runTest(new int[] { 2, 1, 0, 0, 0, 1, 1, 2, 1, 4, 1, 1, 2, 2, 1, 2, 2, 1 }, new long[] { 0, 0, 1, -1 });
         runTest(new int[] { 4, 4, 0, 0, 0, 1, 2, 1, 2, 0, 1, 2, 1, 4, 1, 2, 2, 3, 2, 1, 3, 6, 1, 1, 3 },
                 new long[] { 3 });
+
+        stressTest();
     }
 
     static void runTest(int[] data, long[] expected) {
@@ -104,7 +107,88 @@ public class DistWithCoords {
         return results;
     }
 
-    static int euclidean(int x1, int y1, int x2, int y2){
+    static void stressTest() {
+        int graphSize = 10;
+        int numTests = 100;
+        int reportEvery = 10;
+        Random r = new Random();
+
+        for (int i = 0; i < numTests; i++) {
+            if (i > 0 && i % reportEvery == 0) {
+                System.out.println("test run " + i);
+            }
+            int n = nextInt(graphSize, r) + 1;
+            int m = nextInt(n * 2, r);
+            int[] data = fillEdges(n, m, r);
+            ArrayScanner in = new ArrayScanner(data);
+            Graph g = parseData(in);
+
+            FloydWarshall fw = new FloydWarshall(g);
+            Dijkstra d = new Dijkstra(g);
+            AStar a = new AStar(g);
+
+            boolean anyMistakes = false;
+            for (int j = 0; j < n; j++) {
+                for (int k = 0; k < n; k++) {
+                    long expected = fw.distance(j, k);
+                    try {
+                        long actual_d = d.distance(j, k);
+                        long actual_a = a.distance(j, k);
+
+                        if (expected != actual_d || expected != actual_a) {
+                            anyMistakes = true;
+                            System.out.println("\nUnexpected distance during test run " + i);
+                            System.out.println("for nodes " + j + " to " + k);
+                            System.out.println("expected " + expected);
+                            System.out.println("dijkstra " + actual_d);
+                            System.out.println("astar " + actual_a);
+                        }
+                    } catch (Exception e) {
+                        anyMistakes = true;
+                        System.out.println("\nError thrown during test run " + i);
+                        System.out.println("for nodes " + j + " to " + k);
+                        System.out.println("expected " + expected);
+                        e.printStackTrace();
+                    }
+                }
+            }
+
+            if (anyMistakes) {
+                System.out.println("\nn: " + n + ", m: " + m);
+                System.out.println(g);
+            }
+        }
+
+    }
+
+    static int[] fillEdges(int n, int m, Random r) {
+        int width = 10;
+        int[] data = new int[n * 2 + m * 3 + 2];
+        data[0] = n;
+        data[1] = m;
+        for (int i = 0; i < n; i++) {
+            int j = i * 2 + 2;
+            data[j] = nextInt(width, r);
+            data[j + 1] = nextInt(width, r);
+        }
+        for (int i = 0; i < m; i++) {
+            int j = n * 2 + i * 3 + 2;
+            data[j] = nextInt(n, r) + 1;
+            data[j + 1] = nextInt(n, r) + 1;
+            data[j + 2] = getDistance(data, data[j], data[j + 1]) + nextInt(width, r) + 2;
+        }
+        return data;
+    }
+
+    static int nextInt(int bound, Random r) {
+        return Math.abs(r.nextInt(bound));
+    }
+
+    static int getDistance(int[] data, int i, int j) {
+        return euclidean(data[i + 2], data[i + 3], data[j + 2], data[j + 3]);
+    }
+
+    static int euclidean(int x1, int y1, int x2, int y2) {
         int dx = x1 - x2;
         int dy = y1 - y2;
         return (int) Math.sqrt(dx * dx + dy * dy);
@@ -215,6 +299,7 @@ public class DistWithCoords {
 
         @Override
         public long distance(int s, int t) {
+            if (s == t) return 0;
             this.t = t;
             long d = super.distance(s, t);
             return d == -1 ? d : (d + getPotential(s));
