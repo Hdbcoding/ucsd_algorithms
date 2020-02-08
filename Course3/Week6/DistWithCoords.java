@@ -6,8 +6,8 @@ import java.lang.Math;
 
 public class DistWithCoords {
     public static void main(String args[]) {
-        // runSolution();
-        testSolution();
+        runSolution();
+        // testSolution();
     }
 
     static void runSolution() {
@@ -35,12 +35,6 @@ public class DistWithCoords {
         runTest(new int[] { 9, 16, 2, 2, 3, 2, 8, 5, 4, 4, 2, 3, 4, 6, 1, 6, 9, 6, 4, 4, 1, 2, 10, 8, 2, 9, 9, 9, 7, 7,
                 2, 5, 7, 4, 10, 7, 6, 9, 9, 2, 7, 3, 5, 8, 2, 9, 3, 3, 5, 14, 5, 6, 6, 2, 8, 10, 7, 3, 12, 7, 6, 4, 1,
                 2, 9, 5, 4, 17, 2, 1, 8, 1, 9 }, new long[] { 19, 12 });
-
-        // test case where a* is wrong
-        // in this case the graph is actually invalid! 
-        // the edge from 7 to 5 is shorter than the euclidean distance
-        runTest(new int[] { 10, 9, 2, 8, 7, 3, 1, 6, 3, 3, 1, 4, 9, 5, 2, 6, 0, 4, 8, 6, 8, 5, 7, 5, 5, 8, 9, 13, 8, 6,
-                8, 3, 9, 16, 7, 7, 8, 1, 1, 10, 5, 6, 8, 1, 7, 14, 6, 7, 13, 1, 8, 6 }, new long[] { 8 });
 
         stressTest();
     }
@@ -127,8 +121,9 @@ public class DistWithCoords {
     }
 
     static void stressTest() {
-        int graphSize = 10;
-        int numTests = 100;
+        int maxNumNodes = 1000;
+        int maxGraphWidth = 1000;
+        int numTests = 1000;
         int reportEvery = 10;
         Random r = new Random();
 
@@ -136,9 +131,9 @@ public class DistWithCoords {
             if (i > 0 && i % reportEvery == 0) {
                 System.out.println("test run " + i);
             }
-            int n = nextInt(graphSize, r) + 1;
+            int n = nextInt(maxNumNodes, r) + 1;
             int m = nextInt(n * 2, r);
-            int[] data = fillEdges(n, m, r);
+            int[] data = fillEdges(n, m, maxGraphWidth, r);
             ArrayScanner in = new ArrayScanner(data);
             Graph g = parseData(in);
 
@@ -181,21 +176,21 @@ public class DistWithCoords {
 
     }
 
-    static int[] fillEdges(int n, int m, Random r) {
-        int width = 10;
+    static int[] fillEdges(int n, int m, int maxGraphWidth, Random r) {
         int[] data = new int[n * 2 + m * 3 + 2];
         data[0] = n;
         data[1] = m;
         for (int i = 0; i < n; i++) {
             int j = i * 2 + 2;
-            data[j] = nextInt(width, r);
-            data[j + 1] = nextInt(width, r);
+            data[j] = nextInt(maxGraphWidth, r);
+            data[j + 1] = nextInt(maxGraphWidth, r);
         }
         for (int i = 0; i < m; i++) {
             int j = n * 2 + i * 3 + 2;
+            int extraWidth =  nextInt(maxGraphWidth, r) + 1;
             data[j] = nextInt(n, r) + 1;
             data[j + 1] = nextInt(n, r) + 1;
-            data[j + 2] = getDistance(data, data[j], data[j + 1]) + nextInt(width, r) + 2;
+            data[j + 2] = getDistance(data, data[j], data[j + 1]) + extraWidth;
         }
         return data;
     }
