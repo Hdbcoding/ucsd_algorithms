@@ -112,7 +112,7 @@ public class DistWithCoords {
         long[][] distances;
         Graph g;
 
-        FloydWarshall(Graph g){
+        FloydWarshall(Graph g) {
             this.g = g;
             distances = new long[g.s][g.s];
 
@@ -128,14 +128,14 @@ public class DistWithCoords {
                 }
                 distances[i][i] = 0;
             }
-    
+
             for (int k = 0; k < g.s; k++) {
                 for (int i = 0; i < g.s; i++) {
                     for (int j = 0; j < g.s; j++) {
                         long oldD = distances[i][j];
                         long ik = distances[i][k];
                         long kj = distances[k][j];
-    
+
                         if (ik == -1 || kj == -1)
                             continue;
                         if (oldD == -1 || oldD > ik + kj)
@@ -145,55 +145,94 @@ public class DistWithCoords {
             }
         }
 
-        public long distance(int s, int t){
+        public long distance(int s, int t) {
             return distances[s][t];
         }
     }
 
     static class Dijkstra implements GraphSolver {
         Graph g;
+        long[] dist;
+        NodeHeap h;
 
         Dijkstra(Graph g) {
             this.g = g;
         }
 
         public long distance(int s, int t) {
-            if (s == t) return 0l;
-
-            long[] dist = new long[g.s];
-            Arrays.fill(dist, -1);
-            NodeHeap h = new NodeHeap(g.s);
+            if (s == t)
+                return 0l;
+            clear();
             dist[s] = 0;
             h.addOrUpdate(s, 0);
-            while (!h.isEmpty()){
+            while (!h.isEmpty()) {
                 Node u = h.extractMin();
                 ArrayList<Integer> neighbors = g.adj[u.nodeId];
                 ArrayList<Integer> weights = g.cost[u.nodeId];
-                for (int i = 0; i < neighbors.size(); i++){
+                for (int i = 0; i < neighbors.size(); i++) {
                     int nodeId = neighbors.get(i);
                     int weight = weights.get(i);
-                    long oldDist = dist[nodeId];
-                    long newDist = u.distance + weight;
-                    if (oldDist == -1 || oldDist > newDist){
-                        dist[nodeId] = newDist;
-                        h.addOrUpdate(nodeId, newDist);
-                    }
+                    visit(nodeId, calculateDistance(u, nodeId, weight));
                 }
             }
 
             return dist[t];
         }
-    }
 
-    static class AStar implements GraphSolver {
-        Graph g;
-
-        AStar(Graph g) {
-            this.g = g;
+        void clear() {
+            dist = new long[g.s];
+            Arrays.fill(dist, -1);
+            h = new NodeHeap(g.s);
         }
 
+        void visit(int nodeId, long distance) {
+            long oldDist = dist[nodeId];
+            if (oldDist == -1 || oldDist > distance) {
+                dist[nodeId] = distance;
+                h.addOrUpdate(nodeId, distance);
+            }
+        }
+
+        long calculateDistance(Node from, int to, int weight) {
+            return from.distance + weight;
+        }
+    }
+
+    static class AStar extends Dijkstra {
+        int[] heuristic;
+        int t;
+
+        AStar(Graph g) {
+            super(g);
+            heuristic = new int[g.s];
+        }
+
+        @Override
         public long distance(int s, int t) {
-            return -1l;
+            this.t = t;
+            long d = super.distance(s, t);
+            return d == -1 ? d : (d + getPotential(s));
+        }
+
+        @Override
+        void clear() {
+            super.clear();
+            Arrays.fill(heuristic, -1);
+        }
+
+        @Override
+        long calculateDistance(Node from, int to, int weight) {
+            return from.distance + weight - getPotential(from.nodeId) + getPotential(to);
+        }
+
+        int getPotential(int i) {
+            if (heuristic[i] == -1) {
+                int dx = g.x[i] - g.x[t];
+                int dy = g.y[i] - g.y[t];
+                int d = (int) Math.sqrt(dx * dx + dy * dy);
+                heuristic[i] = d;
+            }
+            return heuristic[i];
         }
     }
 
@@ -252,18 +291,18 @@ public class DistWithCoords {
         int[] nodeMap;
         int numNodes;
 
-        NodeHeap(int numNodes){
+        NodeHeap(int numNodes) {
             heap = new Node[numNodes];
             nodeMap = new int[numNodes];
             Arrays.fill(nodeMap, -1);
             this.numNodes = 0;
         }
 
-        boolean isEmpty(){
+        boolean isEmpty() {
             return numNodes == 0;
         }
 
-        Node extractMin(){
+        Node extractMin() {
             if (isEmpty())
                 return null;
             Node n = removeNode(0);
@@ -271,20 +310,22 @@ public class DistWithCoords {
             return n;
         }
 
-        void addOrUpdate(int nodeId, long distance){
+        void addOrUpdate(int nodeId, long distance) {
             if (nodeMap[nodeId] != -1)
                 changePriority(nodeId, distance);
-            else add(nodeId, distance);
+            else
+                add(nodeId, distance);
         }
 
-        void delete(int nodeId){
+        void delete(int nodeId) {
             int index = nodeMap[nodeId];
-            if (index == -1) return;
+            if (index == -1)
+                return;
             removeNode(index);
             heapify(index);
         }
 
-        void add(int nodeId, long distance){
+        void add(int nodeId, long distance) {
             numNodes++;
             int index = numNodes - 1;
             Node n = new Node(nodeId, distance);
@@ -292,32 +333,36 @@ public class DistWithCoords {
             siftUp(index);
         }
 
-        void changePriority(int nodeId, long distance){
+        void changePriority(int nodeId, long distance) {
             int index = nodeMap[nodeId];
-            if (index == -1) return;
+            if (index == -1)
+                return;
             Node n = heap[index];
             heapify(index);
         }
 
-        Node removeNode(int index){
+        Node removeNode(int index) {
             Node n = heap[index];
             nodeMap[n.nodeId] = -1;
             numNodes--;
             Node lastNode = heap[numNodes];
-            if (numNodes != 0 && lastNode != n){
+            if (numNodes != 0 && lastNode != n) {
                 heap[numNodes] = null;
                 updateNodeIndex(lastNode, index);
             }
             return n;
         }
 
-        void heapify(int index){
-            if (rule(index)) siftDown(index);
-            else siftUp(index);
+        void heapify(int index) {
+            if (rule(index))
+                siftDown(index);
+            else
+                siftUp(index);
         }
 
-        void siftUp(int i){
-            if (i == 0) return;
+        void siftUp(int i) {
+            if (i == 0)
+                return;
             int p = parent(i);
             if (!rule(p, i)) {
                 swap(p, i);
@@ -325,42 +370,43 @@ public class DistWithCoords {
             }
         }
 
-        void siftDown(int i){
+        void siftDown(int i) {
             int l = left(i), r = right(i), swapIndex = i;
 
             if (l < numNodes && !rule(swapIndex, l))
                 swapIndex = l;
-            
+
             if (r < numNodes && !rule(swapIndex, r))
                 swapIndex = r;
 
-            if (swapIndex != i){
+            if (swapIndex != i) {
                 swap(i, swapIndex);
                 siftDown(swapIndex);
             }
         }
 
-        void swap(int i, int j){
+        void swap(int i, int j) {
             Node ni = heap[i];
             Node nj = heap[j];
             updateNodeIndex(ni, j);
             updateNodeIndex(nj, i);
         }
 
-        void updateNodeIndex(Node n, int i){
+        void updateNodeIndex(Node n, int i) {
             heap[i] = n;
-            if (n != null) nodeMap[n.nodeId] = i;
+            if (n != null)
+                nodeMap[n.nodeId] = i;
         }
 
-        int parent(int i){
+        int parent(int i) {
             return (i - 1) / 2;
         }
 
-        int left(int i){
+        int left(int i) {
             return i * 2 + 1;
         }
 
-        int right(int i){
+        int right(int i) {
             return i * 2 + 2;
         }
 
