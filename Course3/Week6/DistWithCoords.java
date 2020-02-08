@@ -205,7 +205,7 @@ public class DistWithCoords {
     }
 
     static int getDistance(int[] data, int i, int j) {
-        return euclidean(data[i + 1], data[i + 2], data[j + 1], data[j + 2]);
+        return euclidean(data[i * 2], data[i * 2 + 1], data[j * 2], data[j * 2 + 1]);
     }
 
     static int euclidean(int x1, int y1, int x2, int y2) {
