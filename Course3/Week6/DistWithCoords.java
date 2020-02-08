@@ -23,7 +23,101 @@ public class DistWithCoords {
         runTest(new int[] { 4, 4, 0, 0, 0, 1, 2, 1, 2, 0, 1, 2, 1, 4, 1, 2, 2, 3, 2, 1, 3, 6, 1, 1, 3 },
                 new long[] { 3 });
 
-        stressTest();
+        // somehow the order of edges matters
+        // this test passes
+        runTest(new int[]{
+            9, 16, 
+            2, 2, 
+            3, 2, 
+            8, 5, 
+            4, 4, 
+            2, 3, 
+            4, 6, 
+            1, 6, 
+            9, 6, 
+            4, 4, 
+            1, 2, 9, 
+            1, 2, 10, 
+            2, 8, 10, 
+            2, 9, 3, 
+            3, 5, 8, 
+            3, 5, 14, 
+            5, 4, 17,
+            5, 6, 6, 
+            7, 2, 5, 
+            7, 3, 12, 
+            7, 4, 10, 
+            7, 6, 4, 
+            7, 6, 9, 
+            8, 2, 9, 
+            9, 2, 7, 
+            9, 9, 7, 
+            2,
+            1, 8,
+            1, 9
+        }, new long[]{19, 12});
+
+        // this test is the same as the previous, with the edges in a different order
+        // and it fails!
+        runTest(new int[]{
+            9, 16, 
+            2, 2, 
+            3, 2, 
+            8, 5, 
+            4, 4, 
+            2, 3, 
+            4, 6, 
+            1, 6, 
+            9, 6, 
+            4, 4, 
+            1, 2, 10, 
+            8, 2, 9, 
+            9, 9, 7, 
+            7, 2, 5, 
+            7, 4, 10, 
+            7, 6, 9, 
+            9, 2, 7, 
+            3, 5, 8, 
+            2, 9, 3, 
+            3, 5, 14, 
+            5, 6, 6, 
+            2, 8, 10, 
+            7, 3, 12, 
+            7, 6, 4, 
+            1, 2, 9, 
+            5, 4, 17,
+            2,
+            1, 8,
+            1, 9
+        }, new long[]{19, 12});
+
+        // test case where a* is wrong
+        runTest(new int[]{
+            10, 9, 
+            2, 8, 
+            7, 3, 
+            1, 6, 
+            3, 3, 
+            1, 4, 
+            9, 5, 
+            2, 6, 
+            0, 4, 
+            8, 6, 
+            8, 5, 
+            7, 5, 5, 
+            8, 9, 13, 
+            8, 6, 8, 
+            3, 9, 16, 
+            7, 7, 8, 
+            1, 1, 10, 
+            5, 6, 8, 
+            1, 7, 14, 
+            6, 7, 13,
+            1,
+            8, 6
+        }, new long[]{8});
+
+        // stressTest();
     }
 
     static void runTest(int[] data, long[] expected) {
@@ -426,6 +520,7 @@ public class DistWithCoords {
             if (index == -1)
                 return;
             Node n = heap[index];
+            n.distance = distance;
             heapify(index);
         }
 

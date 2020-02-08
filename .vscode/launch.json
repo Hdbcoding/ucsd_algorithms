@@ -9,6 +9,13 @@
             "name": "CodeLens (Launch) - DistWithCoords",
             "request": "launch",
             "mainClass": "DistWithCoords",
+            "projectName": "UCSDAlgorithms_5bd1ba95"
+        },
+        {
+            "type": "java",
+            "name": "CodeLens (Launch) - DistWithCoords",
+            "request": "launch",
+            "mainClass": "DistWithCoords",
             "projectName": "ucsd_algorithms_9b09e84f"
         },
         {
