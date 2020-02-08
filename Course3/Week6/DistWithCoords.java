@@ -265,6 +265,8 @@ public class DistWithCoords {
 
         Dijkstra(Graph g) {
             this.g = g;
+            dist = new long[g.s];
+            h = new NodeHeap(g.s);
         }
 
         public long distance(int s, int t) {
@@ -275,6 +277,9 @@ public class DistWithCoords {
             h.addOrUpdate(s, 0);
             while (!h.isEmpty()) {
                 Node u = h.extractMin();
+                if (u.nodeId == t) {
+                    return finalDistance(s, t);
+                }
                 ArrayList<Integer> neighbors = g.adj[u.nodeId];
                 ArrayList<Integer> weights = g.cost[u.nodeId];
                 for (int i = 0; i < neighbors.size(); i++) {
@@ -284,13 +289,12 @@ public class DistWithCoords {
                 }
             }
 
-            return dist[t];
+            return finalDistance(s, t);
         }
 
         void clear() {
-            dist = new long[g.s];
             Arrays.fill(dist, -1);
-            h = new NodeHeap(g.s);
+            h.clear();
         }
 
         void visit(int nodeId, long distance) {
@@ -304,35 +308,72 @@ public class DistWithCoords {
         long calculateDistance(Node from, int to, int weight) {
             return from.distance + weight;
         }
+
+        long finalDistance(int s, int t) {
+            return dist[t];
+        }
     }
 
-    static class AStar extends Dijkstra {
+    static class AStar implements GraphSolver {
+        Graph g;
+        long[] dist;
+        NodeHeap h;
         int[] heuristic;
         int t;
 
         AStar(Graph g) {
-            super(g);
+            this.g = g;
+            dist = new long[g.s];
+            h = new NodeHeap(g.s);
             heuristic = new int[g.s];
         }
 
         @Override
         public long distance(int s, int t) {
             if (s == t)
-                return 0;
+                return 0l;
             this.t = t;
-            long d = super.distance(s, t);
-            return d == -1 ? d : (d + getPotential(s));
+            clear();
+            dist[s] = 0;
+            h.addOrUpdate(s, 0);
+            while (!h.isEmpty()) {
+                Node u = h.extractMin();
+                if (u.nodeId == t) {
+                    return finalDistance(s, t);
+                }
+                ArrayList<Integer> neighbors = g.adj[u.nodeId];
+                ArrayList<Integer> weights = g.cost[u.nodeId];
+                for (int i = 0; i < neighbors.size(); i++) {
+                    int nodeId = neighbors.get(i);
+                    int weight = weights.get(i);
+                    visit(nodeId, calculateDistance(u, nodeId, weight));
+                }
+            }
+
+            return finalDistance(s, t);
         }
 
-        @Override
         void clear() {
-            super.clear();
+            Arrays.fill(dist, -1);
             Arrays.fill(heuristic, -1);
+            h.clear();
         }
 
-        @Override
+        void visit(int nodeId, long distance) {
+            long oldDist = dist[nodeId];
+            if (oldDist == -1 || oldDist > distance) {
+                dist[nodeId] = distance;
+                h.addOrUpdate(nodeId, distance);
+            }
+        }
+
         long calculateDistance(Node from, int to, int weight) {
             return from.distance + weight - getPotential(from.nodeId) + getPotential(to);
+        }
+
+        long finalDistance(int s, int t) {
+            long d = dist[t];
+            return d == -1 ? d : (d + getPotential(s));
         }
 
         int getPotential(int i) {
@@ -402,6 +443,12 @@ public class DistWithCoords {
             nodeMap = new int[numNodes];
             Arrays.fill(nodeMap, -1);
             this.numNodes = 0;
+        }
+
+        void clear() {
+            numNodes = 0;
+            Arrays.fill(nodeMap, -1);
+            Arrays.fill(heap, null);
         }
 
         boolean isEmpty() {
