@@ -37,10 +37,12 @@ public class DistWithCoords {
                 2, 9, 5, 4, 17, 2, 1, 8, 1, 9 }, new long[] { 19, 12 });
 
         // test case where a* is wrong
+        // in this case the graph is actually invalid! 
+        // the edge from 7 to 5 is shorter than the euclidean distance
         runTest(new int[] { 10, 9, 2, 8, 7, 3, 1, 6, 3, 3, 1, 4, 9, 5, 2, 6, 0, 4, 8, 6, 8, 5, 7, 5, 5, 8, 9, 13, 8, 6,
                 8, 3, 9, 16, 7, 7, 8, 1, 1, 10, 5, 6, 8, 1, 7, 14, 6, 7, 13, 1, 8, 6 }, new long[] { 8 });
 
-        // stressTest();
+        stressTest();
     }
 
     static void runTest(int[] data, long[] expected) {
