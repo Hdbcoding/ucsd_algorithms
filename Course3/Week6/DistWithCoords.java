@@ -104,6 +104,12 @@ public class DistWithCoords {
         return results;
     }
 
+    static int euclidean(int x1, int y1, int x2, int y2){
+        int dx = x1 - x2;
+        int dy = y1 - y2;
+        return (int) Math.sqrt(dx * dx + dy * dy);
+    }
+
     public interface GraphSolver {
         long distance(int u, int v);
     }
@@ -226,12 +232,8 @@ public class DistWithCoords {
         }
 
         int getPotential(int i) {
-            if (heuristic[i] == -1) {
-                int dx = g.x[i] - g.x[t];
-                int dy = g.y[i] - g.y[t];
-                int d = (int) Math.sqrt(dx * dx + dy * dy);
-                heuristic[i] = d;
-            }
+            if (heuristic[i] == -1)
+                heuristic[i] = euclidean(g.x[i], g.y[i], g.x[t], g.y[t]);
             return heuristic[i];
         }
     }
