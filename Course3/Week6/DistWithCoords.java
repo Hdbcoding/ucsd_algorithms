@@ -3,17 +3,19 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
 import java.lang.Math;
+import java.lang.reflect.InvocationTargetException;
 
 public class DistWithCoords {
     public static void main(String args[]) {
-        runSolution();
-        // testSolution();
+        // runSolution();
+        testSolution();
     }
 
     static void runSolution() {
         DataScanner in = new StreamScanner();
         Graph g = parseData(in);
-        AStar a = new AStar(g);
+        AStar a = new AStar();
+        a.preprocess(g);
         respondToQueries(a, in);
         in.close();
     }
@@ -36,23 +38,36 @@ public class DistWithCoords {
                 2, 5, 7, 4, 10, 7, 6, 9, 9, 2, 7, 3, 5, 8, 2, 9, 3, 3, 5, 14, 5, 6, 6, 2, 8, 10, 7, 3, 12, 7, 6, 4, 1,
                 2, 9, 5, 4, 17, 2, 1, 8, 1, 9 }, new long[] { 19, 12 });
 
-        stressTest();
+        int maxNumNodes = 250;
+        int maxWidth = 250;
+        int numTests = 1000;
+        stressTest(maxNumNodes, maxWidth, numTests);
+        int i = 15;
+        while (i-- > 0) {
+            int seed = (int) System.currentTimeMillis();
+            stressCompare(seed, maxNumNodes, maxWidth, numTests, FloydWarshall.class);
+            stressCompare(seed, maxNumNodes, maxWidth, numTests, Dijkstra.class);
+            stressCompare(seed, maxNumNodes, maxWidth, numTests, AStar.class);
+        }
     }
 
     static void runTest(int[] data, long[] expected) {
         DataScanner in = new ArrayScanner(data);
-        Graph graph = parseData(in);
-        FloydWarshall floydWarshall = new FloydWarshall(graph);
-        Dijkstra dijkstra = new Dijkstra(graph);
-        AStar aStar = new AStar(graph);
+        Graph g = parseData(in);
+        FloydWarshall fw = new FloydWarshall();
+        fw.preprocess(g);
+        Dijkstra d = new Dijkstra();
+        d.preprocess(g);
+        AStar a = new AStar();
+        a.preprocess(g);
         Query[] queries = parseQueries(in);
         String expectedString = Arrays.toString(expected);
-        boolean allTechniquesWork = evaluate(floydWarshall, queries, expectedString);
-        allTechniquesWork &= evaluate(dijkstra, queries, expectedString);
-        allTechniquesWork &= evaluate(aStar, queries, expectedString);
+        boolean allTechniquesWork = evaluate(fw, queries, expectedString);
+        allTechniquesWork &= evaluate(d, queries, expectedString);
+        allTechniquesWork &= evaluate(a, queries, expectedString);
         if (!allTechniquesWork) {
             System.out.println("Queries: " + Arrays.toString(queries));
-            System.out.println("Graph: " + graph);
+            System.out.println("Graph: " + g);
         }
     }
 
@@ -65,6 +80,11 @@ public class DistWithCoords {
             System.out.println("Expected: " + expectedString + ", but got " + actualString);
         }
         return worked;
+    }
+
+    static Graph parseData(int[] data) {
+        ArrayScanner in = new ArrayScanner(data);
+        return parseData(in);
     }
 
     static Graph parseData(DataScanner in) {
@@ -120,60 +140,64 @@ public class DistWithCoords {
         return results;
     }
 
-    static void stressTest() {
-        int maxNumNodes = 1000;
-        int maxGraphWidth = 1000;
-        int numTests = 1000;
-        int reportEvery = 10;
+    static void stressTest(int maxNumNodes, int maxGraphWidth, int numTests) {
+        int reportEvery = numTests / 10;
         Random r = new Random();
+        FloydWarshall fw = new FloydWarshall();
+        Dijkstra d = new Dijkstra();
+        AStar a = new AStar();
 
         for (int i = 0; i < numTests; i++) {
             if (i > 0 && i % reportEvery == 0) {
                 System.out.println("test run " + i);
             }
-            int n = nextInt(maxNumNodes, r) + 1;
-            int m = nextInt(n * 2, r);
-            int[] data = fillEdges(n, m, maxGraphWidth, r);
-            ArrayScanner in = new ArrayScanner(data);
-            Graph g = parseData(in);
+            int[] data = generateData(maxNumNodes, maxGraphWidth, r);
+            int n = data[0];
+            Graph g = parseData(data);
 
-            FloydWarshall fw = new FloydWarshall(g);
-            Dijkstra d = new Dijkstra(g);
-            AStar a = new AStar(g);
+            fw.preprocess(g);
+            d.preprocess(g);
+            a.preprocess(g);
 
             boolean anyMistakes = false;
-            for (int j = 0; j < n; j++) {
-                for (int k = 0; k < n; k++) {
-                    long expected = fw.distance(j, k);
-                    try {
-                        long actual_d = d.distance(j, k);
-                        long actual_a = a.distance(j, k);
+            int queries = nextInt(n * n, r);
+            for (int j = 0; j < queries; j++) {
+                int u = nextInt(n, r);
+                int v = nextInt(n, r);
+                long expected = fw.distance(u, v);
+                try {
+                    long actual_d = d.distance(u, v);
+                    long actual_a = a.distance(u, v);
 
-                        if (expected != actual_d || expected != actual_a) {
-                            anyMistakes = true;
-                            System.out.println("\nUnexpected distance during test run " + i);
-                            System.out.println("for nodes " + j + " to " + k);
-                            System.out.println("expected " + expected);
-                            System.out.println("dijkstra " + actual_d);
-                            System.out.println("astar " + actual_a);
-                        }
-                    } catch (Exception e) {
+                    if (expected != actual_d || expected != actual_a) {
                         anyMistakes = true;
-                        System.out.println("\nError thrown during test run " + i);
-                        System.out.println("for nodes " + j + " to " + k);
+                        System.out.println("\nUnexpected distance during test run " + i);
+                        System.out.println("for nodes " + u + " to " + v);
                         System.out.println("expected " + expected);
-                        e.printStackTrace();
+                        System.out.println("dijkstra " + actual_d);
+                        System.out.println("astar " + actual_a);
                     }
+                } catch (Exception e) {
+                    anyMistakes = true;
+                    System.out.println("\nError thrown during test run " + i);
+                    System.out.println("for nodes " + u + " to " + v);
+                    System.out.println("expected " + expected);
+                    e.printStackTrace();
                 }
             }
 
             if (anyMistakes) {
-                System.out.println("\nn: " + n + ", m: " + m);
+                System.out.println("\nn: " + data[0] + ", m: " + data[1]);
                 System.out.println(Arrays.toString(data));
                 System.out.println(g);
             }
         }
+    }
 
+    static int[] generateData(int maxNumNodes, int maxGraphWidth, Random r) {
+        int n = nextInt(maxNumNodes, r) + 1;
+        int m = nextInt(n * 2, r);
+        return fillEdges(n, m, maxGraphWidth, r);
     }
 
     static int[] fillEdges(int n, int m, int maxGraphWidth, Random r) {
@@ -187,12 +211,39 @@ public class DistWithCoords {
         }
         for (int i = 0; i < m; i++) {
             int j = n * 2 + i * 3 + 2;
-            int extraWidth =  nextInt(maxGraphWidth, r) + 1;
+            int extraWidth = nextInt(maxGraphWidth, r) + 1;
             data[j] = nextInt(n, r) + 1;
             data[j + 1] = nextInt(n, r) + 1;
             data[j + 2] = getDistance(data, data[j], data[j + 1]) + extraWidth;
         }
         return data;
+    }
+
+    static <T extends GraphSolver> void stressCompare(int seed, int maxNumNodes, int maxGraphWidth, int numTests,
+            Class<T> type) {
+        Random r = new Random(seed);
+        long startTime = System.currentTimeMillis();
+        GraphSolver solver = new Instantiator<T>().getInstance(type);
+        for (int i = 0; i < numTests; i++) {
+            System.out.print(type.getName() + "elapsed: %" + (double) 100 * i / numTests + "\r");
+            int[] data = generateData(maxNumNodes, maxGraphWidth, r);
+            int n = data[0];
+            Graph g = parseData(data);
+            solver.preprocess(g);
+
+            int queries = nextInt(n * n, r);
+            for (int j = 0; j < queries; j++) {
+                int u = nextInt(n, r);
+                int v = nextInt(n, r);
+                try {
+                    solver.distance(u, v);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        long endTime = System.currentTimeMillis();
+        System.out.println(type.getName() + " total time (ms): " + (endTime - startTime));
     }
 
     static int nextInt(int bound, Random r) {
@@ -211,14 +262,15 @@ public class DistWithCoords {
 
     public interface GraphSolver {
         long distance(int u, int v);
+
+        void preprocess(Graph g);
     }
 
     static class FloydWarshall implements GraphSolver {
         long[][] distances;
         Graph g;
 
-        FloydWarshall(Graph g) {
-            this.g = g;
+        public void preprocess(Graph g) {
             distances = new long[g.s][g.s];
 
             for (int i = 0; i < g.s; i++) {
@@ -260,7 +312,7 @@ public class DistWithCoords {
         long[] dist;
         NodeHeap h;
 
-        Dijkstra(Graph g) {
+        public void preprocess(Graph g) {
             this.g = g;
             dist = new long[g.s];
             h = new NodeHeap(g.s);
@@ -318,36 +370,34 @@ public class DistWithCoords {
         int[] heuristic;
         int t;
 
-        AStar(Graph g) {
+        public void preprocess(Graph g) {
             this.g = g;
             dist = new long[g.s];
             h = new NodeHeap(g.s);
             heuristic = new int[g.s];
         }
 
-        @Override
         public long distance(int s, int t) {
             if (s == t)
                 return 0l;
             this.t = t;
             clear();
-            dist[s] = 0;
-            h.addOrUpdate(s, 0);
+            visit(s, 0, getPotential(s));
             while (!h.isEmpty()) {
                 Node u = h.extractMin();
-                if (u.nodeId == t) {
-                    return finalDistance(s, t);
-                }
+                if (u.nodeId == t)
+                    return u.distance;
                 ArrayList<Integer> neighbors = g.adj[u.nodeId];
                 ArrayList<Integer> weights = g.cost[u.nodeId];
                 for (int i = 0; i < neighbors.size(); i++) {
                     int nodeId = neighbors.get(i);
                     int weight = weights.get(i);
-                    visit(nodeId, calculateDistance(u, nodeId, weight));
+
+                    visit(nodeId, u.distance + weight, getPotential(nodeId));
                 }
             }
 
-            return finalDistance(s, t);
+            return dist[t];
         }
 
         void clear() {
@@ -356,21 +406,16 @@ public class DistWithCoords {
             h.clear();
         }
 
-        void visit(int nodeId, long distance) {
+        void visit(int nodeId, long distance, int potential) {
             long oldDist = dist[nodeId];
             if (oldDist == -1 || oldDist > distance) {
                 dist[nodeId] = distance;
-                h.addOrUpdate(nodeId, distance);
+                h.addOrUpdate(nodeId, distance + potential);
             }
         }
 
         long calculateDistance(Node from, int to, int weight) {
-            return from.distance + weight - getPotential(from.nodeId) + getPotential(to);
-        }
-
-        long finalDistance(int s, int t) {
-            long d = dist[t];
-            return d == -1 ? d : (d + getPotential(s));
+            return from.distance + weight; // - getPotential(from.nodeId) + getPotential(to);
         }
 
         int getPotential(int i) {
@@ -378,6 +423,8 @@ public class DistWithCoords {
                 heuristic[i] = euclidean(g.x[i], g.y[i], g.x[t], g.y[t]);
             return heuristic[i];
         }
+
+        
     }
 
     static class Graph {
@@ -585,9 +632,14 @@ public class DistWithCoords {
         int nodeId;
         long distance;
 
-        Node(int nodeId, long distance2) {
+        Node(int nodeId, long distance) {
             this.nodeId = nodeId;
-            this.distance = distance2;
+            this.distance = distance;
+        }
+
+        @Override
+        public String toString() {
+            return "{ nodeId: " + nodeId + ", distance: " + distance + " }";
         }
     }
 
@@ -619,7 +671,6 @@ public class DistWithCoords {
             in = new Scanner(System.in);
         }
 
-        @Override
         public int nextInt() {
             return in.nextInt();
         }
@@ -637,12 +688,23 @@ public class DistWithCoords {
             this.data = data;
         }
 
-        @Override
         public int nextInt() {
             return data[i++];
         }
 
         public void close() {
+        }
+    }
+
+    static class Instantiator<T> {
+        T getInstance(Class<T> type) {
+            try {
+                return type.getDeclaredConstructor().newInstance(new Object[0]);
+            } catch (InstantiationException | IllegalAccessException | IllegalArgumentException
+                    | InvocationTargetException | NoSuchMethodException | SecurityException e) {
+                e.printStackTrace();
+            }
+            return null;
         }
     }
 
