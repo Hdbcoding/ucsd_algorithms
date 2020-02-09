@@ -8,8 +8,8 @@ import java.lang.reflect.InvocationTargetException;
 
 public class DistWithCoords {
     public static void main(String args[]) {
-        runSolution();
-        // testSolution();
+        // runSolution();
+        testSolution();
     }
 
     static void runSolution() {
@@ -585,6 +585,65 @@ public class DistWithCoords {
             for (int i = 0; i < adj.length; i++) {
                 ArrayList<Integer> edges = adj[i];
                 ArrayList<Integer> weights = cost[i];
+                s.append("\nnode " + i + ": ");
+                s.append("\ncoordinates: { x: " + x[i] + ", y: " + y[i] + " }");
+                s.append("\nadjacencies: " + Arrays.toString(edges.toArray()));
+                s.append("\nweights: " + Arrays.toString(weights.toArray()));
+            }
+
+            return s.toString();
+        }
+    }
+
+    static class TwoWayGraph {
+        int[] x;
+        int[] y;
+        ArrayList<Integer>[][] adj;
+        ArrayList<Integer>[][] cost;
+        int s;
+
+        TwoWayGraph(int s) {
+            x = new int[s];
+            y = new int[s];
+            adj = constructTwoWayList(s);
+            cost = constructTwoWayList(s);
+            this.s = s;
+        }
+
+        ArrayList<Integer>[][] constructTwoWayList(int s) {
+            ArrayList<Integer>[][] adj = (ArrayList<Integer>[][]) new ArrayList[2][];
+            adj[0] = constructList(s);
+            adj[1] = constructList(s);
+            return adj;
+        }
+
+        ArrayList<Integer>[] constructList(int s) {
+            ArrayList<Integer>[] adj = (ArrayList<Integer>[]) new ArrayList[s];
+            for (int i = 0; i < s; i++) {
+                adj[i] = new ArrayList<Integer>();
+            }
+            return adj;
+        }
+
+        void setCoordinate(int i, int xi, int yi) {
+            x[i] = xi;
+            y[i] = yi;
+        }
+
+        void addEdge(int i, int j, int w) {
+            adj[0][i].add(j);
+            cost[0][i].add(w);
+            adj[0][j].add(i);
+            cost[0][j].add(w);
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder s = new StringBuilder();
+
+            for (int i = 0; i < adj[0].length; i++) {
+                ArrayList<Integer> edges = adj[0][i];
+                ArrayList<Integer> weights = cost[0][i];
                 s.append("\nnode " + i + ": ");
                 s.append("\ncoordinates: { x: " + x[i] + ", y: " + y[i] + " }");
                 s.append("\nadjacencies: " + Arrays.toString(edges.toArray()));
