@@ -244,14 +244,12 @@ public class DistWithCoords {
         for (int i = 0; i < numTests; i++) {
             System.out.print(type.getName() + "elapsed: %" + (double) 100 * i / numTests + "\r");
             int[] data = generateData(maxNumNodes, maxGraphWidth, r);
-            int n = data[0];
-            Graph g = parseData(data);
-            solver.preprocess(g);
+            solver.preprocess(new ArrayScanner(data));
 
-            int queries = nextInt(n, r);
+            int queries = nextInt(data[0], r);
             for (int j = 0; j < queries; j++) {
-                int u = nextInt(n, r);
-                int v = nextInt(n, r);
+                int u = nextInt(data[0], r);
+                int v = nextInt(data[0], r);
                 try {
                     solver.distance(u, v);
                 } catch (Exception e) {
@@ -279,8 +277,6 @@ public class DistWithCoords {
         long distance(int u, int v);
 
         void preprocess(DataScanner in);
-
-        void preprocess(Graph g);
     }
 
     static class FloydWarshall implements GraphSolver {
@@ -291,7 +287,7 @@ public class DistWithCoords {
             preprocess(parseData(in));
         }
 
-        public void preprocess(Graph g) {
+        void preprocess(Graph g) {
             distances = new long[g.s][g.s];
 
             for (int i = 0; i < g.s; i++) {
@@ -337,7 +333,7 @@ public class DistWithCoords {
             preprocess(parseData(in));
         }
 
-        public void preprocess(Graph g) {
+        void preprocess(Graph g) {
             this.g = g;
             dist = new long[g.s];
             h = new NodeHeap(g.s);
@@ -391,7 +387,7 @@ public class DistWithCoords {
             preprocess(parseData(in));
         }
 
-        public void preprocess(Graph g) {
+        void preprocess(Graph g) {
             this.g = g;
             dist = new long[g.s];
             h = new PriorityQueue<Node>(g.s);
@@ -447,7 +443,7 @@ public class DistWithCoords {
             preprocess(parseData(in));
         }
 
-        public void preprocess(Graph g) {
+        void preprocess(Graph g) {
             this.g = g;
             dist = new long[g.s];
             h = new NodeHeap(g.s);
@@ -512,7 +508,7 @@ public class DistWithCoords {
             preprocess(parseData(in));
         }
 
-        public void preprocess(Graph g) {
+        void preprocess(Graph g) {
             this.g = g;
             dist = new long[g.s];
             h = new PriorityQueue<Node>(g.s);
