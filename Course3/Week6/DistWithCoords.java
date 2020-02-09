@@ -455,8 +455,8 @@ public class DistWithCoords {
 
         void clear() {
             Arrays.fill(dist, -1);
-            Arrays.fill(heuristic, -1);
             h.clear();
+            Arrays.fill(heuristic, -1);
         }
 
         void process(int u) {
@@ -516,8 +516,8 @@ public class DistWithCoords {
 
         void clear() {
             Arrays.fill(dist, -1);
-            Arrays.fill(heuristic, -1);
             h.clear();
+            Arrays.fill(heuristic, -1);
         }
 
         void process(int u) {
