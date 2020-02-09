@@ -38,19 +38,19 @@ public class DistWithCoords {
                 2, 5, 7, 4, 10, 7, 6, 9, 9, 2, 7, 3, 5, 8, 2, 9, 3, 3, 5, 14, 5, 6, 6, 2, 8, 10, 7, 3, 12, 7, 6, 4, 1,
                 2, 9, 5, 4, 17, 2, 1, 8, 1, 9 }, new long[] { 19, 12 });
 
-        int maxNumNodes = 1000;
-        int maxWidth = 1000;
-        int numTests = 1000;
+        // int maxNumNodes = 100;
+        // int maxWidth = 100;
+        // int numTests = 10000;
         // stressTest(maxNumNodes, maxWidth, numTests);
-        int i = 15;
-        while (i-- > 0) {
-            int seed = (int) System.currentTimeMillis();
-            // stressCompare(seed, maxNumNodes, maxWidth, numTests, FloydWarshall.class);
-            stressCompare(seed, maxNumNodes, maxWidth, numTests, Dijkstra.class);
-            stressCompare(seed, maxNumNodes, maxWidth, numTests, DijkstraPQ.class);
-            stressCompare(seed, maxNumNodes, maxWidth, numTests, AStar.class);
-            stressCompare(seed, maxNumNodes, maxWidth, numTests, AStarPQ.class);
-        }
+        // int i = 15;
+        // while (i-- > 0) {
+        // int seed = (int) System.currentTimeMillis();
+        // // stressCompare(seed, maxNumNodes, maxWidth, numTests, FloydWarshall.class);
+        // stressCompare(seed, maxNumNodes, maxWidth, numTests, Dijkstra.class);
+        // stressCompare(seed, maxNumNodes, maxWidth, numTests, DijkstraPQ.class);
+        // stressCompare(seed, maxNumNodes, maxWidth, numTests, AStar.class);
+        // stressCompare(seed, maxNumNodes, maxWidth, numTests, AStarPQ.class);
+        // }
     }
 
     static void runTest(int[] data, long[] expected) {
@@ -149,7 +149,6 @@ public class DistWithCoords {
     }
 
     static void stressTest(int maxNumNodes, int maxGraphWidth, int numTests) {
-        int reportEvery = numTests / 10;
         Random r = new Random();
         FloydWarshall fw = new FloydWarshall();
         Dijkstra d = new Dijkstra();
@@ -158,9 +157,7 @@ public class DistWithCoords {
         AStarPQ apq = new AStarPQ();
 
         for (int i = 0; i < numTests; i++) {
-            if (i > 0 && i % reportEvery == 0) {
-                System.out.println("test run " + i);
-            }
+            System.out.print("Stress tests: %" + (double) 100 * i / numTests + "\r");
             int[] data = generateData(maxNumNodes, maxGraphWidth, r);
             int n = data[0];
             Graph g = parseData(data);
@@ -183,8 +180,8 @@ public class DistWithCoords {
                     long actual_a = a.distance(u, v);
                     long actual_apq = apq.distance(u, v);
 
-                    if (expected != actual_d || expected != actual_a 
-                        || expected != actual_dpq || expected != actual_apq) {
+                    if (expected != actual_d || expected != actual_a || expected != actual_dpq
+                            || expected != actual_apq) {
                         anyMistakes = true;
                         System.out.println("\nUnexpected distance during test run " + i);
                         System.out.println("for nodes " + u + " to " + v);
@@ -432,6 +429,86 @@ public class DistWithCoords {
         }
     }
 
+    static class DijkstraPQ2 implements GraphSolver {
+        TwoWayGraph g;
+        long[][] dist;
+        PriorityQueue<Node>[] h;
+        boolean[][] visited;
+
+        public void preprocess(DataScanner in) {
+            // TODO Auto-generated method stub
+        }
+
+        public void preprocess(TwoWayGraph g) {
+            this.g = g;
+            this.dist = new long[][] { new long[g.s], new long[g.s] };
+            this.visited = new boolean[][] { new boolean[g.s], new boolean[g.s] };
+            this.h = (PriorityQueue<Node>[]) new PriorityQueue[] { 
+                new PriorityQueue<Node>(g.s),
+                new PriorityQueue<Node>(g.s) 
+            };
+        }
+
+        public long distance(int s, int t) {
+            if (s == t)
+                return 0l;
+            clear();
+            visit(0, s, 0);
+            visit(1, t, 0);
+
+            while (!h[0].isEmpty() && !h[1].isEmpty()) {
+                Node v = h[0].poll();
+                process(0, v.nodeId);
+                if (visited[1][v.nodeId])
+                    return shortestPath(v.nodeId);
+                visited[0][v.nodeId] = true;
+
+                Node v_r = h[1].poll();
+                process(1, v_r.nodeId);
+                if (visited[1][v_r.nodeId])
+                    return shortestPath(v_r.nodeId);
+                visited[1][v_r.nodeId] = true;
+            }
+
+            return -1l;
+        }
+
+        void clear() {
+            Arrays.fill(dist[0], -1);
+            Arrays.fill(dist[1], -1);
+            Arrays.fill(visited[0], false);
+            Arrays.fill(visited[1], false);
+            h[0].clear();
+            h[1].clear();
+        }
+
+        void process(int side, int u) {
+            ArrayList<Integer> neighbors = g.adj[side][u];
+            ArrayList<Integer> weights = g.cost[side][u];
+            for (int i = 0; i < neighbors.size(); i++) {
+                int nodeId = neighbors.get(i);
+                int weight = weights.get(i);
+                visit(side, nodeId, dist[side][u] + weight);
+            }
+        }
+
+        void visit(int side, int nodeId, long distance) {
+            long oldDist = dist[side][nodeId];
+            if (oldDist == -1 || oldDist > distance) {
+                dist[side][nodeId] = distance;
+                h[side].add(new Node(nodeId, distance));
+            }
+        }
+
+        long shortestPath(int nodeId) {
+            long dist = -1l;
+
+            // ah, need workset here
+
+            return dist;
+        }
+    }
+
     static class AStar implements GraphSolver {
         Graph g;
         long[] dist;
@@ -452,7 +529,7 @@ public class DistWithCoords {
 
         public long distance(int s, int t) {
             if (s == t)
-                return 0;
+                return 0l;
             this.t = t;
             clear();
             visit(s, 0, getPotential(s));
@@ -517,7 +594,7 @@ public class DistWithCoords {
 
         public long distance(int s, int t) {
             if (s == t)
-                return 0;
+                return 0l;
             this.t = t;
             clear();
             visit(s, 0, getPotential(s));
