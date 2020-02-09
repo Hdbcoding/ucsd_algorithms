@@ -6,6 +6,13 @@
     "configurations": [
         {
             "type": "java",
+            "name": "CodeLens (Launch) - FriendSuggestion",
+            "request": "launch",
+            "mainClass": "FriendSuggestion",
+            "projectName": "UCSDAlgorithms_5bd1ba95"
+        },
+        {
+            "type": "java",
             "name": "CodeLens (Launch) - DistWithCoords",
             "request": "launch",
             "mainClass": "DistWithCoords",

@@ -7,9 +7,9 @@ import java.util.Random;
 public class FriendSuggestion {
     public static void main(String args[]) {
         // runSolution1();
-        runSolution2();
+        // runSolution2();
         // runSolutionNaive();
-        // testSolution();
+        testSolution();
     }
     static void runSolution1() {
         Scanner in = new Scanner(System.in);

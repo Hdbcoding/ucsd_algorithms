@@ -38,30 +38,25 @@ public class DistWithCoords {
                 2, 5, 7, 4, 10, 7, 6, 9, 9, 2, 7, 3, 5, 8, 2, 9, 3, 3, 5, 14, 5, 6, 6, 2, 8, 10, 7, 3, 12, 7, 6, 4, 1,
                 2, 9, 5, 4, 17, 2, 1, 8, 1, 9 }, new long[] { 19, 12 });
 
-        // int maxNumNodes = 100;
-        // int maxWidth = 100;
-        // int numTests = 10000;
-        // stressTest(maxNumNodes, maxWidth, numTests);
-        // int i = 15;
-        // while (i-- > 0) {
-        // int seed = (int) System.currentTimeMillis();
-        // // stressCompare(seed, maxNumNodes, maxWidth, numTests, FloydWarshall.class);
-        // stressCompare(seed, maxNumNodes, maxWidth, numTests, Dijkstra.class);
-        // stressCompare(seed, maxNumNodes, maxWidth, numTests, DijkstraPQ.class);
-        // stressCompare(seed, maxNumNodes, maxWidth, numTests, AStar.class);
-        // stressCompare(seed, maxNumNodes, maxWidth, numTests, AStarPQ.class);
-        // }
+        int maxNumNodes = 10;
+        int maxWidth = 10;
+        int numTests = 100;
+        stressTest(maxNumNodes, maxWidth, numTests);
+        // runComparisons(maxNumNodes, maxWidth, numTests);
     }
 
     static void runTest(int[] data, long[] expected) {
         DataScanner in = new ArrayScanner(data);
-        Graph g = parseData(in);
+        Graph g = parseGraph(in);
+        TwoWayGraph g2 = TwoWayGraph.fromGraph(g);
         FloydWarshall fw = new FloydWarshall();
         fw.preprocess(g);
         Dijkstra d = new Dijkstra();
         d.preprocess(g);
         DijkstraPQ dpq = new DijkstraPQ();
         dpq.preprocess(g);
+        DijkstraPQ2 dpq2 = new DijkstraPQ2();
+        dpq2.preprocess(g2);
         AStar a = new AStar();
         a.preprocess(g);
         AStarPQ apq = new AStarPQ();
@@ -71,6 +66,7 @@ public class DistWithCoords {
         boolean allTechniquesWork = evaluate(fw, queries, expectedString);
         allTechniquesWork &= evaluate(d, queries, expectedString);
         allTechniquesWork &= evaluate(dpq, queries, expectedString);
+        allTechniquesWork &= evaluate(dpq2, queries, expectedString);
         allTechniquesWork &= evaluate(a, queries, expectedString);
         allTechniquesWork &= evaluate(apq, queries, expectedString);
         if (!allTechniquesWork) {
@@ -92,13 +88,34 @@ public class DistWithCoords {
 
     static Graph parseData(int[] data) {
         ArrayScanner in = new ArrayScanner(data);
-        return parseData(in);
+        return parseGraph(in);
     }
 
-    static Graph parseData(DataScanner in) {
+    static Graph parseGraph(DataScanner in) {
         int n = in.nextInt();
         int m = in.nextInt();
         Graph g = new Graph(n);
+        int x;
+        int y;
+        for (int i = 0; i < n; i++) {
+            x = in.nextInt();
+            y = in.nextInt();
+            g.setCoordinate(i, x, y);
+        }
+        int c;
+        for (int i = 0; i < m; i++) {
+            x = in.nextInt();
+            y = in.nextInt();
+            c = in.nextInt();
+            g.addEdge(x - 1, y - 1, c);
+        }
+        return g;
+    }
+
+    static TwoWayGraph parseTwoWayGraph(DataScanner in) {
+        int n = in.nextInt();
+        int m = in.nextInt();
+        TwoWayGraph g = new TwoWayGraph(n);
         int x;
         int y;
         for (int i = 0; i < n; i++) {
@@ -153,6 +170,7 @@ public class DistWithCoords {
         FloydWarshall fw = new FloydWarshall();
         Dijkstra d = new Dijkstra();
         DijkstraPQ dpq = new DijkstraPQ();
+        DijkstraPQ2 dpq2 = new DijkstraPQ2();
         AStar a = new AStar();
         AStarPQ apq = new AStarPQ();
 
@@ -161,10 +179,12 @@ public class DistWithCoords {
             int[] data = generateData(maxNumNodes, maxGraphWidth, r);
             int n = data[0];
             Graph g = parseData(data);
+            TwoWayGraph g2 = TwoWayGraph.fromGraph(g);
 
             fw.preprocess(g);
             d.preprocess(g);
             dpq.preprocess(g);
+            dpq2.preprocess(g2);
             a.preprocess(g);
             apq.preprocess(g);
 
@@ -177,17 +197,19 @@ public class DistWithCoords {
                 try {
                     long actual_d = d.distance(u, v);
                     long actual_dpq = dpq.distance(u, v);
+                    long actual_dpq2 = dpq2.distance(u, v);
                     long actual_a = a.distance(u, v);
                     long actual_apq = apq.distance(u, v);
 
-                    if (expected != actual_d || expected != actual_a || expected != actual_dpq
-                            || expected != actual_apq) {
+                    if (expected != actual_d || expected != actual_dpq || expected != actual_dpq2
+                            || expected != actual_a || expected != actual_apq) {
                         anyMistakes = true;
                         System.out.println("\nUnexpected distance during test run " + i);
                         System.out.println("for nodes " + u + " to " + v);
                         System.out.println("expected " + expected);
                         System.out.println("dijkstra " + actual_d);
                         System.out.println("dijkstra_pq " + actual_dpq);
+                        System.out.println("dijkstra_pq2 " + actual_dpq2);
                         System.out.println("astar " + actual_a);
                         System.out.println("astar_pq " + actual_apq);
                     }
@@ -231,6 +253,19 @@ public class DistWithCoords {
             data[j + 2] = getDistance(data, data[j], data[j + 1]) + extraWidth;
         }
         return data;
+    }
+
+    static void runComparisons(int maxNumNodes, int maxWidth, int numTests) {
+        int i = 15;
+        while (i-- > 0) {
+            int seed = (int) System.currentTimeMillis();
+            // stressCompare(seed, maxNumNodes, maxWidth, numTests, FloydWarshall.class);
+            stressCompare(seed, maxNumNodes, maxWidth, numTests, Dijkstra.class);
+            stressCompare(seed, maxNumNodes, maxWidth, numTests, DijkstraPQ.class);
+            stressCompare(seed, maxNumNodes, maxWidth, numTests, DijkstraPQ2.class);
+            stressCompare(seed, maxNumNodes, maxWidth, numTests, AStar.class);
+            stressCompare(seed, maxNumNodes, maxWidth, numTests, AStarPQ.class);
+        }
     }
 
     static <T extends GraphSolver> void stressCompare(int seed, int maxNumNodes, int maxGraphWidth, int numTests,
@@ -281,7 +316,7 @@ public class DistWithCoords {
         Graph g;
 
         public void preprocess(DataScanner in) {
-            preprocess(parseData(in));
+            preprocess(parseGraph(in));
         }
 
         void preprocess(Graph g) {
@@ -327,7 +362,7 @@ public class DistWithCoords {
         NodeHeap h;
 
         public void preprocess(DataScanner in) {
-            preprocess(parseData(in));
+            preprocess(parseGraph(in));
         }
 
         void preprocess(Graph g) {
@@ -381,7 +416,7 @@ public class DistWithCoords {
         PriorityQueue<Node> h;
 
         public void preprocess(DataScanner in) {
-            preprocess(parseData(in));
+            preprocess(parseGraph(in));
         }
 
         void preprocess(Graph g) {
@@ -434,19 +469,19 @@ public class DistWithCoords {
         long[][] dist;
         PriorityQueue<Node>[] h;
         boolean[][] visited;
+        ArrayList<Integer> workset;
 
         public void preprocess(DataScanner in) {
-            // TODO Auto-generated method stub
+            preprocess(parseTwoWayGraph(in));
         }
 
         public void preprocess(TwoWayGraph g) {
             this.g = g;
-            this.dist = new long[][] { new long[g.s], new long[g.s] };
-            this.visited = new boolean[][] { new boolean[g.s], new boolean[g.s] };
-            this.h = (PriorityQueue<Node>[]) new PriorityQueue[] { 
-                new PriorityQueue<Node>(g.s),
-                new PriorityQueue<Node>(g.s) 
-            };
+            dist = new long[][] { new long[g.s], new long[g.s] };
+            h = (PriorityQueue<Node>[]) new PriorityQueue[] { new PriorityQueue<Node>(g.s),
+                    new PriorityQueue<Node>(g.s) };
+            visited = new boolean[][] { new boolean[g.s], new boolean[g.s] };
+            workset = new ArrayList<Integer>();
         }
 
         public long distance(int s, int t) {
@@ -460,13 +495,13 @@ public class DistWithCoords {
                 Node v = h[0].poll();
                 process(0, v.nodeId);
                 if (visited[1][v.nodeId])
-                    return shortestPath(v.nodeId);
+                    return shortestPath();
                 visited[0][v.nodeId] = true;
 
                 Node v_r = h[1].poll();
                 process(1, v_r.nodeId);
                 if (visited[1][v_r.nodeId])
-                    return shortestPath(v_r.nodeId);
+                    return shortestPath();
                 visited[1][v_r.nodeId] = true;
             }
 
@@ -476,10 +511,11 @@ public class DistWithCoords {
         void clear() {
             Arrays.fill(dist[0], -1);
             Arrays.fill(dist[1], -1);
-            Arrays.fill(visited[0], false);
-            Arrays.fill(visited[1], false);
             h[0].clear();
             h[1].clear();
+            Arrays.fill(visited[0], false);
+            Arrays.fill(visited[1], false);
+            workset.clear();
         }
 
         void process(int side, int u) {
@@ -497,15 +533,25 @@ public class DistWithCoords {
             if (oldDist == -1 || oldDist > distance) {
                 dist[side][nodeId] = distance;
                 h[side].add(new Node(nodeId, distance));
+                workset.add(nodeId);
             }
         }
 
-        long shortestPath(int nodeId) {
-            long dist = -1l;
-
-            // ah, need workset here
-
-            return dist;
+        long shortestPath() {
+            long distance = -1l;
+            for (int u : workset) {
+                long f = dist[0][u];
+                if (f == -1)
+                    continue;
+                long r = dist[1][u];
+                if (r == -1)
+                    continue;
+                
+                if (distance == -1 || (f + r) < distance) {
+                    distance = f + r;
+                }
+            }
+            return distance;
         }
     }
 
@@ -517,7 +563,7 @@ public class DistWithCoords {
         int t;
 
         public void preprocess(DataScanner in) {
-            preprocess(parseData(in));
+            preprocess(parseGraph(in));
         }
 
         void preprocess(Graph g) {
@@ -582,7 +628,7 @@ public class DistWithCoords {
         int t;
 
         public void preprocess(DataScanner in) {
-            preprocess(parseData(in));
+            preprocess(parseGraph(in));
         }
 
         void preprocess(Graph g) {
@@ -727,8 +773,8 @@ public class DistWithCoords {
         void addEdge(int i, int j, int w) {
             adj[0][i].add(j);
             cost[0][i].add(w);
-            adj[0][j].add(i);
-            cost[0][j].add(w);
+            adj[1][j].add(i);
+            cost[1][j].add(w);
         }
 
         @Override
@@ -745,6 +791,22 @@ public class DistWithCoords {
             }
 
             return s.toString();
+        }
+
+        static TwoWayGraph fromGraph(Graph g) {
+            TwoWayGraph g2 = new TwoWayGraph(g.s);
+            for (int u = 0; u < g.s; u++) {
+                g2.setCoordinate(u, g.x[u], g.y[u]);
+
+                ArrayList<Integer> adj = g.adj[u];
+                ArrayList<Integer> cost = g.cost[u];
+                for (int j = 0; j < adj.size(); j++) {
+                    int v = adj.get(j);
+                    int c = cost.get(j);
+                    g2.addEdge(u, v, c);
+                }
+            }
+            return g2;
         }
     }
 
