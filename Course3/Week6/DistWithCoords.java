@@ -15,7 +15,7 @@ public class DistWithCoords {
     static void runSolution() {
         DataScanner in = new StreamScanner();
         Graph g = parseData(in);
-        Dijkstra a = new Dijkstra();
+        FloydWarshall a = new FloydWarshall();
         a.preprocess(g);
         respondToQueries(a, in);
         in.close();
@@ -39,14 +39,14 @@ public class DistWithCoords {
                 2, 5, 7, 4, 10, 7, 6, 9, 9, 2, 7, 3, 5, 8, 2, 9, 3, 3, 5, 14, 5, 6, 6, 2, 8, 10, 7, 3, 12, 7, 6, 4, 1,
                 2, 9, 5, 4, 17, 2, 1, 8, 1, 9 }, new long[] { 19, 12 });
 
-        int maxNumNodes = 100;
-        int maxWidth = 100;
+        int maxNumNodes = 1000;
+        int maxWidth = 1000;
         int numTests = 1000;
-        stressTest(maxNumNodes, maxWidth, numTests);
+        // stressTest(maxNumNodes, maxWidth, numTests);
         int i = 15;
         while (i-- > 0) {
             int seed = (int) System.currentTimeMillis();
-            stressCompare(seed, maxNumNodes, maxWidth, numTests, FloydWarshall.class);
+            // stressCompare(seed, maxNumNodes, maxWidth, numTests, FloydWarshall.class);
             stressCompare(seed, maxNumNodes, maxWidth, numTests, Dijkstra.class);
             stressCompare(seed, maxNumNodes, maxWidth, numTests, DijkstraPQ.class);
             stressCompare(seed, maxNumNodes, maxWidth, numTests, AStar.class);
@@ -240,7 +240,7 @@ public class DistWithCoords {
             Graph g = parseData(data);
             solver.preprocess(g);
 
-            int queries = nextInt(n * n, r);
+            int queries = nextInt(n, r);
             for (int j = 0; j < queries; j++) {
                 int u = nextInt(n, r);
                 int v = nextInt(n, r);
@@ -264,9 +264,7 @@ public class DistWithCoords {
     }
 
     static int euclidean(int x1, int y1, int x2, int y2) {
-        int dx = x1 - x2;
-        int dy = y1 - y2;
-        return (int) Math.sqrt(dx * dx + dy * dy);
+        return (int) Math.sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
     }
 
     public interface GraphSolver {
@@ -334,19 +332,22 @@ public class DistWithCoords {
             visit(s, 0);
             while (!h.isEmpty()) {
                 Node u = h.extractMin();
-                if (u.nodeId == t) {
-                    return finalDistance(s, t);
-                }
-                ArrayList<Integer> neighbors = g.adj[u.nodeId];
-                ArrayList<Integer> weights = g.cost[u.nodeId];
-                for (int i = 0; i < neighbors.size(); i++) {
-                    int nodeId = neighbors.get(i);
-                    int weight = weights.get(i);
-                    visit(nodeId, calculateDistance(u, nodeId, weight));
-                }
+                if (u.nodeId == t)
+                    return dist[t];
+                process(u.nodeId);
             }
 
-            return finalDistance(s, t);
+            return dist[t];
+        }
+
+        void process(int u) {
+            ArrayList<Integer> neighbors = g.adj[u];
+            ArrayList<Integer> weights = g.cost[u];
+            for (int i = 0; i < neighbors.size(); i++) {
+                int nodeId = neighbors.get(i);
+                    int weight = weights.get(i);
+                    visit(nodeId, dist[u] + weight);
+            }
         }
 
         void clear() {
@@ -364,10 +365,6 @@ public class DistWithCoords {
 
         long calculateDistance(Node from, int to, int weight) {
             return from.distance + weight;
-        }
-
-        long finalDistance(int s, int t) {
-            return dist[t];
         }
     }
 
