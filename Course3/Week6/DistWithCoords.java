@@ -14,9 +14,8 @@ public class DistWithCoords {
 
     static void runSolution() {
         DataScanner in = new StreamScanner();
-        Graph g = parseData(in);
         AStarPQ a = new AStarPQ();
-        a.preprocess(g);
+        a.preprocess(in);
         respondToQueries(a, in);
         in.close();
     }
@@ -279,12 +278,18 @@ public class DistWithCoords {
     public interface GraphSolver {
         long distance(int u, int v);
 
+        void preprocess(DataScanner in);
+
         void preprocess(Graph g);
     }
 
     static class FloydWarshall implements GraphSolver {
         long[][] distances;
         Graph g;
+
+        public void preprocess(DataScanner in) {
+            preprocess(parseData(in));
+        }
 
         public void preprocess(Graph g) {
             distances = new long[g.s][g.s];
@@ -327,6 +332,10 @@ public class DistWithCoords {
         Graph g;
         long[] dist;
         NodeHeap h;
+
+        public void preprocess(DataScanner in) {
+            preprocess(parseData(in));
+        }
 
         public void preprocess(Graph g) {
             this.g = g;
@@ -377,6 +386,10 @@ public class DistWithCoords {
         Graph g;
         long[] dist;
         PriorityQueue<Node> h;
+
+        public void preprocess(DataScanner in) {
+            preprocess(parseData(in));
+        }
 
         public void preprocess(Graph g) {
             this.g = g;
@@ -429,6 +442,10 @@ public class DistWithCoords {
         NodeHeap h;
         int[] heuristic;
         int t;
+
+        public void preprocess(DataScanner in) {
+            preprocess(parseData(in));
+        }
 
         public void preprocess(Graph g) {
             this.g = g;
@@ -490,6 +507,10 @@ public class DistWithCoords {
         PriorityQueue<Node> h;
         int[] heuristic;
         int t;
+
+        public void preprocess(DataScanner in) {
+            preprocess(parseData(in));
+        }
 
         public void preprocess(Graph g) {
             this.g = g;
