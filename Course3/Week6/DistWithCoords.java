@@ -340,19 +340,19 @@ public class DistWithCoords {
             return dist[t];
         }
 
+        void clear() {
+            Arrays.fill(dist, -1);
+            h.clear();
+        }
+
         void process(int u) {
             ArrayList<Integer> neighbors = g.adj[u];
             ArrayList<Integer> weights = g.cost[u];
             for (int i = 0; i < neighbors.size(); i++) {
                 int nodeId = neighbors.get(i);
-                    int weight = weights.get(i);
-                    visit(nodeId, dist[u] + weight);
+                int weight = weights.get(i);
+                visit(nodeId, dist[u] + weight);
             }
-        }
-
-        void clear() {
-            Arrays.fill(dist, -1);
-            h.clear();
         }
 
         void visit(int nodeId, long distance) {
@@ -361,10 +361,6 @@ public class DistWithCoords {
                 dist[nodeId] = distance;
                 h.addOrUpdate(nodeId, distance);
             }
-        }
-
-        long calculateDistance(Node from, int to, int weight) {
-            return from.distance + weight;
         }
     }
 
@@ -386,24 +382,27 @@ public class DistWithCoords {
             visit(s, 0);
             while (!h.isEmpty()) {
                 Node u = h.poll();
-                if (u.nodeId == t) {
-                    return finalDistance(s, t);
-                }
-                ArrayList<Integer> neighbors = g.adj[u.nodeId];
-                ArrayList<Integer> weights = g.cost[u.nodeId];
-                for (int i = 0; i < neighbors.size(); i++) {
-                    int nodeId = neighbors.get(i);
-                    int weight = weights.get(i);
-                    visit(nodeId, calculateDistance(u, nodeId, weight));
-                }
+                if (u.nodeId == t)
+                    return dist[t];
+                process(u.nodeId);
             }
 
-            return finalDistance(s, t);
+            return dist[t];
         }
 
         void clear() {
             Arrays.fill(dist, -1);
             h.clear();
+        }
+
+        void process(int u) {
+            ArrayList<Integer> neighbors = g.adj[u];
+            ArrayList<Integer> weights = g.cost[u];
+            for (int i = 0; i < neighbors.size(); i++) {
+                int nodeId = neighbors.get(i);
+                int weight = weights.get(i);
+                visit(nodeId, dist[u] + weight);
+            }
         }
 
         void visit(int nodeId, long distance) {
@@ -412,14 +411,6 @@ public class DistWithCoords {
                 dist[nodeId] = distance;
                 h.add(new Node(nodeId, distance));
             }
-        }
-
-        long calculateDistance(Node from, int to, int weight) {
-            return from.distance + weight;
-        }
-
-        long finalDistance(int s, int t) {
-            return dist[t];
         }
     }
 
@@ -447,14 +438,7 @@ public class DistWithCoords {
                 Node u = h.extractMin();
                 if (u.nodeId == t)
                     return dist[u.nodeId];
-                ArrayList<Integer> neighbors = g.adj[u.nodeId];
-                ArrayList<Integer> weights = g.cost[u.nodeId];
-                for (int i = 0; i < neighbors.size(); i++) {
-                    int nodeId = neighbors.get(i);
-                    int weight = weights.get(i);
-
-                    visit(nodeId, dist[u.nodeId] + weight, getPotential(nodeId));
-                }
+                process(u.nodeId);
             }
 
             return dist[t];
@@ -466,16 +450,22 @@ public class DistWithCoords {
             h.clear();
         }
 
+        void process(int u) {
+            ArrayList<Integer> neighbors = g.adj[u];
+            ArrayList<Integer> weights = g.cost[u];
+            for (int i = 0; i < neighbors.size(); i++) {
+                int nodeId = neighbors.get(i);
+                int weight = weights.get(i);
+                visit(nodeId, dist[u] + weight, getPotential(nodeId));
+            }
+        }
+
         void visit(int nodeId, long distance, int potential) {
             long oldDist = dist[nodeId];
             if (oldDist == -1 || oldDist > distance) {
                 dist[nodeId] = distance;
                 h.addOrUpdate(nodeId, distance + potential);
             }
-        }
-
-        long calculateDistance(Node from, int to, int weight) {
-            return from.distance + weight; // - getPotential(from.nodeId) + getPotential(to);
         }
 
         int getPotential(int i) {
