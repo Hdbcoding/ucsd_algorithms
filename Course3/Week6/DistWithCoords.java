@@ -38,8 +38,8 @@ public class DistWithCoords {
                 2, 5, 7, 4, 10, 7, 6, 9, 9, 2, 7, 3, 5, 8, 2, 9, 3, 3, 5, 14, 5, 6, 6, 2, 8, 10, 7, 3, 12, 7, 6, 4, 1,
                 2, 9, 5, 4, 17, 2, 1, 8, 1, 9 }, new long[] { 19, 12 });
 
-        int maxNumNodes = 250;
-        int maxWidth = 250;
+        int maxNumNodes = 100;
+        int maxWidth = 100;
         int numTests = 1000;
         stressTest(maxNumNodes, maxWidth, numTests);
         int i = 15;
@@ -379,21 +379,21 @@ public class DistWithCoords {
 
         public long distance(int s, int t) {
             if (s == t)
-                return 0l;
+                return 0;
             this.t = t;
             clear();
             visit(s, 0, getPotential(s));
             while (!h.isEmpty()) {
                 Node u = h.extractMin();
                 if (u.nodeId == t)
-                    return u.distance;
+                    return dist[u.nodeId];
                 ArrayList<Integer> neighbors = g.adj[u.nodeId];
                 ArrayList<Integer> weights = g.cost[u.nodeId];
                 for (int i = 0; i < neighbors.size(); i++) {
                     int nodeId = neighbors.get(i);
                     int weight = weights.get(i);
 
-                    visit(nodeId, u.distance + weight, getPotential(nodeId));
+                    visit(nodeId, dist[u.nodeId] + weight, getPotential(nodeId));
                 }
             }
 
