@@ -1,6 +1,7 @@
 import java.util.Scanner;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.PriorityQueue;
 import java.util.Random;
 import java.lang.Math;
 import java.lang.reflect.InvocationTargetException;
@@ -14,7 +15,7 @@ public class DistWithCoords {
     static void runSolution() {
         DataScanner in = new StreamScanner();
         Graph g = parseData(in);
-        AStar a = new AStar();
+        Dijkstra a = new Dijkstra();
         a.preprocess(g);
         respondToQueries(a, in);
         in.close();
@@ -47,6 +48,7 @@ public class DistWithCoords {
             int seed = (int) System.currentTimeMillis();
             stressCompare(seed, maxNumNodes, maxWidth, numTests, FloydWarshall.class);
             stressCompare(seed, maxNumNodes, maxWidth, numTests, Dijkstra.class);
+            stressCompare(seed, maxNumNodes, maxWidth, numTests, DijkstraPQ.class);
             stressCompare(seed, maxNumNodes, maxWidth, numTests, AStar.class);
         }
     }
@@ -58,12 +60,15 @@ public class DistWithCoords {
         fw.preprocess(g);
         Dijkstra d = new Dijkstra();
         d.preprocess(g);
+        DijkstraPQ dpq = new DijkstraPQ();
+        dpq.preprocess(g);
         AStar a = new AStar();
         a.preprocess(g);
         Query[] queries = parseQueries(in);
         String expectedString = Arrays.toString(expected);
         boolean allTechniquesWork = evaluate(fw, queries, expectedString);
         allTechniquesWork &= evaluate(d, queries, expectedString);
+        allTechniquesWork &= evaluate(dpq, queries, expectedString);
         allTechniquesWork &= evaluate(a, queries, expectedString);
         if (!allTechniquesWork) {
             System.out.println("Queries: " + Arrays.toString(queries));
@@ -145,6 +150,7 @@ public class DistWithCoords {
         Random r = new Random();
         FloydWarshall fw = new FloydWarshall();
         Dijkstra d = new Dijkstra();
+        DijkstraPQ dpq = new DijkstraPQ();
         AStar a = new AStar();
 
         for (int i = 0; i < numTests; i++) {
@@ -157,6 +163,7 @@ public class DistWithCoords {
 
             fw.preprocess(g);
             d.preprocess(g);
+            dpq.preprocess(g);
             a.preprocess(g);
 
             boolean anyMistakes = false;
@@ -167,14 +174,16 @@ public class DistWithCoords {
                 long expected = fw.distance(u, v);
                 try {
                     long actual_d = d.distance(u, v);
+                    long actual_dpq = dpq.distance(u, v);
                     long actual_a = a.distance(u, v);
 
-                    if (expected != actual_d || expected != actual_a) {
+                    if (expected != actual_d || expected != actual_a || expected != actual_dpq) {
                         anyMistakes = true;
                         System.out.println("\nUnexpected distance during test run " + i);
                         System.out.println("for nodes " + u + " to " + v);
                         System.out.println("expected " + expected);
                         System.out.println("dijkstra " + actual_d);
+                        System.out.println("dijkstra_pq " + actual_dpq);
                         System.out.println("astar " + actual_a);
                     }
                 } catch (Exception e) {
@@ -322,8 +331,7 @@ public class DistWithCoords {
             if (s == t)
                 return 0l;
             clear();
-            dist[s] = 0;
-            h.addOrUpdate(s, 0);
+            visit(s, 0);
             while (!h.isEmpty()) {
                 Node u = h.extractMin();
                 if (u.nodeId == t) {
@@ -351,6 +359,61 @@ public class DistWithCoords {
             if (oldDist == -1 || oldDist > distance) {
                 dist[nodeId] = distance;
                 h.addOrUpdate(nodeId, distance);
+            }
+        }
+
+        long calculateDistance(Node from, int to, int weight) {
+            return from.distance + weight;
+        }
+
+        long finalDistance(int s, int t) {
+            return dist[t];
+        }
+    }
+
+    static class DijkstraPQ implements GraphSolver {
+        Graph g;
+        long[] dist;
+        PriorityQueue<Node> h;
+
+        public void preprocess(Graph g) {
+            this.g = g;
+            dist = new long[g.s];
+            h = new PriorityQueue<Node>(g.s);
+        }
+
+        public long distance(int s, int t) {
+            if (s == t)
+                return 0l;
+            clear();
+            visit(s, 0);
+            while (!h.isEmpty()) {
+                Node u = h.poll();
+                if (u.nodeId == t) {
+                    return finalDistance(s, t);
+                }
+                ArrayList<Integer> neighbors = g.adj[u.nodeId];
+                ArrayList<Integer> weights = g.cost[u.nodeId];
+                for (int i = 0; i < neighbors.size(); i++) {
+                    int nodeId = neighbors.get(i);
+                    int weight = weights.get(i);
+                    visit(nodeId, calculateDistance(u, nodeId, weight));
+                }
+            }
+
+            return finalDistance(s, t);
+        }
+
+        void clear() {
+            Arrays.fill(dist, -1);
+            h.clear();
+        }
+
+        void visit(int nodeId, long distance) {
+            long oldDist = dist[nodeId];
+            if (oldDist == -1 || oldDist > distance) {
+                dist[nodeId] = distance;
+                h.add(new Node(nodeId, distance));
             }
         }
 
@@ -424,7 +487,6 @@ public class DistWithCoords {
             return heuristic[i];
         }
 
-        
     }
 
     static class Graph {
@@ -562,25 +624,29 @@ public class DistWithCoords {
             if (i == 0)
                 return;
             int p = parent(i);
-            if (!rule(p, i)) {
+            while (i != 0 && !rule(p, i)) {
                 swap(p, i);
-                siftUp(p);
+                i = p;
+                p = parent(i);
             }
         }
 
         void siftDown(int i) {
-            int l = left(i), r = right(i), swapIndex = i;
+            int swapIndex = i;
+            do {
+                i = swapIndex;
+                int l = left(i), r = right(i);
 
-            if (l < numNodes && !rule(swapIndex, l))
-                swapIndex = l;
+                if (l < numNodes && !rule(swapIndex, l))
+                    swapIndex = l;
 
-            if (r < numNodes && !rule(swapIndex, r))
-                swapIndex = r;
+                if (r < numNodes && !rule(swapIndex, r))
+                    swapIndex = r;
 
-            if (swapIndex != i) {
-                swap(i, swapIndex);
-                siftDown(swapIndex);
-            }
+                if (swapIndex != i) {
+                    swap(i, swapIndex);
+                }
+            } while (swapIndex != i);
         }
 
         void swap(int i, int j) {
@@ -628,7 +694,7 @@ public class DistWithCoords {
         }
     }
 
-    static class Node {
+    static class Node implements Comparable<Node> {
         int nodeId;
         long distance;
 
@@ -640,6 +706,11 @@ public class DistWithCoords {
         @Override
         public String toString() {
             return "{ nodeId: " + nodeId + ", distance: " + distance + " }";
+        }
+
+        @Override
+        public int compareTo(Node other) {
+            return distance < other.distance ? -1 : distance > other.distance ? 1 : 0;
         }
     }
 
