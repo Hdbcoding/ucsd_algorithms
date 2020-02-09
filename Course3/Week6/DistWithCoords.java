@@ -8,14 +8,14 @@ import java.lang.reflect.InvocationTargetException;
 
 public class DistWithCoords {
     public static void main(String args[]) {
-        // runSolution();
-        testSolution();
+        runSolution();
+        // testSolution();
     }
 
     static void runSolution() {
         DataScanner in = new StreamScanner();
         Graph g = parseData(in);
-        FloydWarshall a = new FloydWarshall();
+        AStarPQ a = new AStarPQ();
         a.preprocess(g);
         respondToQueries(a, in);
         in.close();
@@ -50,6 +50,7 @@ public class DistWithCoords {
             stressCompare(seed, maxNumNodes, maxWidth, numTests, Dijkstra.class);
             stressCompare(seed, maxNumNodes, maxWidth, numTests, DijkstraPQ.class);
             stressCompare(seed, maxNumNodes, maxWidth, numTests, AStar.class);
+            stressCompare(seed, maxNumNodes, maxWidth, numTests, AStarPQ.class);
         }
     }
 
@@ -64,12 +65,15 @@ public class DistWithCoords {
         dpq.preprocess(g);
         AStar a = new AStar();
         a.preprocess(g);
+        AStarPQ apq = new AStarPQ();
+        apq.preprocess(g);
         Query[] queries = parseQueries(in);
         String expectedString = Arrays.toString(expected);
         boolean allTechniquesWork = evaluate(fw, queries, expectedString);
         allTechniquesWork &= evaluate(d, queries, expectedString);
         allTechniquesWork &= evaluate(dpq, queries, expectedString);
         allTechniquesWork &= evaluate(a, queries, expectedString);
+        allTechniquesWork &= evaluate(apq, queries, expectedString);
         if (!allTechniquesWork) {
             System.out.println("Queries: " + Arrays.toString(queries));
             System.out.println("Graph: " + g);
@@ -152,6 +156,7 @@ public class DistWithCoords {
         Dijkstra d = new Dijkstra();
         DijkstraPQ dpq = new DijkstraPQ();
         AStar a = new AStar();
+        AStarPQ apq = new AStarPQ();
 
         for (int i = 0; i < numTests; i++) {
             if (i > 0 && i % reportEvery == 0) {
@@ -165,6 +170,7 @@ public class DistWithCoords {
             d.preprocess(g);
             dpq.preprocess(g);
             a.preprocess(g);
+            apq.preprocess(g);
 
             boolean anyMistakes = false;
             int queries = nextInt(n * n, r);
@@ -176,8 +182,10 @@ public class DistWithCoords {
                     long actual_d = d.distance(u, v);
                     long actual_dpq = dpq.distance(u, v);
                     long actual_a = a.distance(u, v);
+                    long actual_apq = apq.distance(u, v);
 
-                    if (expected != actual_d || expected != actual_a || expected != actual_dpq) {
+                    if (expected != actual_d || expected != actual_a 
+                        || expected != actual_dpq || expected != actual_apq) {
                         anyMistakes = true;
                         System.out.println("\nUnexpected distance during test run " + i);
                         System.out.println("for nodes " + u + " to " + v);
@@ -185,6 +193,7 @@ public class DistWithCoords {
                         System.out.println("dijkstra " + actual_d);
                         System.out.println("dijkstra_pq " + actual_dpq);
                         System.out.println("astar " + actual_a);
+                        System.out.println("astar_pq " + actual_apq);
                     }
                 } catch (Exception e) {
                     anyMistakes = true;
@@ -473,7 +482,67 @@ public class DistWithCoords {
                 heuristic[i] = euclidean(g.x[i], g.y[i], g.x[t], g.y[t]);
             return heuristic[i];
         }
+    }
 
+    static class AStarPQ implements GraphSolver {
+        Graph g;
+        long[] dist;
+        PriorityQueue<Node> h;
+        int[] heuristic;
+        int t;
+
+        public void preprocess(Graph g) {
+            this.g = g;
+            dist = new long[g.s];
+            h = new PriorityQueue<Node>(g.s);
+            heuristic = new int[g.s];
+        }
+
+        public long distance(int s, int t) {
+            if (s == t)
+                return 0;
+            this.t = t;
+            clear();
+            visit(s, 0, getPotential(s));
+            while (!h.isEmpty()) {
+                Node u = h.poll();
+                if (u.nodeId == t)
+                    return dist[u.nodeId];
+                process(u.nodeId);
+            }
+
+            return dist[t];
+        }
+
+        void clear() {
+            Arrays.fill(dist, -1);
+            Arrays.fill(heuristic, -1);
+            h.clear();
+        }
+
+        void process(int u) {
+            ArrayList<Integer> neighbors = g.adj[u];
+            ArrayList<Integer> weights = g.cost[u];
+            for (int i = 0; i < neighbors.size(); i++) {
+                int nodeId = neighbors.get(i);
+                int weight = weights.get(i);
+                visit(nodeId, dist[u] + weight, getPotential(nodeId));
+            }
+        }
+
+        void visit(int nodeId, long distance, int potential) {
+            long oldDist = dist[nodeId];
+            if (oldDist == -1 || oldDist > distance) {
+                dist[nodeId] = distance;
+                h.add(new Node(nodeId, distance + potential));
+            }
+        }
+
+        int getPotential(int i) {
+            if (heuristic[i] == -1)
+                heuristic[i] = euclidean(g.x[i], g.y[i], g.x[t], g.y[t]);
+            return heuristic[i];
+        }
     }
 
     static class Graph {
