@@ -38,11 +38,16 @@ public class DistWithCoords {
                 2, 5, 7, 4, 10, 7, 6, 9, 9, 2, 7, 3, 5, 8, 2, 9, 3, 3, 5, 14, 5, 6, 6, 2, 8, 10, 7, 3, 12, 7, 6, 4, 1,
                 2, 9, 5, 4, 17, 2, 1, 8, 1, 9 }, new long[] { 19, 12 });
 
-        int maxNumNodes = 10;
-        int maxWidth = 10;
-        int numTests = 100;
-        stressTest(maxNumNodes, maxWidth, numTests);
-        // runComparisons(maxNumNodes, maxWidth, numTests);
+        // missing path in bidirectional dijkstra
+        // resolution: was checking wrong visited collection on reverse check
+        runTest(new int[] { 8, 5, 3, 7, 5, 3, 6, 2, 1, 1, 4, 2, 7, 2, 5, 1, 8, 8, 7, 6, 6, 1, 4, 9, 3, 5, 6, 1, 2, 7, 3,
+                8, 15, 2, 1, 4, 3, 8 }, new long[] { 9, 15 });
+
+        int maxNumNodes = 1000;
+        int maxWidth = 1000;
+        int numTests = 1000;
+        // stressTest(maxNumNodes, maxWidth, numTests);
+        runComparisons(maxNumNodes, maxWidth, numTests);
     }
 
     static void runTest(int[] data, long[] expected) {
@@ -204,7 +209,7 @@ public class DistWithCoords {
                     if (expected != actual_d || expected != actual_dpq || expected != actual_dpq2
                             || expected != actual_a || expected != actual_apq) {
                         anyMistakes = true;
-                        System.out.println("\nUnexpected distance during test run " + i);
+                        System.out.println("\n\n\n\nUnexpected distance during test run " + i);
                         System.out.println("for nodes " + u + " to " + v);
                         System.out.println("expected " + expected);
                         System.out.println("dijkstra " + actual_d);
@@ -215,7 +220,7 @@ public class DistWithCoords {
                     }
                 } catch (Exception e) {
                     anyMistakes = true;
-                    System.out.println("\nError thrown during test run " + i);
+                    System.out.println("\n\n\n\nError thrown during test run " + i);
                     System.out.println("for nodes " + u + " to " + v);
                     System.out.println("expected " + expected);
                     e.printStackTrace();
@@ -260,10 +265,10 @@ public class DistWithCoords {
         while (i-- > 0) {
             int seed = (int) System.currentTimeMillis();
             // stressCompare(seed, maxNumNodes, maxWidth, numTests, FloydWarshall.class);
-            stressCompare(seed, maxNumNodes, maxWidth, numTests, Dijkstra.class);
+            // stressCompare(seed, maxNumNodes, maxWidth, numTests, Dijkstra.class);
             stressCompare(seed, maxNumNodes, maxWidth, numTests, DijkstraPQ.class);
             stressCompare(seed, maxNumNodes, maxWidth, numTests, DijkstraPQ2.class);
-            stressCompare(seed, maxNumNodes, maxWidth, numTests, AStar.class);
+            // stressCompare(seed, maxNumNodes, maxWidth, numTests, AStar.class);
             stressCompare(seed, maxNumNodes, maxWidth, numTests, AStarPQ.class);
         }
     }
@@ -500,7 +505,7 @@ public class DistWithCoords {
 
                 Node v_r = h[1].poll();
                 process(1, v_r.nodeId);
-                if (visited[1][v_r.nodeId])
+                if (visited[0][v_r.nodeId])
                     return shortestPath();
                 visited[1][v_r.nodeId] = true;
             }
@@ -546,7 +551,7 @@ public class DistWithCoords {
                 long r = dist[1][u];
                 if (r == -1)
                     continue;
-                
+
                 if (distance == -1 || (f + r) < distance) {
                     distance = f + r;
                 }
@@ -682,6 +687,15 @@ public class DistWithCoords {
             if (heuristic[i] == -1)
                 heuristic[i] = euclidean(g.x[i], g.y[i], g.x[t], g.y[t]);
             return heuristic[i];
+        }
+    }
+
+    static class AStarPQ2 implements GraphSolver {
+        public long distance(int s, int t) {
+            return 0l;
+        }
+
+        public void preprocess(DataScanner in) {
         }
     }
 
