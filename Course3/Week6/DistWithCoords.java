@@ -691,11 +691,112 @@ public class DistWithCoords {
     }
 
     static class AStarPQ2 implements GraphSolver {
-        public long distance(int s, int t) {
-            return 0l;
-        }
+        TwoWayGraph g;
+        long[][] dist;
+        PriorityQueue<Node>[] h;
+        int[][] heuristic;
+        int s;
+        int t;
+        boolean[][] visited;
+        ArrayList<Integer> workset;
 
         public void preprocess(DataScanner in) {
+            preprocess(parseTwoWayGraph(in));
+        }
+
+        public void preprocess(TwoWayGraph g) {
+            this.g = g;
+            dist = new long[][] { new long[g.s], new long[g.s] };
+            h = (PriorityQueue<Node>[]) new PriorityQueue[] { new PriorityQueue<Node>(g.s),
+                    new PriorityQueue<Node>(g.s) };
+            heuristic = new int[][]{new int[g.s], new int[g.s]};
+            visited = new boolean[][] { new boolean[g.s], new boolean[g.s] };
+            workset = new ArrayList<Integer>();
+        }
+
+        public long distance(int s, int t) {
+            if (s == t)
+                return 0l;
+            clear();
+            this.s = s;
+            this.t = t;
+            visit(0, s, 0, getPotential(0, s));
+            visit(1, t, 0, getPotential(1, t));
+
+            while (!h[0].isEmpty() && !h[1].isEmpty()) {
+                Node v = h[0].poll();
+                process(0, v.nodeId);
+                if (visited[1][v.nodeId])
+                    return shortestPath();
+                visited[0][v.nodeId] = true;
+
+                Node v_r = h[1].poll();
+                process(1, v_r.nodeId);
+                if (visited[0][v_r.nodeId])
+                    return shortestPath();
+                visited[1][v_r.nodeId] = true;
+            }
+
+            return -1l;
+        }
+
+        void clear() {
+            Arrays.fill(dist[0], -1);
+            Arrays.fill(dist[1], -1);
+            h[0].clear();
+            h[1].clear();
+            Arrays.fill(heuristic[0], -1);
+            Arrays.fill(heuristic[1], -1);
+            Arrays.fill(visited[0], false);
+            Arrays.fill(visited[1], false);
+            workset.clear();
+        }
+
+        void process(int side, int u) {
+            ArrayList<Integer> neighbors = g.adj[side][u];
+            ArrayList<Integer> weights = g.cost[side][u];
+            for (int i = 0; i < neighbors.size(); i++) {
+                int nodeId = neighbors.get(i);
+                int weight = weights.get(i);
+                visit(side, nodeId, dist[side][u] + weight, getPotential(side, nodeId));
+            }
+        }
+
+        void visit(int side, int nodeId, long distance, int potential) {
+            long oldDist = dist[side][nodeId];
+            if (oldDist == -1 || oldDist > distance) {
+                dist[side][nodeId] = distance;
+                h[side].add(new Node(nodeId, distance + potential));
+                workset.add(nodeId);
+            }
+        }
+
+        long shortestPath() {
+            long distance = -1l;
+            for (int u : workset) {
+                long f = dist[0][u];
+                if (f == -1)
+                    continue;
+                long r = dist[1][u];
+                if (r == -1)
+                    continue;
+
+                if (distance == -1 || (f + r) < distance) {
+                    distance = f + r;
+                }
+            }
+            return distance;
+        }
+
+        int getPotential(int side, int nodeId) {
+            if (heuristic[side][nodeId] == -1) {
+                int dest = side == 0 ? s : t;
+                int otherDest = side == 0 ? t : s;
+                int thisDirection = euclidean(g.x[nodeId], g.y[nodeId], g.x[dest], g.y[dest]);
+                int otherDirection = euclidean(g.x[nodeId], g.y[nodeId], g.x[otherDest], g.y[otherDest]);
+                heuristic[side][nodeId] = (thisDirection - otherDirection) / 2;
+            }
+            return heuristic[side][nodeId];
         }
     }
 
