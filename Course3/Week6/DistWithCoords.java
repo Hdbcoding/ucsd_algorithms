@@ -8,13 +8,13 @@ import java.lang.reflect.InvocationTargetException;
 
 public class DistWithCoords {
     public static void main(String args[]) {
-        // runSolution();
-        testSolution();
+        runSolution();
+        // testSolution();
     }
 
     static void runSolution() {
         DataScanner in = new StreamScanner();
-        DijkstraPQ2 a = new DijkstraPQ2();
+        AStarPQ2 a = new AStarPQ2();
         a.preprocess(in);
         respondToQueries(a, in);
         in.close();
@@ -60,130 +60,11 @@ public class DistWithCoords {
                 10, 412, 10, 2, 17, 10, 8, 6, 8, 11, 13, 16, 2, 15, 14, 15, 8, 6, 5, 7, 1, 17, 11 },
                 new long[] { 6849, 2360, 2137, 4675, 6073, 9927, 8030, 5825, 3416, 10975 });
 
-        // for some large test cases, the bidirectional a* algorithm doesn't find the shortest path
-        runTest(new int[] {
-                10, 52, 
-                71607, 750129, 
-                395081, 845580, 
-                502255, 466742, 
-                676411, 296866, 
-                418265, 719786, 
-                127635, 583366, 
-                408637, 130813, 
-                784449, 476217, 
-                673530, 198098, 
-                605976, 240262, 
-                2, 5, 191, 
-                4, 5, 900017, 
-                10, 10, 654393, 
-                5, 7, 527830, 
-                9, 1, 889248, 
-                9, 10, 736348, 
-                9, 1, 1025657, 
-                6, 7, 653462, 
-                4, 10, 802645, 
-                6, 10, 401199, 
-                7, 7, 242926, 
-                2, 9, 191582, 
-                8, 7, 847584, 
-                9, 5, 780088, 
-                2, 8, 334316, 
-                9, 7, 789362, 
-                1, 3, 951310, 
-                8, 9, 77573, 
-                2, 9, 591822, 
-                9, 3, 623, 
-                3, 3, 70757, 
-                10, 1, 708809, 
-                3, 4, 21024, 
-                7, 4, 489725, 
-                1, 5, 150129, 
-                9, 2, 177343, 
-                8, 3, 163400, 
-                10, 4, 401207, 
-                10, 2, 753143, 
-                4, 9, 612599, 
-                7, 8, 73978, 
-                4, 3, 214998, 
-                1, 8, 873935, 
-                6, 5, 901112, 
-                7, 5, 27926, 
-                3, 6, 304695, 
-                1, 2, 928463, 
-                9, 6, 434797, 
-                9, 5, 830468, 
-                10, 7, 862117, 
-                9, 1, 74904, 
-                8, 4, 99371, 
-                9, 8, 85241, 
-                2, 5, 913220, 
-                9, 4, 294417, 
-                4, 3, 47599, 
-                5, 4, 466426, 
-                2, 10, 211142, 
-                1, 7, 874445, 
-                1, 6, 999271, 
-                10, 2, 644991, 
-                7, 3, 223418,
-                1,
-                8, 4
-        }, new long[] { 99220 });
-        // Unexpected distance during test run 72235
-        // for nodes 7 to 3
-        // expected 99220
-        // dijkstra_pq2 99220
-        // astar_pq2 99371
-
-        // n: 10, m: 52
-        // [10, 52, 71607, 750129, 395081, 845580, 502255, 466742, 676411, 296866, 418265, 719786, 127635, 583366, 408637, 130813, 784449, 476217, 673530, 198098, 605976, 240262, 2, 5, 191, 4, 5, 900017, 10, 10, 654393, 5, 7, 527830, 9, 1, 889248, 9, 10, 736348, 9, 1, 1025657, 6, 7, 653462, 4, 10, 802645, 6, 10, 401199, 7, 7, 242926, 2, 9, 191582, 8, 7, 847584, 9, 5, 780088, 2, 8, 334316, 9, 7, 789362, 1, 3, 951310, 8, 9, 77573, 2, 9, 591822, 9, 3, 623, 3, 3, 70757, 10, 1, 708809, 3, 4, 21024, 7, 4, 489725, 1, 5, 150129, 9, 2, 177343, 8, 3, 163400, 10, 4, 401207, 10, 2, 753143, 
-        // 4, 9, 612599, 7, 8, 73978, 4, 3, 214998, 1, 8, 873935, 6, 5, 901112, 7, 5, 27926, 3, 6, 304695, 1, 2, 928463, 9, 6, 434797, 9, 5, 830468, 10, 7, 862117, 9, 1, 74904, 8, 4, 99371, 9, 8, 85241, 2, 5, 913220, 9, 4, 294417, 4, 3, 47599, 5, 4, 466426, 2, 10, 211142, 1, 7, 874445, 1, 6, 999271, 10, 2, 644991, 7, 3, 223418]
-
-        // node 0:
-        // coordinates: { x: 71607, y: 750129 }
-        // adjacencies: [2, 4, 7, 1, 6, 5]
-        // weights: [951310, 150129, 873935, 928463, 874445, 999271]
-        // node 1:
-        // coordinates: { x: 395081, y: 845580 }
-        // adjacencies: [4, 8, 7, 8, 4, 9]
-        // weights: [191, 191582, 334316, 591822, 913220, 211142]
-        // node 2:
-        // coordinates: { x: 502255, y: 466742 }
-        // adjacencies: [2, 3, 5]
-        // weights: [70757, 21024, 304695]
-        // node 3:
-        // coordinates: { x: 676411, y: 296866 }
-        // adjacencies: [4, 9, 8, 2, 2]
-        // weights: [900017, 802645, 612599, 214998, 47599]
-        // node 4:
-        // coordinates: { x: 418265, y: 719786 }
-        // adjacencies: [6, 3]
-        // weights: [527830, 466426]
-        // node 5:
-        // coordinates: { x: 127635, y: 583366 }
-        // adjacencies: [6, 9, 4]
-        // weights: [653462, 401199, 901112]
-        // node 6:
-        // coordinates: { x: 408637, y: 130813 }
-        // adjacencies: [6, 3, 7, 4, 2]
-        // weights: [242926, 489725, 73978, 27926, 223418]
-        // node 7:
-        // coordinates: { x: 784449, y: 476217 }
-        // adjacencies: [6, 8, 2, 3]
-        // weights: [847584, 77573, 163400, 99371]
-        // node 8:
-        // coordinates: { x: 673530, y: 198098 }
-        // adjacencies: [0, 9, 0, 4, 6, 2, 1, 5, 4, 0, 7, 3]
-        // weights: [889248, 736348, 1025657, 780088, 789362, 623, 177343, 434797, 830468, 74904, 85241, 294417]
-        // node 9:
-        // coordinates: { x: 605976, y: 240262 }
-        // adjacencies: [9, 0, 3, 1, 6, 1]
-        // weights: [654393, 708809, 401207, 753143, 862117, 644991]
-
-        // int maxNumNodes = 10;
-        // int maxWidth = 1000000;
-        // int numTests = 100000;
-        // stressTest(maxNumNodes, maxWidth, numTests);
-        // runComparisons(maxNumNodes, maxWidth, numTests);
+        int maxNumNodes = 100;
+        int maxWidth = 1000000;
+        int numTests = 10000;
+        stressTest(maxNumNodes, maxWidth, numTests);
+        runComparisons(maxNumNodes, maxWidth, numTests);
     }
 
     static void runTest(int[] data, long[] expected) {
@@ -456,7 +337,11 @@ public class DistWithCoords {
     }
 
     static int euclidean(int x1, int y1, int x2, int y2) {
-        return (int) Math.sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
+        int dx = x1 - x2;
+        long dx2 = (long)dx * dx;
+        int dy = y1 - y2;
+        long dy2 = (long) dy * dy;
+        return (int) Math.sqrt(dx2 + dy2);
     }
 
     public interface GraphSolver {
