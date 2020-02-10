@@ -14,7 +14,7 @@ public class DistWithCoords {
 
     static void runSolution() {
         DataScanner in = new StreamScanner();
-        AStarPQ a = new AStarPQ();
+        DijkstraPQ2 a = new DijkstraPQ2();
         a.preprocess(in);
         respondToQueries(a, in);
         in.close();
@@ -38,16 +38,152 @@ public class DistWithCoords {
                 2, 5, 7, 4, 10, 7, 6, 9, 9, 2, 7, 3, 5, 8, 2, 9, 3, 3, 5, 14, 5, 6, 6, 2, 8, 10, 7, 3, 12, 7, 6, 4, 1,
                 2, 9, 5, 4, 17, 2, 1, 8, 1, 9 }, new long[] { 19, 12 });
 
+        // idea - failure because of integer overflow
+        runTest(new int[] { 4, 6, 0, 0, 1000000, 0, 0, 1000000, 1000000, 1000000, 1, 2, 200000, 1, 3, 200000, 1, 4,
+                1000000, 2, 3, 1000000, 2, 4, 200000, 3, 4, 200000, 6, 1, 2, 1, 3, 1, 4, 2, 3, 2, 4, 3, 4 },
+                new long[] { 200000, 200000, 400000, 1000000, 200000, 200000 });
+
         // missing path in bidirectional dijkstra
         // resolution: was checking wrong visited collection on reverse check
         runTest(new int[] { 8, 5, 3, 7, 5, 3, 6, 2, 1, 1, 4, 2, 7, 2, 5, 1, 8, 8, 7, 6, 6, 1, 4, 9, 3, 5, 6, 1, 2, 7, 3,
                 8, 15, 2, 1, 4, 3, 8 }, new long[] { 9, 15 });
 
-        int maxNumNodes = 1000;
-        int maxWidth = 1000;
-        int numTests = 1000;
+        // test case from download - passes
+        runTest(new int[] { 18, 36, -74258291, 40695601, -74259991, 40694901, -74257543, 40695865, -74260991, 40694301,
+                -74256591, 40696201, -74261991, 40694501, -74261391, 40694201, -74259891, 40694101, -74254991, 40696501,
+                -74262191, 40694601, -74263591, 40693401, -74259091, 40695901, -74262491, 40693501, -74258091, 40693501,
+                -74254887, 40696033, -74254891, 40697301, -74253490, 40697001, -74262591, 40694701, 1, 2, 1838, 1, 3,
+                793, 2, 4, 1166, 2, 1, 1838, 3, 1, 793, 3, 5, 1009, 4, 6, 1019, 4, 2, 1166, 4, 7, 412, 4, 8, 1118, 5, 9,
+                1627, 5, 3, 1009, 6, 10, 223, 6, 11, 1941, 6, 4, 1019, 6, 12, 3220, 7, 4, 412, 7, 13, 1303, 8, 4, 1118,
+                8, 14, 1897, 9, 15, 479, 9, 16, 806, 9, 5, 1627, 9, 17, 1582, 10, 18, 412, 10, 6, 223, 10, 12, 3361, 11,
+                6, 1941, 12, 10, 3361, 12, 6, 3220, 13, 7, 1303, 14, 8, 1897, 15, 9, 479, 16, 9, 806, 17, 9, 1582, 18,
+                10, 412, 10, 2, 17, 10, 8, 6, 8, 11, 13, 16, 2, 15, 14, 15, 8, 6, 5, 7, 1, 17, 11 },
+                new long[] { 6849, 2360, 2137, 4675, 6073, 9927, 8030, 5825, 3416, 10975 });
+
+        // for some large test cases, the bidirectional a* algorithm doesn't find the shortest path
+        runTest(new int[] {
+                10, 52, 
+                71607, 750129, 
+                395081, 845580, 
+                502255, 466742, 
+                676411, 296866, 
+                418265, 719786, 
+                127635, 583366, 
+                408637, 130813, 
+                784449, 476217, 
+                673530, 198098, 
+                605976, 240262, 
+                2, 5, 191, 
+                4, 5, 900017, 
+                10, 10, 654393, 
+                5, 7, 527830, 
+                9, 1, 889248, 
+                9, 10, 736348, 
+                9, 1, 1025657, 
+                6, 7, 653462, 
+                4, 10, 802645, 
+                6, 10, 401199, 
+                7, 7, 242926, 
+                2, 9, 191582, 
+                8, 7, 847584, 
+                9, 5, 780088, 
+                2, 8, 334316, 
+                9, 7, 789362, 
+                1, 3, 951310, 
+                8, 9, 77573, 
+                2, 9, 591822, 
+                9, 3, 623, 
+                3, 3, 70757, 
+                10, 1, 708809, 
+                3, 4, 21024, 
+                7, 4, 489725, 
+                1, 5, 150129, 
+                9, 2, 177343, 
+                8, 3, 163400, 
+                10, 4, 401207, 
+                10, 2, 753143, 
+                4, 9, 612599, 
+                7, 8, 73978, 
+                4, 3, 214998, 
+                1, 8, 873935, 
+                6, 5, 901112, 
+                7, 5, 27926, 
+                3, 6, 304695, 
+                1, 2, 928463, 
+                9, 6, 434797, 
+                9, 5, 830468, 
+                10, 7, 862117, 
+                9, 1, 74904, 
+                8, 4, 99371, 
+                9, 8, 85241, 
+                2, 5, 913220, 
+                9, 4, 294417, 
+                4, 3, 47599, 
+                5, 4, 466426, 
+                2, 10, 211142, 
+                1, 7, 874445, 
+                1, 6, 999271, 
+                10, 2, 644991, 
+                7, 3, 223418,
+                1,
+                8, 4
+        }, new long[] { 99220 });
+        // Unexpected distance during test run 72235
+        // for nodes 7 to 3
+        // expected 99220
+        // dijkstra_pq2 99220
+        // astar_pq2 99371
+
+        // n: 10, m: 52
+        // [10, 52, 71607, 750129, 395081, 845580, 502255, 466742, 676411, 296866, 418265, 719786, 127635, 583366, 408637, 130813, 784449, 476217, 673530, 198098, 605976, 240262, 2, 5, 191, 4, 5, 900017, 10, 10, 654393, 5, 7, 527830, 9, 1, 889248, 9, 10, 736348, 9, 1, 1025657, 6, 7, 653462, 4, 10, 802645, 6, 10, 401199, 7, 7, 242926, 2, 9, 191582, 8, 7, 847584, 9, 5, 780088, 2, 8, 334316, 9, 7, 789362, 1, 3, 951310, 8, 9, 77573, 2, 9, 591822, 9, 3, 623, 3, 3, 70757, 10, 1, 708809, 3, 4, 21024, 7, 4, 489725, 1, 5, 150129, 9, 2, 177343, 8, 3, 163400, 10, 4, 401207, 10, 2, 753143, 
+        // 4, 9, 612599, 7, 8, 73978, 4, 3, 214998, 1, 8, 873935, 6, 5, 901112, 7, 5, 27926, 3, 6, 304695, 1, 2, 928463, 9, 6, 434797, 9, 5, 830468, 10, 7, 862117, 9, 1, 74904, 8, 4, 99371, 9, 8, 85241, 2, 5, 913220, 9, 4, 294417, 4, 3, 47599, 5, 4, 466426, 2, 10, 211142, 1, 7, 874445, 1, 6, 999271, 10, 2, 644991, 7, 3, 223418]
+
+        // node 0:
+        // coordinates: { x: 71607, y: 750129 }
+        // adjacencies: [2, 4, 7, 1, 6, 5]
+        // weights: [951310, 150129, 873935, 928463, 874445, 999271]
+        // node 1:
+        // coordinates: { x: 395081, y: 845580 }
+        // adjacencies: [4, 8, 7, 8, 4, 9]
+        // weights: [191, 191582, 334316, 591822, 913220, 211142]
+        // node 2:
+        // coordinates: { x: 502255, y: 466742 }
+        // adjacencies: [2, 3, 5]
+        // weights: [70757, 21024, 304695]
+        // node 3:
+        // coordinates: { x: 676411, y: 296866 }
+        // adjacencies: [4, 9, 8, 2, 2]
+        // weights: [900017, 802645, 612599, 214998, 47599]
+        // node 4:
+        // coordinates: { x: 418265, y: 719786 }
+        // adjacencies: [6, 3]
+        // weights: [527830, 466426]
+        // node 5:
+        // coordinates: { x: 127635, y: 583366 }
+        // adjacencies: [6, 9, 4]
+        // weights: [653462, 401199, 901112]
+        // node 6:
+        // coordinates: { x: 408637, y: 130813 }
+        // adjacencies: [6, 3, 7, 4, 2]
+        // weights: [242926, 489725, 73978, 27926, 223418]
+        // node 7:
+        // coordinates: { x: 784449, y: 476217 }
+        // adjacencies: [6, 8, 2, 3]
+        // weights: [847584, 77573, 163400, 99371]
+        // node 8:
+        // coordinates: { x: 673530, y: 198098 }
+        // adjacencies: [0, 9, 0, 4, 6, 2, 1, 5, 4, 0, 7, 3]
+        // weights: [889248, 736348, 1025657, 780088, 789362, 623, 177343, 434797, 830468, 74904, 85241, 294417]
+        // node 9:
+        // coordinates: { x: 605976, y: 240262 }
+        // adjacencies: [9, 0, 3, 1, 6, 1]
+        // weights: [654393, 708809, 401207, 753143, 862117, 644991]
+
+        // int maxNumNodes = 10;
+        // int maxWidth = 1000000;
+        // int numTests = 100000;
         // stressTest(maxNumNodes, maxWidth, numTests);
-        runComparisons(maxNumNodes, maxWidth, numTests);
+        // runComparisons(maxNumNodes, maxWidth, numTests);
     }
 
     static void runTest(int[] data, long[] expected) {
@@ -66,6 +202,8 @@ public class DistWithCoords {
         a.preprocess(g);
         AStarPQ apq = new AStarPQ();
         apq.preprocess(g);
+        AStarPQ2 apq2 = new AStarPQ2();
+        apq2.preprocess(g2);
         Query[] queries = parseQueries(in);
         String expectedString = Arrays.toString(expected);
         boolean allTechniquesWork = evaluate(fw, queries, expectedString);
@@ -74,6 +212,7 @@ public class DistWithCoords {
         allTechniquesWork &= evaluate(dpq2, queries, expectedString);
         allTechniquesWork &= evaluate(a, queries, expectedString);
         allTechniquesWork &= evaluate(apq, queries, expectedString);
+        allTechniquesWork &= evaluate(apq2, queries, expectedString);
         if (!allTechniquesWork) {
             System.out.println("Queries: " + Arrays.toString(queries));
             System.out.println("Graph: " + g);
@@ -173,11 +312,12 @@ public class DistWithCoords {
     static void stressTest(int maxNumNodes, int maxGraphWidth, int numTests) {
         Random r = new Random();
         FloydWarshall fw = new FloydWarshall();
-        Dijkstra d = new Dijkstra();
-        DijkstraPQ dpq = new DijkstraPQ();
+        // Dijkstra d = new Dijkstra();
+        // DijkstraPQ dpq = new DijkstraPQ();
         DijkstraPQ2 dpq2 = new DijkstraPQ2();
-        AStar a = new AStar();
-        AStarPQ apq = new AStarPQ();
+        // AStar a = new AStar();
+        // AStarPQ apq = new AStarPQ();
+        AStarPQ2 apq2 = new AStarPQ2();
 
         for (int i = 0; i < numTests; i++) {
             System.out.print("Stress tests: %" + (double) 100 * i / numTests + "\r");
@@ -187,11 +327,12 @@ public class DistWithCoords {
             TwoWayGraph g2 = TwoWayGraph.fromGraph(g);
 
             fw.preprocess(g);
-            d.preprocess(g);
-            dpq.preprocess(g);
+            // d.preprocess(g);
+            // dpq.preprocess(g);
             dpq2.preprocess(g2);
-            a.preprocess(g);
-            apq.preprocess(g);
+            // a.preprocess(g);
+            // apq.preprocess(g);
+            apq2.preprocess(g2);
 
             boolean anyMistakes = false;
             int queries = nextInt(n * n, r);
@@ -200,23 +341,30 @@ public class DistWithCoords {
                 int v = nextInt(n, r);
                 long expected = fw.distance(u, v);
                 try {
-                    long actual_d = d.distance(u, v);
-                    long actual_dpq = dpq.distance(u, v);
+                    // long actual_d = d.distance(u, v);
+                    // long actual_dpq = dpq.distance(u, v);
                     long actual_dpq2 = dpq2.distance(u, v);
-                    long actual_a = a.distance(u, v);
-                    long actual_apq = apq.distance(u, v);
+                    // long actual_a = a.distance(u, v);
+                    // long actual_apq = apq.distance(u, v);
+                    long actual_apq2 = apq2.distance(u, v);
 
-                    if (expected != actual_d || expected != actual_dpq || expected != actual_dpq2
-                            || expected != actual_a || expected != actual_apq) {
+                    if (
+                    // expected != actual_d ||
+                    // expected != actual_dpq ||
+                    expected != actual_dpq2 ||
+                    // expected != actual_a ||
+                    // expected != actual_apq||
+                            expected != actual_apq2) {
                         anyMistakes = true;
                         System.out.println("\n\n\n\nUnexpected distance during test run " + i);
                         System.out.println("for nodes " + u + " to " + v);
                         System.out.println("expected " + expected);
-                        System.out.println("dijkstra " + actual_d);
-                        System.out.println("dijkstra_pq " + actual_dpq);
+                        // System.out.println("dijkstra " + actual_d);
+                        // System.out.println("dijkstra_pq " + actual_dpq);
                         System.out.println("dijkstra_pq2 " + actual_dpq2);
-                        System.out.println("astar " + actual_a);
-                        System.out.println("astar_pq " + actual_apq);
+                        // System.out.println("astar " + actual_a);
+                        // System.out.println("astar_pq " + actual_apq);
+                        System.out.println("astar_pq2 " + actual_apq2);
                     }
                 } catch (Exception e) {
                     anyMistakes = true;
@@ -237,7 +385,7 @@ public class DistWithCoords {
 
     static int[] generateData(int maxNumNodes, int maxGraphWidth, Random r) {
         int n = nextInt(maxNumNodes, r) + 1;
-        int m = nextInt(n * 2, r);
+        int m = nextInt(n * n, r);
         return fillEdges(n, m, maxGraphWidth, r);
     }
 
@@ -270,6 +418,7 @@ public class DistWithCoords {
             stressCompare(seed, maxNumNodes, maxWidth, numTests, DijkstraPQ2.class);
             // stressCompare(seed, maxNumNodes, maxWidth, numTests, AStar.class);
             stressCompare(seed, maxNumNodes, maxWidth, numTests, AStarPQ.class);
+            stressCompare(seed, maxNumNodes, maxWidth, numTests, AStarPQ2.class);
         }
     }
 
@@ -709,7 +858,7 @@ public class DistWithCoords {
             dist = new long[][] { new long[g.s], new long[g.s] };
             h = (PriorityQueue<Node>[]) new PriorityQueue[] { new PriorityQueue<Node>(g.s),
                     new PriorityQueue<Node>(g.s) };
-            heuristic = new int[][]{new int[g.s], new int[g.s]};
+            heuristic = new int[][] { new int[g.s], new int[g.s] };
             visited = new boolean[][] { new boolean[g.s], new boolean[g.s] };
             workset = new ArrayList<Integer>();
         }
@@ -790,8 +939,8 @@ public class DistWithCoords {
 
         int getPotential(int side, int nodeId) {
             if (heuristic[side][nodeId] == -1) {
-                int dest = side == 0 ? s : t;
-                int otherDest = side == 0 ? t : s;
+                int dest = side == 0 ? t : s;
+                int otherDest = side == 0 ? s : t;
                 int thisDirection = euclidean(g.x[nodeId], g.y[nodeId], g.x[dest], g.y[dest]);
                 int otherDirection = euclidean(g.x[nodeId], g.y[nodeId], g.x[otherDest], g.y[otherDest]);
                 heuristic[side][nodeId] = (thisDirection - otherDirection) / 2;
@@ -1164,79 +1313,4 @@ public class DistWithCoords {
             return null;
         }
     }
-
-    // private static class Impl {
-    // // Number of nodes
-    // int n;
-    // // Coordinates of nodes
-    // int[] x;
-    // int[] y;
-    // // See description of these fields in the starters for friend_suggestion
-    // ArrayList<Integer>[][] adj;
-    // ArrayList<Integer>[][] cost;
-    // Long[][] distance;
-    // ArrayList<PriorityQueue<Entry>> queue;
-    // boolean[] visited;
-    // ArrayList<Integer> workset;
-    // final Long INFINITY = Long.MAX_VALUE / 4;
-
-    // Impl(int n) {
-    // this.n = n;
-    // visited = new boolean[n];
-    // x = new int[n];
-    // y = new int[n];
-    // Arrays.fill(visited, false);
-    // workset = new ArrayList<Integer>();
-    // distance = new Long[][] {new Long[n], new Long[n]};
-    // for (int i = 0; i < n; ++i) {
-    // distance[0][i] = distance[1][i] = INFINITY;
-    // }
-    // queue = new ArrayList<PriorityQueue<Entry>>();
-    // queue.add(new PriorityQueue<Entry>(n));
-    // queue.add(new PriorityQueue<Entry>(n));
-    // }
-
-    // // See the description of this method in the starters for friend_suggestion
-    // void clear() {
-    // for (int v : workset) {
-    // distance[0][v] = distance[1][v] = infty;
-    // visited[v] = false;
-    // }
-    // workset.clear();
-    // queue.get(0).clear();
-    // queue.get(1).clear();
-    // }
-
-    // // See the description of this method in the starters for friend_suggestion
-    // void visit(int side, int v, Long dist) {
-    // // Implement this method yourself
-    // }
-
-    // // Returns the distance from s to t in the graph.
-    // Long query(int s, int t) {
-    // clear();
-    // visit(0, s, 0L);
-    // visit(1, t, 0L);
-    // // Implement the rest of the algorithm yourself
-
-    // return -1;
-    // }
-
-    // class Entry implements Comparable<Entry>
-    // {
-    // Long cost;
-    // int node;
-
-    // public Entry(Long cost, int node)
-    // {
-    // this.cost = cost;
-    // this.node = node;
-    // }
-
-    // public int compareTo(Entry other)
-    // {
-    // return cost < other.cost ? -1 : cost > other.cost ? 1 : 0;
-    // }
-    // }
-    // }
 }
