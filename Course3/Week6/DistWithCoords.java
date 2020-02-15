@@ -111,7 +111,7 @@ public class DistWithCoords {
         return worked;
     }
 
-    static Graph parseData(int[] data) {
+    static Graph parseGraph(int[] data) {
         ArrayScanner in = new ArrayScanner(data);
         return parseGraph(in);
     }
@@ -204,7 +204,7 @@ public class DistWithCoords {
             System.out.print("Stress tests: %" + (double) 100 * i / numTests + "\r");
             int[] data = generateData(maxNumNodes, maxGraphWidth, r);
             int n = data[0];
-            Graph g = parseData(data);
+            Graph g = parseGraph(data);
             TwoWayGraph g2 = TwoWayGraph.fromGraph(g);
 
             fw.preprocess(g);
