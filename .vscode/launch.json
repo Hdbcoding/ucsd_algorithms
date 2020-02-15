@@ -6,6 +6,13 @@
     "configurations": [
         {
             "type": "java",
+            "name": "CodeLens (Launch) - DistPreprocessSmall",
+            "request": "launch",
+            "mainClass": "DistPreprocessSmall",
+            "projectName": "UCSDAlgorithms_5bd1ba95"
+        },
+        {
+            "type": "java",
             "name": "CodeLens (Launch) - FriendSuggestion",
             "request": "launch",
             "mainClass": "FriendSuggestion",
