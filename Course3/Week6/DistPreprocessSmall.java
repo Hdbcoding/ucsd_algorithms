@@ -370,6 +370,13 @@ public class DistPreprocessSmall {
             HashSet<Integer> shortcutCover = new HashSet<Integer>();
 
             // TODO - calculate shortcuts for proposed contraction
+            // TODO - for each predecessor u of v, run a witness search
+            // TODO -   run dijkstra, limiting distance and/or number of hops
+            // TODO -   let w be some successor of v, and w' some predecessor of w
+            // TODO -   limit distance by max (l(u,v) + l(v, w) - l(w', w))
+            // TODO -   if a path exists from u to w after this search, there is a witness path
+            // TODO - for all pairs u, w, if there is no witness path, add a shortcut
+
 
             n.importance = (shortcuts.size() - g.getIncomingEdges(v) - g.getOutgoingEdges(v))
                     + g.getContractedNeighbors(v) + shortcutCover.size() + g.getNodeLevel(v);
@@ -385,7 +392,7 @@ public class DistPreprocessSmall {
         @Override
         public long distance(int u, int v) {
             // TODO - run a bidirectional dijkstra search using the augmented graph
-            // TODO - remember to update the termination condition - it's not the same as traditional bidirectional dijkstra
+            // TODO - termination condition is not the same as traditional bidirectional dijkstra
             return 0;
         }
 
@@ -631,8 +638,8 @@ public class DistPreprocessSmall {
         }
 
         void addEdge(int i, int j, int w) {
-            // todo - ignore self edges
-            // todo - ignore bigger edges
+            // TODO - ignore self edges
+            // TODO - ignore bigger edges
             adj[0][i].add(j);
             cost[0][i].add(w);
             adj[1][j].add(i);
@@ -690,7 +697,7 @@ public class DistPreprocessSmall {
 
         void updateNeighborNodeLevels(int nodeId) {
             // TODO - for each neighbor of nodeId (incoming and outgoing), increment nodeLevel
-            // do double counts matter? let's pretend not for now
+            // TODO - do double counts matter? let's pretend not for now
         }
 
         void commitShortcuts(int nodeId, ArrayList<Shortcut> shortcuts) {
