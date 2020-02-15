@@ -374,7 +374,7 @@ public class DistPreprocessSmall {
             // TODO -   run dijkstra, limiting distance and/or number of hops
             // TODO -   let w be some successor of v, and w' some predecessor of w
             // TODO -   limit distance by max (l(u,v) + l(v, w) - l(w', w))
-            // TODO -   if a path exists from u to w after this search, there is a witness path
+            // TODO -   witness path found for w if: d(u, w') + l(w', w) <= l(u, v) + l(v, w)
             // TODO - for all pairs u, w, if there is no witness path, add a shortcut
 
 
