@@ -1,6 +1,7 @@
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.PriorityQueue;
 import java.util.Random;
 import java.util.Scanner;
@@ -335,6 +336,61 @@ public class DistPreprocessSmall {
         }
     }
 
+    static class ContractionHierarchy implements GraphSolver {
+        ContractionGraph g;
+
+        @Override
+        public void preprocess(DataScanner in) {
+            preprocess(parseContractionGraph(in));
+        }
+
+        void preprocess(ContractionGraph g) {
+            this.g = g;
+            PriorityQueue<ImportantNode> q = createImportantNodes();
+            while (!q.isEmpty()) {
+                ImportantNode v = q.poll();
+                ArrayList<Shortcut> shortcuts = contract(v);
+                if (q.isEmpty() || v.importance < q.peek().importance) {
+                    finalizeNode(v, shortcuts);
+                } else
+                    q.add(v);
+            }
+        }
+
+        PriorityQueue<ImportantNode> createImportantNodes() {
+            PriorityQueue<ImportantNode> q = new PriorityQueue<ImportantNode>(g.s);
+            for (int i = 0; i < g.s; i++)
+                q.add(new ImportantNode(i, 0));
+            return q;
+        }
+
+        ArrayList<Shortcut> contract(ImportantNode n) {
+            int v = n.nodeId;
+            ArrayList<Shortcut> shortcuts = new ArrayList<Shortcut>();
+            HashSet<Integer> shortcutCover = new HashSet<Integer>();
+
+            // TODO - calculate shortcuts for proposed contraction
+
+            n.importance = (shortcuts.size() - g.getIncomingEdges(v) - g.getOutgoingEdges(v))
+                    + g.getContractedNeighbors(v) + shortcutCover.size() + g.getNodeLevel(v);
+            return shortcuts;
+        }
+
+        void finalizeNode(ImportantNode n, ArrayList<Shortcut> shortcuts) {
+            g.updateImportance(n.nodeId, n.importance);
+            g.updateNeighborNodeLevels(n.nodeId);
+            g.commitShortcuts(n.nodeId, shortcuts);
+        }
+
+        @Override
+        public long distance(int u, int v) {
+            // TODO - run a bidirectional dijkstra search using the augmented graph
+            // TODO - remember to update the termination condition - it's not the same as traditional bidirectional dijkstra
+            return 0;
+        }
+
+    }
+
     static Graph parseGraph(int[] data) {
         ArrayScanner in = new ArrayScanner(data);
         return parseGraph(in);
@@ -358,6 +414,20 @@ public class DistPreprocessSmall {
         int n = in.nextInt();
         int m = in.nextInt();
         TwoWayGraph g = new TwoWayGraph(n);
+        int x, y, c;
+        for (int i = 0; i < m; i++) {
+            x = in.nextInt();
+            y = in.nextInt();
+            c = in.nextInt();
+            g.addEdge(x - 1, y - 1, c);
+        }
+        return g;
+    }
+
+    static ContractionGraph parseContractionGraph(DataScanner in) {
+        int n = in.nextInt();
+        int m = in.nextInt();
+        ContractionGraph g = new ContractionGraph(n);
         int x, y, c;
         for (int i = 0; i < m; i++) {
             x = in.nextInt();
@@ -526,6 +596,108 @@ public class DistPreprocessSmall {
         }
     }
 
+    static class ContractionGraph {
+        ArrayList<Integer>[][] adj;
+        ArrayList<Integer>[][] cost;
+        int[] contractedNeighbors;
+        boolean[] isContracted;
+        int[] nodeLevel;
+        int[] importance;
+        int s;
+
+        ContractionGraph(int s) {
+            adj = constructTwoWayList(s);
+            cost = constructTwoWayList(s);
+            contractedNeighbors = new int[s];
+            isContracted = new boolean[s];
+            nodeLevel = new int[s];
+            importance = new int[s];
+            this.s = s;
+        }
+
+        ArrayList<Integer>[][] constructTwoWayList(int s) {
+            ArrayList<Integer>[][] adj = (ArrayList<Integer>[][]) new ArrayList[2][];
+            adj[0] = constructList(s);
+            adj[1] = constructList(s);
+            return adj;
+        }
+
+        ArrayList<Integer>[] constructList(int s) {
+            ArrayList<Integer>[] adj = (ArrayList<Integer>[]) new ArrayList[s];
+            for (int i = 0; i < s; i++) {
+                adj[i] = new ArrayList<Integer>();
+            }
+            return adj;
+        }
+
+        void addEdge(int i, int j, int w) {
+            // todo - ignore self edges
+            // todo - ignore bigger edges
+            adj[0][i].add(j);
+            cost[0][i].add(w);
+            adj[1][j].add(i);
+            cost[1][j].add(w);
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder s = new StringBuilder();
+
+            for (int i = 0; i < adj[0].length; i++) {
+                ArrayList<Integer> edges = adj[0][i];
+                ArrayList<Integer> weights = cost[0][i];
+                s.append("\nnode " + i + ": ");
+                s.append("\nadjacencies: " + Arrays.toString(edges.toArray()));
+                s.append("\nweights: " + Arrays.toString(weights.toArray()));
+            }
+
+            return s.toString();
+        }
+
+        static ContractionGraph fromGraph(Graph g) {
+            ContractionGraph g2 = new ContractionGraph(g.s);
+            for (int u = 0; u < g.s; u++) {
+                ArrayList<Integer> adj = g.adj[u];
+                ArrayList<Integer> cost = g.cost[u];
+                for (int j = 0; j < adj.size(); j++) {
+                    int v = adj.get(j);
+                    int c = cost.get(j);
+                    g2.addEdge(u, v, c);
+                }
+            }
+            return g2;
+        }
+
+        int getIncomingEdges(int nodeId) {
+            return adj[1][nodeId].size();
+        }
+
+        int getOutgoingEdges(int nodeId) {
+            return adj[0][nodeId].size();
+        }
+
+        int getContractedNeighbors(int nodeId) {
+            return contractedNeighbors[nodeId];
+        }
+
+        int getNodeLevel(int nodeId) {
+            return nodeLevel[nodeId];
+        }
+
+        void updateImportance(int nodeId, int importance) {
+            this.importance[nodeId] = importance;
+        }
+
+        void updateNeighborNodeLevels(int nodeId) {
+            // TODO - for each neighbor of nodeId (incoming and outgoing), increment nodeLevel
+            // do double counts matter? let's pretend not for now
+        }
+
+        void commitShortcuts(int nodeId, ArrayList<Shortcut> shortcuts) {
+            // TODO - for each shortcut around nodeId, add shortcut edge, delete intermediate edges
+        }
+    }
+
     static class Node implements Comparable<Node> {
         int nodeId;
         long distance;
@@ -541,9 +713,25 @@ public class DistPreprocessSmall {
         }
 
         @Override
-        public int compareTo(Node other) {
-            return distance < other.distance ? -1 : distance > other.distance ? 1 : 0;
+        public int compareTo(Node o) {
+            return distance < o.distance ? -1 : distance > o.distance ? 1 : 0;
         }
+    }
+
+    static class ImportantNode implements Comparable<ImportantNode> {
+        int nodeId;
+        int importance;
+
+        ImportantNode(int nodeId, int importance) {
+            this.nodeId = nodeId;
+            this.importance = importance;
+        }
+
+        @Override
+        public int compareTo(ImportantNode o) {
+            return importance < o.importance ? -1 : importance > o.importance ? 1 : 0;
+        }
+
     }
 
     static class Query {
@@ -559,6 +747,10 @@ public class DistPreprocessSmall {
         public String toString() {
             return "{ u: " + u + ", v: " + v + " }";
         }
+    }
+
+    static class Shortcut {
+        int u, v, c;
     }
 
     public interface DataScanner {
