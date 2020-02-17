@@ -568,18 +568,37 @@ public class DistPreprocessSmall {
 
         void finalizeNode(ImportantNode n, ArrayList<Shortcut> shortcuts) {
             g.updateImportance(n.nodeId, n.importance);
+            g.commitShortcuts(shortcuts);
+            g.updateRank(n.nodeId);
             g.updateNeighborNodeLevels(n.nodeId);
-            g.commitShortcuts(n.nodeId, shortcuts);
         }
 
         @Override
-        public long distance(int u, int v) {
-            if (u == v)
+        public long distance(int s, int t) {
+            if (s == t)
                 return 0;
             clear();
-            // TODO - run a bidirectional dijkstra search using the augmented graph
-            // TODO - termination condition is not the same as traditional bidirectional dijkstra
-            return 0;
+            visit(0, s, 0);
+            visit(1, t, 0);
+            long estimate = -1;
+            while (!h[0].isEmpty() && !h[1].isEmpty()) {
+                Node v = h[0].poll();
+                if (estimate == -1 || dist[0][v.nodeId] < estimate)
+                    process(0, v.nodeId);
+                if (visited[1][v.nodeId] && dist[0][v.nodeId] + dist[1][v.nodeId] < estimate)
+                    estimate = dist[0][v.nodeId] + dist[1][v.nodeId];
+                visited[0][v.nodeId] = true;
+
+                Node v_r = h[1].poll();
+                if (estimate == -1 || dist[1][v.nodeId] < estimate)
+                    process(1, v.nodeId);
+                process(1, v_r.nodeId);
+                if (visited[0][v_r.nodeId] && dist[0][v_r.nodeId] + dist[1][v_r.nodeId] < estimate)
+                    estimate = dist[0][v_r.nodeId] + dist[1][v_r.nodeId];
+                visited[1][v_r.nodeId] = true;
+            }
+
+            return estimate;
         }
         
         void clear() {
@@ -589,6 +608,7 @@ public class DistPreprocessSmall {
             h[1].clear();
             Arrays.fill(visited[0], false);
             Arrays.fill(visited[1], false);
+            // TODO - use workset correctly
             // workset.clear();
         }
 
@@ -607,6 +627,7 @@ public class DistPreprocessSmall {
             if (oldDist == -1 || oldDist > distance) {
                 dist[side][nodeId] = distance;
                 h[side].add(new Node(nodeId, distance));
+                // TODO - use workset correctly
                 // workset.add(nodeId);
             }
         }
@@ -620,6 +641,9 @@ public class DistPreprocessSmall {
         boolean[] isContracted;
         int[] nodeLevel;
         int[] importance;
+        int[] rank;
+        ArrayList<Integer> orderedNodes;
+        int lastRank;
         int s;
 
         ContractionGraph(int s) {
@@ -629,6 +653,9 @@ public class DistPreprocessSmall {
             isContracted = new boolean[s];
             nodeLevel = new int[s];
             importance = new int[s];
+            rank = new int[s];
+            Arrays.fill(rank, -1);
+            orderedNodes = new ArrayList<Integer>(s);
             this.s = s;
         }
 
@@ -726,8 +753,31 @@ public class DistPreprocessSmall {
             }
         }
 
-        void commitShortcuts(int nodeId, ArrayList<Shortcut> shortcuts) {
-            // TODO - for each shortcut around nodeId, add shortcut edge, delete intermediate edges
+        void commitShortcuts(ArrayList<Shortcut> shortcuts) {
+            for (Shortcut sc : shortcuts)
+                addEdge(sc.u, sc.v, sc.c);
+        }
+
+        void updateRank(int v) {
+            rank[v] = lastRank++;
+            orderedNodes.add(v);
+            removeDownwardsEdges(0, v);
+            removeDownwardsEdges(1, v);
+        }
+
+        private void removeDownwardsEdges(int side, int v) {
+            ArrayList<Integer> adj = this.adj[side][v];
+            ArrayList<Integer> cost = this.cost[side][v];
+            for (int i = adj.size(); i>= 0; i--){
+                int nodeId = adj.get(i);
+                int otherRank = rank[nodeId];
+                if (otherRank == -1)
+                    continue;
+                if (otherRank < lastRank) {
+                    adj.remove(i);
+                    cost.remove(i);
+                }
+            }
         }
     }
 
