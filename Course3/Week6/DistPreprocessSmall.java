@@ -9,8 +9,8 @@ import java.util.Scanner;
 @SuppressWarnings("unchecked")
 public class DistPreprocessSmall {
     public static void main(String[] args) {
-        // runSolution();
-        testSolution();
+        runSolution();
+        // testSolution();
     }
 
     static void runSolution() {
@@ -34,17 +34,12 @@ public class DistPreprocessSmall {
                 6, 61, 8, 1, 89, 8, 1, 4, 9, 9, 98, 9, 4, 60, 9, 6, 47, 9, 10, 89, 10, 7, 46, 4, 6, 1, 7, 1, 9, 1, 10,
                 1 }, new long[] { -1, -1, -1, -1 });
 
-        // ch: fails with all following graphs by underestimating distances
-        runTest(new int[] { 4, 4, 
-                2, 3, 72, 
-                2, 3, 89, 
-                2, 1, 62, 
-                3, 4, 21, 
-                1, 
-                2, 4 }, new long[] { 93 });
+        // ch: fails with all following graphs by underestimating distances - fixed
+        // problem was that I was getting the node id where I needed the cost
+        runTest(new int[] { 4, 4, 2, 3, 72, 2, 3, 89, 2, 1, 62, 3, 4, 21, 1, 2, 4 }, new long[] { 93 });
         runTest(new int[] { 4, 6, 1, 2, 200000, 1, 3, 200000, 1, 4, 1000000, 2, 3, 1000000, 2, 4, 200000, 3, 4, 200000,
-            6, 1, 2, 1, 3, 1, 4, 2, 3, 2, 4, 3, 4 },
-            new long[] { 200000, 200000, 400000, 1000000, 200000, 200000 });
+                6, 1, 2, 1, 3, 1, 4, 2, 3, 2, 4, 3, 4 },
+                new long[] { 200000, 200000, 400000, 1000000, 200000, 200000 });
         runTest(new int[] { 6, 9, 1, 6, 97, 1, 1, 54, 1, 2, 53, 1, 6, 89, 2, 1, 71, 3, 4, 13, 5, 3, 60, 5, 2, 85, 6, 1,
                 9, 1, 5, 6 }, new long[] { 245 });
         runTest(new int[] { 8, 10, 1, 5, 2, 1, 7, 77, 2, 7, 98, 2, 3, 29, 3, 6, 21, 4, 6, 18, 5, 8, 19, 6, 8, 58, 7, 3,
@@ -104,6 +99,7 @@ public class DistPreprocessSmall {
             int seed = (int) System.currentTimeMillis();
             stressCompare(seed, maxNumNodes, maxWidth, numTests, Dijkstra.class);
             stressCompare(seed, maxNumNodes, maxWidth, numTests, Dijkstra2.class);
+            stressCompare(seed, maxNumNodes, maxWidth, numTests, ContractionHierarchy.class);
         }
     }
 
@@ -147,6 +143,7 @@ public class DistPreprocessSmall {
         Random r = new Random();
         Dijkstra d = new Dijkstra();
         Dijkstra2 d2 = new Dijkstra2();
+        ContractionHierarchy ch = new ContractionHierarchy();
 
         for (int i = 0; i < numTests; i++) {
             System.out.print("Stress tests: %" + (double) 100 * i / numTests + "\r");
@@ -154,9 +151,11 @@ public class DistPreprocessSmall {
             int n = data[0];
             Graph g = parseGraph(data);
             TwoWayGraph g2 = TwoWayGraph.fromGraph(g);
+            ContractionGraph g3 = ContractionGraph.fromGraph(g);
 
             d.preprocess(g);
             d2.preprocess(g2);
+            ch.preprocess(g3);
 
             boolean anyMistakes = false;
             int queries = nextInt(n, r);
@@ -166,12 +165,14 @@ public class DistPreprocessSmall {
                 long expected = d.distance(u, v);
                 try {
                     long actual_d2 = d2.distance(u, v);
-                    if (expected != actual_d2) {
+                    long actual_ch = ch.distance(u, v);
+                    if (expected != actual_d2 || expected != actual_ch) {
                         anyMistakes = true;
                         System.out.println("\n\n\n\nUnexpected distance during test run " + i);
                         System.out.println("for nodes " + u + " to " + v);
                         System.out.println("expected " + expected);
                         System.out.println("dijkstra2 " + actual_d2);
+                        System.out.println("contraction hierarchies " + actual_ch);
                     }
                 } catch (Exception e) {
                     anyMistakes = true;
@@ -511,7 +512,7 @@ public class DistPreprocessSmall {
                     + g.getContractedNeighbors(v) + shortcutCover.size() + g.getNodeLevel(v);
             return shortcuts;
         }
-        
+
         int calculateSuccessorLimit(ArrayList<Integer> adj, ArrayList<Integer> cost) {
             // calculate max l(v, w) - l(w', w);
             int max = 0;
@@ -527,7 +528,7 @@ public class DistPreprocessSmall {
 
             return max;
         }
-        
+
         void witnessSearch(int v, int u, int limit) {
             // run dijkstra, limiting distance and/or number of hops
             clear();
@@ -538,7 +539,7 @@ public class DistPreprocessSmall {
                 Node n = h[0].poll();
                 if (n.distance > limit)
                     return;
-                    witnessProcess(n.nodeId, v);
+                witnessProcess(n.nodeId, v);
             }
         }
 
@@ -554,9 +555,10 @@ public class DistPreprocessSmall {
                 visit(0, nodeId, dist[0][u] + weight);
             }
         }
-        
+
         boolean foundWitness(int uCost, int w, int wCost) {
-            // witness path found for w if, for some w' predecessor of w: d(u, w') + l(w', w) <= l(u, v) + l(v, w)
+            // witness path found for w if, for some w' predecessor of w: d(u, w') + l(w',
+            // w) <= l(u, v) + l(v, w)
             ArrayList<Integer> pre = g.adj[1][w];
             ArrayList<Integer> cost = g.cost[1][w];
             for (int i = 0; i < pre.size(); i++) {
@@ -564,7 +566,8 @@ public class DistPreprocessSmall {
                 int wpCost = cost.get(i);
                 if (dist[0][wp] == -1)
                     continue;
-                if (dist[0][wp] + wpCost <= uCost + wCost) return true;
+                if (dist[0][wp] + wpCost <= uCost + wCost)
+                    return true;
             }
 
             return false;
@@ -599,13 +602,14 @@ public class DistPreprocessSmall {
                 Node v = h[side].poll();
                 if (estimate == -1 || dist[side][v.nodeId] < estimate)
                     process(side, v.nodeId);
-                if (visited[otherSide][v.nodeId] && (estimate == -1 || dist[side][v.nodeId] + dist[otherSide][v.nodeId] < estimate))
+                if (visited[otherSide][v.nodeId]
+                        && (estimate == -1 || dist[side][v.nodeId] + dist[otherSide][v.nodeId] < estimate))
                     estimate = dist[side][v.nodeId] + dist[otherSide][v.nodeId];
                 visited[side][v.nodeId] = true;
             }
             return estimate;
         }
-        
+
         void clear() {
             Arrays.fill(dist[0], -1);
             Arrays.fill(dist[1], -1);
@@ -685,8 +689,8 @@ public class DistPreprocessSmall {
             addEdge(0, u, v, c);
             addEdge(1, v, u, c);
         }
-        
-        void addEdge(int side, int u, int v, int c){
+
+        void addEdge(int side, int u, int v, int c) {
             int i = adj[side][u].indexOf(v);
             if (i != -1) {
                 cost[side][u].set(i, Math.min(cost[side][u].get(i), c));
@@ -750,7 +754,7 @@ public class DistPreprocessSmall {
             updateNeighborNodeLevels(adj[0][nodeId], level);
             updateNeighborNodeLevels(adj[1][nodeId], level);
         }
-        
+
         void updateNeighborNodeLevels(ArrayList<Integer> neighbors, int level) {
             for (int i = 0; i < neighbors.size(); i++) {
                 int nodeId = neighbors.get(i);
@@ -774,7 +778,7 @@ public class DistPreprocessSmall {
         private void removeDownwardsEdges(int side, int v) {
             ArrayList<Integer> adj = this.adj[side][v];
             ArrayList<Integer> cost = this.cost[side][v];
-            for (int i = adj.size() - 1; i>= 0; i--){
+            for (int i = adj.size() - 1; i >= 0; i--) {
                 int nodeId = adj.get(i);
                 int otherRank = rank[nodeId];
                 if (otherRank == -1)
@@ -943,7 +947,7 @@ public class DistPreprocessSmall {
     static class Shortcut {
         int u, v, c;
 
-        Shortcut(int u, int v, int c){
+        Shortcut(int u, int v, int c) {
             this.u = u;
             this.v = v;
             this.c = c;
