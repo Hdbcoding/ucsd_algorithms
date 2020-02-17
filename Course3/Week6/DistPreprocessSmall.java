@@ -26,6 +26,14 @@ public class DistPreprocessSmall {
         // test cases from previous problems
         runTest(new int[] { 2, 1, 1, 2, 1, 4, 1, 1, 2, 2, 1, 2, 2, 1 }, new long[] { 0, 0, 1, -1 });
         runTest(new int[] { 4, 4, 1, 2, 1, 4, 1, 2, 2, 3, 2, 1, 3, 6, 1, 1, 3 }, new long[] { 3 });
+        runTest(new int[] { 4, 7, 1, 2, 72, 1, 2, 29, 2, 2, 7, 2, 2, 8, 3, 4, 79, 3, 4, 76, 3, 2, 78, 2, 1, 2, 3, 2 },
+                new long[] { 29, 78 });
+        runTest(new int[] { 3, 5, 2, 3, 58, 2, 3, 2, 3, 1, 47, 3, 3, 40, 3, 3, 21, 1, 1, 3 }, new long[] { -1 });
+        runTest(new int[] { 10, 16, 1, 4, 95, 3, 1, 57, 3, 8, 85, 5, 8, 66, 6, 7, 31, 6, 4, 13, 6, 7, 17, 7, 9, 19, 8,
+                6, 61, 8, 1, 89, 8, 1, 4, 9, 9, 98, 9, 4, 60, 9, 6, 47, 9, 10, 89, 10, 7, 46, 4, 6, 1, 7, 1, 9, 1, 10,
+                1 }, new long[] { -1, -1, -1, -1 });
+
+        // ch: fails with all following graphs by underestimating distances
         runTest(new int[] { 9, 16, 1, 2, 9, 1, 2, 10, 2, 8, 10, 2, 9, 3, 3, 5, 8, 3, 5, 14, 5, 4, 17, 5, 6, 6, 7, 2, 5,
                 7, 3, 12, 7, 4, 10, 7, 6, 4, 7, 6, 9, 8, 2, 9, 9, 2, 7, 9, 9, 7, 2, 1, 8, 1, 9 },
                 new long[] { 19, 12 });
@@ -45,27 +53,13 @@ public class DistPreprocessSmall {
                 11, 3, 1, 585, 3, 2, 956, 3, 4, 551, 3, 5, 559, 4, 1, 503, 4, 2, 722, 4, 3, 331, 4, 5, 366, 5, 1, 880,
                 5, 2, 883, 5, 3, 461, 5, 4, 228, 10, 1, 1, 1, 2, 1, 3, 1, 4, 1, 5, 2, 1, 2, 2, 2, 3, 2, 4, 2, 5 },
                 new long[] { 0, 667, 677, 700, 622, 118, 0, 325, 239, 11 });
-        // getting bad distances with multiple edges out of the same node -- fixed
         runTest(new int[] { 4, 4, 2, 3, 72, 2, 3, 89, 2, 1, 62, 3, 4, 21, 1, 2, 4 }, new long[] { 93 });
-        // getting errors with self-referencing nodes
-        runTest(new int[] { 4, 7, 1, 2, 72, 1, 2, 29, 2, 2, 7, 2, 2, 8, 3, 4, 79, 3, 4, 76, 3, 2, 78, 2, 1, 2, 3, 2 },
-                new long[] { 29, 78 });
-        // some null pointer exception
-        runTest(new int[] { 3, 5, 2, 3, 58, 2, 3, 2, 3, 1, 47, 3, 3, 40, 3, 3, 21, 1, 1, 3 }, new long[] { -1 });
-        // counting matches when a node has been considered but not finalized
         runTest(new int[] { 7, 13, 1, 1, 83, 1, 2, 13, 1, 2, 78, 1, 5, 63, 2, 5, 4, 3, 2, 10, 3, 7, 1, 4, 5, 98, 5, 3,
                 23, 6, 2, 51, 6, 1, 94, 6, 7, 85, 7, 2, 40, 1, 6, 7 }, new long[] { 79 });
-        // incorrect results in some cases with no-available-path situations
-        runTest(new int[] { 10, 16, 1, 4, 95, 3, 1, 57, 3, 8, 85, 5, 8, 66, 6, 7, 31, 6, 4, 13, 6, 7, 17, 7, 9, 19, 8,
-                6, 61, 8, 1, 89, 8, 1, 4, 9, 9, 98, 9, 4, 60, 9, 6, 47, 9, 10, 89, 10, 7, 46, 4, 6, 1, 7, 1, 9, 1, 10,
-                1 }, new long[] { -1, -1, -1, -1 });
-        // missing path problem
         runTest(new int[] { 6, 9, 1, 6, 97, 1, 1, 54, 1, 2, 53, 1, 6, 89, 2, 1, 71, 3, 4, 13, 5, 3, 60, 5, 2, 85, 6, 1,
                 9, 1, 5, 6 }, new long[] { 245 });
-        // missing path problem
         runTest(new int[] { 8, 10, 1, 5, 2, 1, 7, 77, 2, 7, 98, 2, 3, 29, 3, 6, 21, 4, 6, 18, 5, 8, 19, 6, 8, 58, 7, 3,
                 64, 7, 2, 24, 1, 7, 8 }, new long[] { 132 });
-        // missing path
         runTest(new int[] { 7, 13, 1, 6, 68, 1, 2, 19, 2, 1, 76, 2, 1, 10, 4, 2, 20, 4, 5, 88, 4, 3, 24, 4, 3, 40, 4, 1,
                 13, 5, 7, 20, 5, 6, 1, 6, 4, 64, 7, 2, 94, 1, 2, 7 }, new long[] { 250 });
 
