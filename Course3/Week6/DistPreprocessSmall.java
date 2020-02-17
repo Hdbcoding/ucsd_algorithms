@@ -585,23 +585,24 @@ public class DistPreprocessSmall {
             visit(0, s, 0);
             visit(1, t, 0);
             long estimate = -1;
-            while (!h[0].isEmpty() && !h[1].isEmpty()) {
-                Node v = h[0].poll();
-                if (estimate == -1 || dist[0][v.nodeId] < estimate)
-                    process(0, v.nodeId);
-                if (visited[1][v.nodeId] && dist[0][v.nodeId] + dist[1][v.nodeId] < estimate)
-                    estimate = dist[0][v.nodeId] + dist[1][v.nodeId];
-                visited[0][v.nodeId] = true;
-
-                Node v_r = h[1].poll();
-                if (estimate == -1 || dist[1][v.nodeId] < estimate)
-                    process(1, v.nodeId);
-                process(1, v_r.nodeId);
-                if (visited[0][v_r.nodeId] && dist[0][v_r.nodeId] + dist[1][v_r.nodeId] < estimate)
-                    estimate = dist[0][v_r.nodeId] + dist[1][v_r.nodeId];
-                visited[1][v_r.nodeId] = true;
+            while (!h[0].isEmpty() || !h[1].isEmpty()) {
+                estimate = processSide(0, estimate);
+                estimate = processSide(1, estimate);
             }
 
+            return estimate;
+        }
+
+        private long processSide(int side, long estimate) {
+            int otherSide = side == 0 ? 1 : 0;
+            if (!h[side].isEmpty()) {
+                Node v = h[side].poll();
+                if (estimate == -1 || dist[side][v.nodeId] < estimate)
+                    process(side, v.nodeId);
+                if (visited[otherSide][v.nodeId] && (estimate == -1 || dist[side][v.nodeId] + dist[otherSide][v.nodeId] < estimate))
+                    estimate = dist[side][v.nodeId] + dist[otherSide][v.nodeId];
+                visited[side][v.nodeId] = true;
+            }
             return estimate;
         }
         
