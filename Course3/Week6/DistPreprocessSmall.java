@@ -647,13 +647,21 @@ public class DistPreprocessSmall {
             return adj;
         }
 
-        void addEdge(int i, int j, int w) {
-            // TODO - ignore self edges
-            // TODO - ignore bigger edges
-            adj[0][i].add(j);
-            cost[0][i].add(w);
-            adj[1][j].add(i);
-            cost[1][j].add(w);
+        void addEdge(int u, int v, int c) {
+            if (u == v)
+                return;
+            addEdge(0, u, v, c);
+            addEdge(1, v, u, c);
+        }
+        
+        void addEdge(int side, int u, int v, int c){
+            int i = adj[side][u].indexOf(v);
+            if (i != -1) {
+                cost[side][u].set(i, Math.min(cost[side][u].get(i), c));
+            } else {
+                adj[side][u].add(v);
+                cost[side][u].add(c);
+            }
         }
 
         @Override
