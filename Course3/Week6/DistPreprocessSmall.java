@@ -15,7 +15,7 @@ public class DistPreprocessSmall {
 
     static void runSolution() {
         DataScanner in = new StreamScanner();
-        Dijkstra2 a = new Dijkstra2();
+        ContractionHierarchy a = new ContractionHierarchy();
         a.preprocess(in);
         System.out.println("Ready");
         respondToQueries(a, in);
@@ -76,6 +76,28 @@ public class DistPreprocessSmall {
         runComparisons(maxNumNodes, maxWidth, numTests);
     }
 
+    static void runTest(int[] data, long[] expected) {
+        DataScanner in = new ArrayScanner(data);
+        Graph g = parseGraph(in);
+        TwoWayGraph g2 = TwoWayGraph.fromGraph(g);
+        ContractionGraph g3 = ContractionGraph.fromGraph(g);
+        Dijkstra d = new Dijkstra();
+        d.preprocess(g);
+        Dijkstra2 d2 = new Dijkstra2();
+        d2.preprocess(g2);
+        ContractionHierarchy ch = new ContractionHierarchy();
+        ch.preprocess(g3);
+        Query[] queries = parseQueries(in);
+        String expectedString = Arrays.toString(expected);
+        boolean allTechniquesWork = evaluate(d, queries, expectedString);
+        allTechniquesWork &= evaluate(d2, queries, expectedString);
+        allTechniquesWork &= evaluate(ch, queries, expectedString);
+        if (!allTechniquesWork) {
+            System.out.println("Queries: " + Arrays.toString(queries));
+            System.out.println("Graph: " + g);
+        }
+    }
+
     static void runComparisons(int maxNumNodes, int maxWidth, int numTests) {
         int i = 15;
         while (i-- > 0) {
@@ -108,24 +130,6 @@ public class DistPreprocessSmall {
         }
         long endTime = System.currentTimeMillis();
         System.out.println(type.getName() + " total time (ms): " + (endTime - startTime));
-    }
-
-    static void runTest(int[] data, long[] expected) {
-        DataScanner in = new ArrayScanner(data);
-        Graph g = parseGraph(in);
-        TwoWayGraph g2 = TwoWayGraph.fromGraph(g);
-        Dijkstra d = new Dijkstra();
-        d.preprocess(g);
-        Dijkstra2 d2 = new Dijkstra2();
-        d2.preprocess(g2);
-        Query[] queries = parseQueries(in);
-        String expectedString = Arrays.toString(expected);
-        boolean allTechniquesWork = evaluate(d, queries, expectedString);
-        allTechniquesWork &= evaluate(d2, queries, expectedString);
-        if (!allTechniquesWork) {
-            System.out.println("Queries: " + Arrays.toString(queries));
-            System.out.println("Graph: " + g);
-        }
     }
 
     static boolean evaluate(GraphSolver solver, Query[] queries, String expectedString) {
