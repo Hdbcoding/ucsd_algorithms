@@ -6,6 +6,7 @@ import java.util.PriorityQueue;
 import java.util.Random;
 import java.util.Scanner;
 
+@SuppressWarnings("unchecked")
 public class DistPreprocessSmall {
     public static void main(String[] args) {
         // runSolution();
@@ -338,6 +339,9 @@ public class DistPreprocessSmall {
 
     static class ContractionHierarchy implements GraphSolver {
         ContractionGraph g;
+        long[][] dist;
+        PriorityQueue<Node>[] h;
+        boolean[][] visited;
 
         @Override
         public void preprocess(DataScanner in) {
@@ -346,6 +350,11 @@ public class DistPreprocessSmall {
 
         void preprocess(ContractionGraph g) {
             this.g = g;
+            dist = new long[][] { new long[g.s], new long[g.s] };
+            h = (PriorityQueue<Node>[]) new PriorityQueue[] { new PriorityQueue<Node>(g.s),
+                    new PriorityQueue<Node>(g.s) };
+            visited = new boolean[][] { new boolean[g.s], new boolean[g.s] };
+
             PriorityQueue<ImportantNode> q = createImportantNodes();
             while (!q.isEmpty()) {
                 ImportantNode v = q.poll();
@@ -368,19 +377,77 @@ public class DistPreprocessSmall {
             int v = n.nodeId;
             ArrayList<Shortcut> shortcuts = new ArrayList<Shortcut>();
             HashSet<Integer> shortcutCover = new HashSet<Integer>();
-
-            // TODO - calculate shortcuts for proposed contraction
-            // TODO - for each predecessor u of v, run a witness search
-            // TODO -   run dijkstra, limiting distance and/or number of hops
-            // TODO -   let w be some successor of v, and w' some predecessor of w
-            // TODO -   limit distance by max (l(u,v) + l(v, w) - l(w', w))
-            // TODO -   witness path found for w if: d(u, w') + l(w', w) <= l(u, v) + l(v, w)
-            // TODO - for all pairs u, w, if there is no witness path, add a shortcut
-
+            ArrayList<Integer> incoming = g.adj[1][v];
+            ArrayList<Integer> incomingCost = g.cost[1][v];
+            ArrayList<Integer> outgoing = g.adj[0][v];
+            ArrayList<Integer> outgoingCost = g.adj[1][v];
+            int successorLimit = calculateSuccessorLimit(outgoing, outgoingCost);
+            if (!incoming.isEmpty() && !outgoing.isEmpty()) {
+                for (int i = 0; i < incoming.size(); i++) {
+                    int u = incoming.get(i);
+                    int uCost = incomingCost.get(i);
+                    // uCost + successorLimit = (l(u,v) + l(v, w) - l(w', w))
+                    witnessSearch(u, uCost + successorLimit);
+                    for (int j = 0; j < outgoing.size(); j++) {
+                        int w = outgoing.get(i);
+                        int wCost = outgoing.get(i);
+                        if (!foundWitness(uCost, w, wCost)) {
+                            shortcuts.add(new Shortcut(u, w, uCost + wCost));
+                            shortcutCover.add(u);
+                            shortcutCover.add(w);
+                        }
+                    }
+                }
+            }
 
             n.importance = (shortcuts.size() - g.getIncomingEdges(v) - g.getOutgoingEdges(v))
                     + g.getContractedNeighbors(v) + shortcutCover.size() + g.getNodeLevel(v);
             return shortcuts;
+        }
+        
+        int calculateSuccessorLimit(ArrayList<Integer> adj, ArrayList<Integer> cost) {
+            // calculate max l(v, w) - l(w', w);
+            int max = 0;
+            for (int i = 0; i < adj.size(); i++) {
+                int w = adj.get(i);
+                int wc = cost.get(i);
+                ArrayList<Integer> wCost = g.cost[1][w];
+                for (int j = 0; j < wCost.size(); j++) {
+                    int wpc = wCost.get(j);
+                    max = Math.max(max, wc - wpc);
+                }
+            }
+
+            return max;
+        }
+        
+        void witnessSearch(int from, int limit) {
+            // run dijkstra, limiting distance and/or number of hops
+            clear();
+            int hops = 5;
+            h[0].add(new Node(from, 0));
+            dist[0][from] = 0;
+            while (hops-- > 0 && !h[0].isEmpty()) {
+                Node v = h[0].poll();
+                if (v.distance > limit)
+                    return;
+                process(0, v.nodeId);
+            }
+        }
+        
+        boolean foundWitness(int uCost, int w, int wCost) {
+            // witness path found for w if, for some w' predecessor of w: d(u, w') + l(w', w) <= l(u, v) + l(v, w)
+            ArrayList<Integer> pre = g.adj[1][w];
+            ArrayList<Integer> cost = g.cost[1][w];
+            for (int i = 0; i < pre.size(); i++) {
+                int wp = pre.get(i);
+                int wpCost = cost.get(i);
+                if (dist[0][wp] == -1)
+                    continue;
+                if (dist[0][wp] + wpCost <= uCost + wCost) return true;
+            }
+
+            return false;
         }
 
         void finalizeNode(ImportantNode n, ArrayList<Shortcut> shortcuts) {
@@ -391,9 +458,41 @@ public class DistPreprocessSmall {
 
         @Override
         public long distance(int u, int v) {
+            if (u == v)
+                return 0;
+            clear();
             // TODO - run a bidirectional dijkstra search using the augmented graph
             // TODO - termination condition is not the same as traditional bidirectional dijkstra
             return 0;
+        }
+        
+        void clear() {
+            Arrays.fill(dist[0], -1);
+            Arrays.fill(dist[1], -1);
+            h[0].clear();
+            h[1].clear();
+            Arrays.fill(visited[0], false);
+            Arrays.fill(visited[1], false);
+            // workset.clear();
+        }
+
+        void process(int side, int u) {
+            ArrayList<Integer> neighbors = g.adj[side][u];
+            ArrayList<Integer> weights = g.cost[side][u];
+            for (int i = 0; i < neighbors.size(); i++) {
+                int nodeId = neighbors.get(i);
+                int weight = weights.get(i);
+                visit(side, nodeId, dist[side][u] + weight);
+            }
+        }
+
+        void visit(int side, int nodeId, long distance) {
+            long oldDist = dist[side][nodeId];
+            if (oldDist == -1 || oldDist > distance) {
+                dist[side][nodeId] = distance;
+                h[side].add(new Node(nodeId, distance));
+                // workset.add(nodeId);
+            }
         }
 
     }
@@ -758,6 +857,12 @@ public class DistPreprocessSmall {
 
     static class Shortcut {
         int u, v, c;
+
+        Shortcut(int u, int v, int c){
+            this.u = u;
+            this.v = v;
+            this.c = c;
+        }
     }
 
     public interface DataScanner {
