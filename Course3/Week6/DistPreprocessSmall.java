@@ -246,6 +246,46 @@ public class DistPreprocessSmall {
         }
     }
 
+    static class Graph {
+        ArrayList<Integer>[] adj;
+        ArrayList<Integer>[] cost;
+        int s;
+
+        Graph(int s) {
+            adj = constructList(s);
+            cost = constructList(s);
+            this.s = s;
+        }
+
+        ArrayList<Integer>[] constructList(int s) {
+            ArrayList<Integer>[] adj = (ArrayList<Integer>[]) new ArrayList[s];
+            for (int i = 0; i < s; i++) {
+                adj[i] = new ArrayList<Integer>();
+            }
+            return adj;
+        }
+
+        void addEdge(int i, int j, int w) {
+            adj[i].add(j);
+            cost[i].add(w);
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder s = new StringBuilder();
+
+            for (int i = 0; i < adj.length; i++) {
+                ArrayList<Integer> edges = adj[i];
+                ArrayList<Integer> weights = cost[i];
+                s.append("\nnode " + i + ": ");
+                s.append("\nadjacencies: " + Arrays.toString(edges.toArray()));
+                s.append("\nweights: " + Arrays.toString(weights.toArray()));
+            }
+
+            return s.toString();
+        }
+    }
+
     static class Dijkstra2 implements GraphSolver {
         TwoWayGraph g;
         long[][] dist;
@@ -334,6 +374,69 @@ public class DistPreprocessSmall {
                 }
             }
             return distance;
+        }
+    }
+
+    static class TwoWayGraph {
+        ArrayList<Integer>[][] adj;
+        ArrayList<Integer>[][] cost;
+        int s;
+
+        TwoWayGraph(int s) {
+            adj = constructTwoWayList(s);
+            cost = constructTwoWayList(s);
+            this.s = s;
+        }
+
+        ArrayList<Integer>[][] constructTwoWayList(int s) {
+            ArrayList<Integer>[][] adj = (ArrayList<Integer>[][]) new ArrayList[2][];
+            adj[0] = constructList(s);
+            adj[1] = constructList(s);
+            return adj;
+        }
+
+        ArrayList<Integer>[] constructList(int s) {
+            ArrayList<Integer>[] adj = (ArrayList<Integer>[]) new ArrayList[s];
+            for (int i = 0; i < s; i++) {
+                adj[i] = new ArrayList<Integer>();
+            }
+            return adj;
+        }
+
+        void addEdge(int i, int j, int w) {
+            adj[0][i].add(j);
+            cost[0][i].add(w);
+            adj[1][j].add(i);
+            cost[1][j].add(w);
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder s = new StringBuilder();
+
+            for (int i = 0; i < adj[0].length; i++) {
+                ArrayList<Integer> edges = adj[0][i];
+                ArrayList<Integer> weights = cost[0][i];
+                s.append("\nnode " + i + ": ");
+                s.append("\nadjacencies: " + Arrays.toString(edges.toArray()));
+                s.append("\nweights: " + Arrays.toString(weights.toArray()));
+            }
+
+            return s.toString();
+        }
+
+        static TwoWayGraph fromGraph(Graph g) {
+            TwoWayGraph g2 = new TwoWayGraph(g.s);
+            for (int u = 0; u < g.s; u++) {
+                ArrayList<Integer> adj = g.adj[u];
+                ArrayList<Integer> cost = g.cost[u];
+                for (int j = 0; j < adj.size(); j++) {
+                    int v = adj.get(j);
+                    int c = cost.get(j);
+                    g2.addEdge(u, v, c);
+                }
+            }
+            return g2;
         }
     }
 
@@ -510,211 +613,6 @@ public class DistPreprocessSmall {
 
     }
 
-    static Graph parseGraph(int[] data) {
-        ArrayScanner in = new ArrayScanner(data);
-        return parseGraph(in);
-    }
-
-    static Graph parseGraph(DataScanner in) {
-        int n = in.nextInt();
-        int m = in.nextInt();
-        Graph g = new Graph(n);
-        int x, y, c;
-        for (int i = 0; i < m; i++) {
-            x = in.nextInt();
-            y = in.nextInt();
-            c = in.nextInt();
-            g.addEdge(x - 1, y - 1, c);
-        }
-        return g;
-    }
-
-    static TwoWayGraph parseTwoWayGraph(DataScanner in) {
-        int n = in.nextInt();
-        int m = in.nextInt();
-        TwoWayGraph g = new TwoWayGraph(n);
-        int x, y, c;
-        for (int i = 0; i < m; i++) {
-            x = in.nextInt();
-            y = in.nextInt();
-            c = in.nextInt();
-            g.addEdge(x - 1, y - 1, c);
-        }
-        return g;
-    }
-
-    static ContractionGraph parseContractionGraph(DataScanner in) {
-        int n = in.nextInt();
-        int m = in.nextInt();
-        ContractionGraph g = new ContractionGraph(n);
-        int x, y, c;
-        for (int i = 0; i < m; i++) {
-            x = in.nextInt();
-            y = in.nextInt();
-            c = in.nextInt();
-            g.addEdge(x - 1, y - 1, c);
-        }
-        return g;
-    }
-
-    static Query[] parseQueries(DataScanner in) {
-        int t = in.nextInt();
-        Query[] queries = new Query[t];
-        int u, v;
-        for (int i = 0; i < t; i++) {
-            u = in.nextInt();
-            v = in.nextInt();
-            queries[i] = new Query(u - 1, v - 1);
-        }
-        return queries;
-    }
-
-    static void respondToQueries(GraphSolver solver, DataScanner in) {
-        int t = in.nextInt();
-        int u, v;
-        for (int i = 0; i < t; i++) {
-            u = in.nextInt();
-            v = in.nextInt();
-            System.out.println(solver.distance(u - 1, v - 1));
-        }
-    }
-
-    static long[] respondToQueries(GraphSolver solver, Query[] queries) {
-        long[] results = new long[queries.length];
-        Query q;
-        for (int i = 0; i < queries.length; i++) {
-            q = queries[i];
-            results[i] = solver.distance(q.u, q.v);
-        }
-        return results;
-    }
-
-    static int[] generateData(int maxNumNodes, int maxGraphWidth, Random r) {
-        int n = nextInt(maxNumNodes, r) + 1;
-        int m = nextInt(n * n, r);
-        return fillEdges(n, m, maxGraphWidth, r);
-    }
-
-    static int[] fillEdges(int n, int m, int maxGraphWidth, Random r) {
-        int[] data = new int[n * 2 + m * 3 + 2];
-        data[0] = n;
-        data[1] = m;
-        for (int i = 0; i < m; i++) {
-            int j = i * 3 + 2;
-            data[j] = nextInt(n, r) + 1;
-            data[j + 1] = nextInt(n, r) + 1;
-            data[j + 2] = nextInt(maxGraphWidth, r) + 1;
-        }
-        return data;
-    }
-
-    static int nextInt(int bound, Random r) {
-        return Math.abs(r.nextInt(bound));
-    }
-
-    static class Graph {
-        ArrayList<Integer>[] adj;
-        ArrayList<Integer>[] cost;
-        int s;
-
-        Graph(int s) {
-            adj = constructList(s);
-            cost = constructList(s);
-            this.s = s;
-        }
-
-        ArrayList<Integer>[] constructList(int s) {
-            ArrayList<Integer>[] adj = (ArrayList<Integer>[]) new ArrayList[s];
-            for (int i = 0; i < s; i++) {
-                adj[i] = new ArrayList<Integer>();
-            }
-            return adj;
-        }
-
-        void addEdge(int i, int j, int w) {
-            adj[i].add(j);
-            cost[i].add(w);
-        }
-
-        @Override
-        public String toString() {
-            StringBuilder s = new StringBuilder();
-
-            for (int i = 0; i < adj.length; i++) {
-                ArrayList<Integer> edges = adj[i];
-                ArrayList<Integer> weights = cost[i];
-                s.append("\nnode " + i + ": ");
-                s.append("\nadjacencies: " + Arrays.toString(edges.toArray()));
-                s.append("\nweights: " + Arrays.toString(weights.toArray()));
-            }
-
-            return s.toString();
-        }
-    }
-
-    static class TwoWayGraph {
-        ArrayList<Integer>[][] adj;
-        ArrayList<Integer>[][] cost;
-        int s;
-
-        TwoWayGraph(int s) {
-            adj = constructTwoWayList(s);
-            cost = constructTwoWayList(s);
-            this.s = s;
-        }
-
-        ArrayList<Integer>[][] constructTwoWayList(int s) {
-            ArrayList<Integer>[][] adj = (ArrayList<Integer>[][]) new ArrayList[2][];
-            adj[0] = constructList(s);
-            adj[1] = constructList(s);
-            return adj;
-        }
-
-        ArrayList<Integer>[] constructList(int s) {
-            ArrayList<Integer>[] adj = (ArrayList<Integer>[]) new ArrayList[s];
-            for (int i = 0; i < s; i++) {
-                adj[i] = new ArrayList<Integer>();
-            }
-            return adj;
-        }
-
-        void addEdge(int i, int j, int w) {
-            adj[0][i].add(j);
-            cost[0][i].add(w);
-            adj[1][j].add(i);
-            cost[1][j].add(w);
-        }
-
-        @Override
-        public String toString() {
-            StringBuilder s = new StringBuilder();
-
-            for (int i = 0; i < adj[0].length; i++) {
-                ArrayList<Integer> edges = adj[0][i];
-                ArrayList<Integer> weights = cost[0][i];
-                s.append("\nnode " + i + ": ");
-                s.append("\nadjacencies: " + Arrays.toString(edges.toArray()));
-                s.append("\nweights: " + Arrays.toString(weights.toArray()));
-            }
-
-            return s.toString();
-        }
-
-        static TwoWayGraph fromGraph(Graph g) {
-            TwoWayGraph g2 = new TwoWayGraph(g.s);
-            for (int u = 0; u < g.s; u++) {
-                ArrayList<Integer> adj = g.adj[u];
-                ArrayList<Integer> cost = g.cost[u];
-                for (int j = 0; j < adj.size(); j++) {
-                    int v = adj.get(j);
-                    int c = cost.get(j);
-                    g2.addEdge(u, v, c);
-                }
-            }
-            return g2;
-        }
-    }
-
     static class ContractionGraph {
         ArrayList<Integer>[][] adj;
         ArrayList<Integer>[][] cost;
@@ -823,6 +721,108 @@ public class DistPreprocessSmall {
         void commitShortcuts(int nodeId, ArrayList<Shortcut> shortcuts) {
             // TODO - for each shortcut around nodeId, add shortcut edge, delete intermediate edges
         }
+    }
+
+    static Graph parseGraph(int[] data) {
+        ArrayScanner in = new ArrayScanner(data);
+        return parseGraph(in);
+    }
+
+    static Graph parseGraph(DataScanner in) {
+        int n = in.nextInt();
+        int m = in.nextInt();
+        Graph g = new Graph(n);
+        int x, y, c;
+        for (int i = 0; i < m; i++) {
+            x = in.nextInt();
+            y = in.nextInt();
+            c = in.nextInt();
+            g.addEdge(x - 1, y - 1, c);
+        }
+        return g;
+    }
+
+    static TwoWayGraph parseTwoWayGraph(DataScanner in) {
+        int n = in.nextInt();
+        int m = in.nextInt();
+        TwoWayGraph g = new TwoWayGraph(n);
+        int x, y, c;
+        for (int i = 0; i < m; i++) {
+            x = in.nextInt();
+            y = in.nextInt();
+            c = in.nextInt();
+            g.addEdge(x - 1, y - 1, c);
+        }
+        return g;
+    }
+
+    static ContractionGraph parseContractionGraph(DataScanner in) {
+        int n = in.nextInt();
+        int m = in.nextInt();
+        ContractionGraph g = new ContractionGraph(n);
+        int x, y, c;
+        for (int i = 0; i < m; i++) {
+            x = in.nextInt();
+            y = in.nextInt();
+            c = in.nextInt();
+            g.addEdge(x - 1, y - 1, c);
+        }
+        return g;
+    }
+
+    static Query[] parseQueries(DataScanner in) {
+        int t = in.nextInt();
+        Query[] queries = new Query[t];
+        int u, v;
+        for (int i = 0; i < t; i++) {
+            u = in.nextInt();
+            v = in.nextInt();
+            queries[i] = new Query(u - 1, v - 1);
+        }
+        return queries;
+    }
+
+    static void respondToQueries(GraphSolver solver, DataScanner in) {
+        int t = in.nextInt();
+        int u, v;
+        for (int i = 0; i < t; i++) {
+            u = in.nextInt();
+            v = in.nextInt();
+            System.out.println(solver.distance(u - 1, v - 1));
+        }
+    }
+
+    static long[] respondToQueries(GraphSolver solver, Query[] queries) {
+        long[] results = new long[queries.length];
+        Query q;
+        for (int i = 0; i < queries.length; i++) {
+            q = queries[i];
+            results[i] = solver.distance(q.u, q.v);
+        }
+        return results;
+    }
+
+    static int[] generateData(int maxNumNodes, int maxGraphWidth, Random r) {
+        int n = nextInt(maxNumNodes, r) + 1;
+        int m = nextInt(n * n, r);
+        return fillEdges(n, m, maxGraphWidth, r);
+    }
+
+    static int[] fillEdges(int n, int m, int maxGraphWidth, Random r) {
+        int[] data = new int[n * 2 + m * 3 + 2];
+        data[0] = n;
+        data[1] = m;
+        for (int i = 0; i < m; i++) {
+            int j = i * 3 + 2;
+            data[j] = nextInt(n, r) + 1;
+            data[j + 1] = nextInt(n, r) + 1;
+            data[j + 2] = nextInt(maxGraphWidth, r) + 1;
+        }
+        return data;
+    }
+
+    static int nextInt(int bound, Random r) {
+        return Math.abs(r.nextInt(bound));
     }
 
     static class Node implements Comparable<Node> {
