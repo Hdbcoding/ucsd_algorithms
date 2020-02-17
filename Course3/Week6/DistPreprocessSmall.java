@@ -465,8 +465,8 @@ public class DistPreprocessSmall {
             PriorityQueue<ImportantNode> q = createImportantNodes();
             while (!q.isEmpty()) {
                 ImportantNode v = q.poll();
-                ArrayList<Shortcut> shortcuts = contract(v);
-                if (q.isEmpty() || v.importance < q.peek().importance) {
+                ArrayList<Shortcut> shortcuts = contractAndUpdateImportance(v);
+                if (q.isEmpty() || v.importance <= q.peek().importance) {
                     finalizeNode(v, shortcuts);
                 } else
                     q.add(v);
@@ -480,14 +480,14 @@ public class DistPreprocessSmall {
             return q;
         }
 
-        ArrayList<Shortcut> contract(ImportantNode n) {
+        ArrayList<Shortcut> contractAndUpdateImportance(ImportantNode n) {
             int v = n.nodeId;
             ArrayList<Shortcut> shortcuts = new ArrayList<Shortcut>();
             HashSet<Integer> shortcutCover = new HashSet<Integer>();
             ArrayList<Integer> incoming = g.adj[1][v];
             ArrayList<Integer> incomingCost = g.cost[1][v];
             ArrayList<Integer> outgoing = g.adj[0][v];
-            ArrayList<Integer> outgoingCost = g.adj[1][v];
+            ArrayList<Integer> outgoingCost = g.adj[0][v];
             int successorLimit = calculateSuccessorLimit(outgoing, outgoingCost);
             if (!incoming.isEmpty() && !outgoing.isEmpty()) {
                 for (int i = 0; i < incoming.size(); i++) {
@@ -496,8 +496,8 @@ public class DistPreprocessSmall {
                     // uCost + successorLimit = (l(u,v) + l(v, w) - l(w', w))
                     witnessSearch(v, u, uCost + successorLimit);
                     for (int j = 0; j < outgoing.size(); j++) {
-                        int w = outgoing.get(i);
-                        int wCost = outgoing.get(i);
+                        int w = outgoing.get(j);
+                        int wCost = outgoing.get(j);
                         if (!foundWitness(uCost, w, wCost)) {
                             shortcuts.add(new Shortcut(u, w, uCost + wCost));
                             shortcutCover.add(u);
@@ -574,7 +574,7 @@ public class DistPreprocessSmall {
             g.updateImportance(n.nodeId, n.importance);
             g.commitShortcuts(shortcuts);
             g.updateRank(n.nodeId);
-            g.updateNeighborNodeLevels(n.nodeId);
+            g.updateNeighbors(n.nodeId);
         }
 
         @Override
@@ -744,7 +744,7 @@ public class DistPreprocessSmall {
             this.importance[nodeId] = importance;
         }
 
-        void updateNeighborNodeLevels(int nodeId) {
+        void updateNeighbors(int nodeId) {
             int level = nodeLevel[nodeId] + 1;
             updateNeighborNodeLevels(adj[0][nodeId], level);
             updateNeighborNodeLevels(adj[1][nodeId], level);
@@ -754,6 +754,7 @@ public class DistPreprocessSmall {
             for (int i = 0; i < neighbors.size(); i++) {
                 int nodeId = neighbors.get(i);
                 nodeLevel[nodeId] = Math.max(nodeLevel[nodeId], level);
+                contractedNeighbors[nodeId]++;
             }
         }
 
@@ -772,7 +773,7 @@ public class DistPreprocessSmall {
         private void removeDownwardsEdges(int side, int v) {
             ArrayList<Integer> adj = this.adj[side][v];
             ArrayList<Integer> cost = this.cost[side][v];
-            for (int i = adj.size(); i>= 0; i--){
+            for (int i = adj.size() - 1; i>= 0; i--){
                 int nodeId = adj.get(i);
                 int otherRank = rank[nodeId];
                 if (otherRank == -1)
