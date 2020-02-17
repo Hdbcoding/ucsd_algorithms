@@ -35,7 +35,13 @@ public class DistPreprocessSmall {
                 1 }, new long[] { -1, -1, -1, -1 });
 
         // ch: fails with all following graphs by underestimating distances
-        runTest(new int[] { 4, 4, 2, 3, 72, 2, 3, 89, 2, 1, 62, 3, 4, 21, 1, 2, 4 }, new long[] { 93 });
+        runTest(new int[] { 4, 4, 
+                2, 3, 72, 
+                2, 3, 89, 
+                2, 1, 62, 
+                3, 4, 21, 
+                1, 
+                2, 4 }, new long[] { 93 });
         runTest(new int[] { 4, 6, 1, 2, 200000, 1, 3, 200000, 1, 4, 1000000, 2, 3, 1000000, 2, 4, 200000, 3, 4, 200000,
             6, 1, 2, 1, 3, 1, 4, 2, 3, 2, 4, 3, 4 },
             new long[] { 200000, 200000, 400000, 1000000, 200000, 200000 });
@@ -481,7 +487,7 @@ public class DistPreprocessSmall {
             ArrayList<Integer> incoming = g.adj[1][v];
             ArrayList<Integer> incomingCost = g.cost[1][v];
             ArrayList<Integer> outgoing = g.adj[0][v];
-            ArrayList<Integer> outgoingCost = g.adj[0][v];
+            ArrayList<Integer> outgoingCost = g.cost[0][v];
             int successorLimit = calculateSuccessorLimit(outgoing, outgoingCost);
             if (!incoming.isEmpty() && !outgoing.isEmpty()) {
                 for (int i = 0; i < incoming.size(); i++) {
@@ -491,7 +497,7 @@ public class DistPreprocessSmall {
                     witnessSearch(v, u, uCost + successorLimit);
                     for (int j = 0; j < outgoing.size(); j++) {
                         int w = outgoing.get(j);
-                        int wCost = outgoing.get(j);
+                        int wCost = outgoingCost.get(j);
                         if (!foundWitness(uCost, w, wCost)) {
                             shortcuts.add(new Shortcut(u, w, uCost + wCost));
                             shortcutCover.add(u);
