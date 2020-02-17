@@ -387,7 +387,7 @@ public class DistPreprocessSmall {
                     int u = incoming.get(i);
                     int uCost = incomingCost.get(i);
                     // uCost + successorLimit = (l(u,v) + l(v, w) - l(w', w))
-                    witnessSearch(u, uCost + successorLimit);
+                    witnessSearch(v, u, uCost + successorLimit);
                     for (int j = 0; j < outgoing.size(); j++) {
                         int w = outgoing.get(i);
                         int wCost = outgoing.get(i);
@@ -421,17 +421,30 @@ public class DistPreprocessSmall {
             return max;
         }
         
-        void witnessSearch(int from, int limit) {
+        void witnessSearch(int v, int u, int limit) {
             // run dijkstra, limiting distance and/or number of hops
             clear();
             int hops = 5;
-            h[0].add(new Node(from, 0));
-            dist[0][from] = 0;
+            h[0].add(new Node(u, 0));
+            dist[0][u] = 0;
             while (hops-- > 0 && !h[0].isEmpty()) {
-                Node v = h[0].poll();
-                if (v.distance > limit)
+                Node n = h[0].poll();
+                if (n.distance > limit)
                     return;
-                process(0, v.nodeId);
+                    witnessProcess(n.nodeId, v);
+            }
+        }
+
+        void witnessProcess(int u, int v) {
+            ArrayList<Integer> neighbors = g.adj[0][u];
+            ArrayList<Integer> weights = g.cost[0][u];
+            for (int i = 0; i < neighbors.size(); i++) {
+                int nodeId = neighbors.get(i);
+                // witness paths may not pass through v
+                if (nodeId == v)
+                    continue;
+                int weight = weights.get(i);
+                visit(0, nodeId, dist[0][u] + weight);
             }
         }
         
@@ -795,8 +808,16 @@ public class DistPreprocessSmall {
         }
 
         void updateNeighborNodeLevels(int nodeId) {
-            // TODO - for each neighbor of nodeId (incoming and outgoing), increment nodeLevel
-            // TODO - do double counts matter? let's pretend not for now
+            int level = nodeLevel[nodeId] + 1;
+            updateNeighborNodeLevels(adj[0][nodeId], level);
+            updateNeighborNodeLevels(adj[1][nodeId], level);
+        }
+        
+        void updateNeighborNodeLevels(ArrayList<Integer> neighbors, int level) {
+            for (int i = 0; i < neighbors.size(); i++) {
+                int nodeId = neighbors.get(i);
+                nodeLevel[nodeId] = Math.max(nodeLevel[nodeId], level);
+            }
         }
 
         void commitShortcuts(int nodeId, ArrayList<Shortcut> shortcuts) {
