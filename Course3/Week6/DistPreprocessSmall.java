@@ -491,8 +491,11 @@ public class DistPreprocessSmall {
 
         PriorityQueue<ImportantNode> createImportantNodes() {
             PriorityQueue<ImportantNode> q = new PriorityQueue<ImportantNode>(g.s);
-            for (int i = 0; i < g.s; i++)
-                q.add(new ImportantNode(i, 0));
+            for (int i = 0; i < g.s; i++) {
+                ImportantNode ni = new ImportantNode(i, 0);
+                // contractAndUpdateImportance(ni);
+                q.add(ni);
+            }
             return q;
         }
 
@@ -540,11 +543,8 @@ public class DistPreprocessSmall {
             for (int i = 0; i < adj.size(); i++) {
                 int w = adj.get(i);
                 int wc = cost.get(i);
-                ArrayList<Integer> wCost = g.cost[1][w];
-                for (int j = 0; j < wCost.size(); j++) {
-                    int wpc = wCost.get(j);
-                    max = Math.max(max, wc - wpc);
-                }
+                int wpc = g.minIncoming[w];
+                max = Math.max(max, wc - wpc);
             }
 
             return max;
@@ -569,7 +569,7 @@ public class DistPreprocessSmall {
             for (int i = 0; i < neighbors.size(); i++) {
                 int nodeId = neighbors.get(i);
                 // witness paths may not pass through v
-                if (nodeId == v)
+                if (nodeId == v || g.rank[nodeId] != -1)
                     continue;
                 int weight = weights.get(i);
                 visit(0, nodeId, dist[0][u] + weight);
@@ -669,6 +669,7 @@ public class DistPreprocessSmall {
     static class ContractionGraph {
         ArrayList<Integer>[][] adj;
         ArrayList<Integer>[][] cost;
+        int[] minIncoming;
         int[] contractedNeighbors;
         boolean[] isContracted;
         int[] nodeLevel;
@@ -681,6 +682,7 @@ public class DistPreprocessSmall {
         ContractionGraph(int s) {
             adj = constructTwoWayList(s);
             cost = constructTwoWayList(s);
+            minIncoming = new int[s];
             contractedNeighbors = new int[s];
             isContracted = new boolean[s];
             nodeLevel = new int[s];
@@ -711,6 +713,8 @@ public class DistPreprocessSmall {
                 return;
             addEdge(0, u, v, c);
             addEdge(1, v, u, c);
+            if (minIncoming[v] > c)
+                minIncoming[v] = c;
         }
 
         void addEdge(int side, int u, int v, int c) {
