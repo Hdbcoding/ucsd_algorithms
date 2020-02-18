@@ -134,7 +134,7 @@ public class DistPreprocessSmall {
         long endTime = System.currentTimeMillis();
         System.out.println(type.getName() + " total time (ms): " + (endTime - startTime));
         System.out.println(type.getName() + " preprocess time (ms): " + preprocessTime);
-        System.out.println(type.getName() + " query time (ms): " +queryTime);
+        System.out.println(type.getName() + " query time (ms): " + queryTime);
     }
 
     static boolean evaluate(GraphSolver solver, Query[] queries, String expectedString) {
@@ -502,11 +502,17 @@ public class DistPreprocessSmall {
             if (!incoming.isEmpty() && !outgoing.isEmpty()) {
                 for (int i = 0; i < incoming.size(); i++) {
                     int u = incoming.get(i);
+                    // don't need to process contracted nodes
+                    if (g.rank[u] != -1)
+                        continue;
                     int uCost = incomingCost.get(i);
                     // uCost + successorLimit = (l(u,v) + l(v, w) - l(w', w))
                     witnessSearch(v, u, uCost + successorLimit);
                     for (int j = 0; j < outgoing.size(); j++) {
                         int w = outgoing.get(j);
+                        // don't need to process contracted nodes
+                        if (g.rank[w] != -1)
+                            continue;
                         int wCost = outgoingCost.get(j);
                         if (!foundWitness(uCost, w, wCost)) {
                             shortcuts.add(new Shortcut(u, w, uCost + wCost));
