@@ -9,8 +9,8 @@ import java.util.Scanner;
 @SuppressWarnings("unchecked")
 public class DistPreprocessSmall {
     public static void main(String[] args) {
-        // runSolution();
-        testSolution();
+        runSolution();
+        // testSolution();
     }
 
     static void runSolution() {
@@ -459,6 +459,8 @@ public class DistPreprocessSmall {
         long[][] dist;
         PriorityQueue<Node>[] h;
         boolean[][] visited;
+        // ArrayList<Integer> workset;
+        HashSet<Integer> workset;
 
         @Override
         public void preprocess(DataScanner in) {
@@ -468,9 +470,13 @@ public class DistPreprocessSmall {
         void preprocess(ContractionGraph g) {
             this.g = g;
             dist = new long[][] { new long[g.s], new long[g.s] };
+            Arrays.fill(dist[0], -1);
+            Arrays.fill(dist[1], -1);
             h = (PriorityQueue<Node>[]) new PriorityQueue[] { new PriorityQueue<Node>(g.s),
                     new PriorityQueue<Node>(g.s) };
             visited = new boolean[][] { new boolean[g.s], new boolean[g.s] };
+            // workset = new ArrayList<>(g.s);
+            workset = new HashSet<>(g.s);
 
             PriorityQueue<ImportantNode> q = createImportantNodes();
             while (!q.isEmpty()) {
@@ -548,8 +554,7 @@ public class DistPreprocessSmall {
             // run dijkstra, limiting distance and/or number of hops
             clear();
             int hops = 5;
-            h[0].add(new Node(u, 0));
-            dist[0][u] = 0;
+            visit(0, u, 0);
             while (hops-- > 0 && !h[0].isEmpty()) {
                 Node n = h[0].poll();
                 if (n.distance > limit)
@@ -626,14 +631,18 @@ public class DistPreprocessSmall {
         }
 
         void clear() {
-            Arrays.fill(dist[0], -1);
-            Arrays.fill(dist[1], -1);
+            // Arrays.fill(dist[0], -1);
+            // Arrays.fill(dist[1], -1);
+            // Arrays.fill(visited[0], false);
+            // Arrays.fill(visited[1], false);
+            // I don't get it, workset just seems way slower than fill *shrug*
+            for (int u : workset) {
+                dist[0][u] = dist[1][u] = -1;
+                visited[0][u] = visited[1][u] = false;
+            }
+            workset.clear();
             h[0].clear();
             h[1].clear();
-            Arrays.fill(visited[0], false);
-            Arrays.fill(visited[1], false);
-            // TODO - use workset correctly
-            // workset.clear();
         }
 
         void process(int side, int u) {
@@ -651,8 +660,7 @@ public class DistPreprocessSmall {
             if (oldDist == -1 || oldDist > distance) {
                 dist[side][nodeId] = distance;
                 h[side].add(new Node(nodeId, distance));
-                // TODO - use workset correctly
-                // workset.add(nodeId);
+                workset.add(nodeId);
             }
         }
 
