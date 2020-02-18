@@ -8,8 +8,8 @@ import java.util.Scanner;
 @SuppressWarnings("unchecked")
 public class DistPreprocessSmall {
     public static void main(String[] args) {
-        // runSolution();
-        testSolution();
+        runSolution();
+        // testSolution();
     }
 
     static void runSolution() {
