@@ -9,8 +9,8 @@ import java.util.Scanner;
 @SuppressWarnings("unchecked")
 public class DistPreprocessSmall {
     public static void main(String[] args) {
-        runSolution();
-        // testSolution();
+        // runSolution();
+        testSolution();
     }
 
     static void runSolution() {
@@ -66,8 +66,8 @@ public class DistPreprocessSmall {
 
         int maxNumNodes = 100;
         int maxWidth = 1000000;
-        int numTests = 10000;
-        stressTest(maxNumNodes, maxWidth, numTests);
+        int numTests = 1000;
+        // stressTest(maxNumNodes, maxWidth, numTests);
         runComparisons(maxNumNodes, maxWidth, numTests);
     }
 
@@ -107,12 +107,18 @@ public class DistPreprocessSmall {
             Class<T> type) {
         Random r = new Random(seed);
         long startTime = System.currentTimeMillis();
+        long preprocessTime = 0;
+        long queryTime = 0;
+        long segmentStart = 0;
         GraphSolver solver = new Instantiator<T>().getInstance(type);
         for (int i = 0; i < numTests; i++) {
             System.out.print(type.getName() + "elapsed: %" + (double) 100 * i / numTests + "\r");
             int[] data = generateData(maxNumNodes, maxGraphWidth, r);
+            segmentStart = System.currentTimeMillis();
             solver.preprocess(new ArrayScanner(data));
+            preprocessTime += System.currentTimeMillis() - segmentStart;
 
+            segmentStart = System.currentTimeMillis();
             int queries = nextInt(data[0], r);
             for (int j = 0; j < queries; j++) {
                 int u = nextInt(data[0], r);
@@ -123,9 +129,12 @@ public class DistPreprocessSmall {
                     e.printStackTrace();
                 }
             }
+            queryTime += System.currentTimeMillis() - segmentStart;
         }
         long endTime = System.currentTimeMillis();
         System.out.println(type.getName() + " total time (ms): " + (endTime - startTime));
+        System.out.println(type.getName() + " preprocess time (ms): " + preprocessTime);
+        System.out.println(type.getName() + " query time (ms): " +queryTime);
     }
 
     static boolean evaluate(GraphSolver solver, Query[] queries, String expectedString) {
