@@ -6,7 +6,7 @@ import java.util.Random;
 import java.util.Scanner;
 
 @SuppressWarnings("unchecked")
-public class DistPreprocessSmall {
+public class DistPreprocessed {
     public static void main(String[] args) {
         runSolution();
         // testSolution();
