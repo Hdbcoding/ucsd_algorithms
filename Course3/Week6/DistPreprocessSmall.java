@@ -64,9 +64,9 @@ public class DistPreprocessSmall {
                 15, 9, 479, 16, 9, 806, 17, 9, 1582, 18, 10, 412, 10, 2, 17, 10, 8, 6, 8, 11, 13, 16, 2, 15, 14, 15, 8,
                 6, 5, 7, 1, 17, 11 }, new long[] { 6849, 2360, 2137, 4675, 6073, 9927, 8030, 5825, 3416, 10975 });
 
-        int maxNumNodes = 100;
-        int maxWidth = 1000000;
-        int numTests = 1000;
+        int maxNumNodes = 1000;
+        int maxWidth = 100;
+        int numTests = 100;
         // stressTest(maxNumNodes, maxWidth, numTests);
         runComparisons(maxNumNodes, maxWidth, numTests);
     }
@@ -502,7 +502,7 @@ public class DistPreprocessSmall {
         ArrayList<Shortcut> contractAndUpdateImportance(ImportantNode n) {
             int v = n.nodeId;
             ArrayList<Shortcut> shortcuts = new ArrayList<Shortcut>();
-            HashSet<Integer> shortcutCover = new HashSet<Integer>();
+            int shortcutCover = 0;
             ArrayList<Integer> incoming = g.adj[1][v];
             ArrayList<Integer> incomingCost = g.cost[1][v];
             ArrayList<Integer> outgoing = g.adj[0][v];
@@ -510,6 +510,7 @@ public class DistPreprocessSmall {
             int successorLimit = calculateSuccessorLimit(outgoing, outgoingCost);
             if (!incoming.isEmpty() && !outgoing.isEmpty()) {
                 for (int i = 0; i < incoming.size(); i++) {
+                    boolean hasShortcuts = false;
                     int u = incoming.get(i);
                     // don't need to process contracted nodes
                     if (g.rank[u] != -1)
@@ -525,15 +526,16 @@ public class DistPreprocessSmall {
                         int wCost = outgoingCost.get(j);
                         if (!foundWitness(uCost, w, wCost)) {
                             shortcuts.add(new Shortcut(u, w, uCost + wCost));
-                            shortcutCover.add(u);
-                            shortcutCover.add(w);
+                            shortcutCover++;
+                            hasShortcuts = true;
                         }
                     }
+                    if (hasShortcuts) shortcutCover++;
                 }
             }
 
             n.importance = (shortcuts.size() - g.getIncomingEdges(v) - g.getOutgoingEdges(v))
-                    + g.getContractedNeighbors(v) + shortcutCover.size() + g.getNodeLevel(v);
+                    + g.getContractedNeighbors(v) + shortcutCover + g.getNodeLevel(v);
             return shortcuts;
         }
 
