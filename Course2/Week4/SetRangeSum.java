@@ -320,16 +320,7 @@ public class SetRangeSum {
 
         @Override
         public void add(int key) {
-            SumNode p = null;
-            SumNode n = root;
-            while (n != null){
-                p = n;
-                // unique keys
-                if (n.key == key) return;
-                if (n.key > key) n = n.left;
-                else n = n.right;
-            }
-
+            SumNode p = findLoose(root, key);
             SumNode z = new SumNode(key, key);
             z.parent = p;
             if (p == null) root = z;
@@ -354,12 +345,22 @@ public class SetRangeSum {
 
         SumNode find(SumNode n, int key) {
             while (n != null && n.key != key) {
-                if (n.key > key)
-                    n = n.left;
-                else
-                    n = n.right;
+                if (n.key > key) n = n.left;
+                else n = n.right;
             }
             return n;
+        }
+
+        // same as find, but returns the parent of the key if the key can't be found
+        SumNode findLoose(SumNode n, int key){
+            SumNode p = null;
+            while (n != null) {
+                p = n;
+                if (n.key == key) break;
+                if (n.key > key) n = n.left;
+                else n = n.right;
+            }
+            return p;
         }
 
         @Override
@@ -429,7 +430,7 @@ public class SetRangeSum {
             if (root == null)
                 return 0;
             long sum = 0;
-            SumNode n = find(root, from);
+            SumNode n = findLoose(root, from);
 
             while (n != null && n.key <= to) {
                 if (n.key >= from) {
