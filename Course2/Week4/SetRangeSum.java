@@ -77,9 +77,8 @@ public class SetRangeSum {
         // runFileTest("36", type);
         // runFileTest("83", type);
         
-        // following tests have some incorrect sums due to elements not being deleted
-        runFileTest("01", type);
-        // runFileTest("36_early_2", type);
+        // fixed issue for 01 - was accidentally adding duplicate keys
+        // runFileTest("01", type);
     }
 
     static void debugLog(String message) {
@@ -109,6 +108,7 @@ public class SetRangeSum {
                 int arg2 = tokens.length > 2 ? Integer.parseInt(tokens[2]) : 0;
                 queries.add(new Query(type, arg1, arg2));
             }
+            r.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -123,6 +123,7 @@ public class SetRangeSum {
             while ((line = r.readLine()) != null) {
                 expected.add(line);
             }
+            r.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -321,6 +322,8 @@ public class SetRangeSum {
         @Override
         public void add(int key) {
             SumNode p = findLoose(root, key);
+            // don't add duplicate keys
+            if (p != null && p.key == key) return;
             SumNode z = new SumNode(key, key);
             z.parent = p;
             if (p == null) root = z;
