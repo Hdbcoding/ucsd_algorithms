@@ -354,7 +354,7 @@ public class SetRangeSum {
 
         SumNode find(SumNode n, int key) {
             while (n != null && n.key != key) {
-                if (n.key >= key)
+                if (n.key > key)
                     n = n.left;
                 else
                     n = n.right;
