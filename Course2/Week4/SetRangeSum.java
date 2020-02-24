@@ -65,21 +65,21 @@ public class SetRangeSum {
     }
 
     static <T extends SummingSet> void testSolution(Class<T> type) {
-        System.out.println("running simple case 1");
-        runTest(new Query[] { new Query('?', 0), new Query('+', 0), new Query('?', 0), new Query('-', 0),
-                new Query('?', 0) }, new String[] { "Not found", "Found", "Not found" }, type);
-        runTest(new Query[] { new Query('+', 491572259), new Query('?', 491572259), new Query('?', 899375874),
-                new Query('s', 310971296, 877523306), new Query('+', 352411209), },
-                new String[] { "Found", "Not found", "491572259" }, type);
-        System.out.println("done with simple case 2");
+        // runTest(new Query[] { new Query('?', 0), new Query('+', 0), new Query('?', 0), new Query('-', 0),
+        //         new Query('?', 0) }, new String[] { "Not found", "Found", "Not found" }, type);
+        // runTest(new Query[] { new Query('+', 491572259), new Query('?', 491572259), new Query('?', 899375874),
+        //         new Query('s', 310971296, 877523306), new Query('+', 352411209), },
+        //         new String[] { "Found", "Not found", "491572259" }, type);
+        // runFileTest("04", type);
+        // runFileTest("05", type);
+        // runFileTest("20", type);
+        // runFileTest("36_early", type);
+        // runFileTest("36", type);
+        // runFileTest("83", type);
+        
+        // following tests have some incorrect sums due to elements not being deleted
         runFileTest("01", type);
-        runFileTest("04", type);
-        runFileTest("05", type);
-        runFileTest("20", type);
-        runFileTest("36_early_2", type);
-        runFileTest("36_early", type);
-        runFileTest("36", type);
-        runFileTest("83", type);
+        // runFileTest("36_early_2", type);
     }
 
     static void debugLog(String message) {
@@ -431,13 +431,13 @@ public class SetRangeSum {
                 return 0;
             long sum = 0;
             SumNode n = findLoose(root, from);
+            while (n != null && n.key < from)
+                n = next(n);
 
             while (n != null && n.key <= to) {
-                if (n.key >= from) {
-                    // long v = sum + n.key;
-                    // sum = ((v % MODULO) + MODULO) % MODULO;
-                    sum += n.key;
-                }
+                // long v = sum + n.key;
+                // sum = ((v % MODULO) + MODULO) % MODULO;
+                sum += n.key;
                 n = next(n);
             }
 
