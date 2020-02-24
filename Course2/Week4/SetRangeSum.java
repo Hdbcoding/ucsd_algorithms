@@ -9,8 +9,8 @@ public class SetRangeSum {
     static boolean debug = false;
 
     public static void main(String[] args) throws IOException {
-        // runSolution();
-        testWithTallStack(SimpleTree.class);
+        runSolution();
+        // testWithTallStack(SimpleTree.class);
     }
 
     static <T extends SummingSet> void testWithTallStack(Class<T> type) {
@@ -24,7 +24,7 @@ public class SetRangeSum {
         PrintWriter out = new PrintWriter(System.out);
 
         int n = in.nextInt();
-        SplayTree tree = new SplayTree();
+        SimpleTree tree = new SimpleTree();
         for (int i = 0; i < n; i++) {
             Query q = Query.read(in);
             String s = processQuery(tree, q);
