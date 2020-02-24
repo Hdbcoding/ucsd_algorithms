@@ -10,7 +10,6 @@ public class SetRangeSum {
 
     public static void main(String[] args) throws IOException {
         // runSolution();
-        debug = true;
         testWithTallStack(SimpleTree.class);
     }
 
@@ -38,23 +37,23 @@ public class SetRangeSum {
     static String processQuery(SummingSet tree, Query q) {
         int a1 = getModulatedInput(q.arg1);
         switch (q.type) {
-        case '+':
-            debugLog("add " + a1 + " (" + q.arg1 + ")");
-            tree.add(a1);
-            break;
-        case '-':
-            debugLog("del " + a1 + " (" + q.arg1 + ")");
-            tree.delete(a1);
-            break;
-        case '?':
-            String found = (tree.contains(a1) ? "Found" : "Not found");
-            debugLog("has " + a1 + " (" + q.arg1 + "): " + found);
-            return found;
-        case 's':
-            int a2 = getModulatedInput(q.arg2);
-            last_sum_result = tree.sum(a1, a2);
-            debugLog("sum " + a1 + " (" + q.arg1 + "), " + a2 + " (" + q.arg2 + "): " + last_sum_result);
-            return last_sum_result + "";
+            case '+':
+                debugLog("add " + a1 + " (" + q.arg1 + ")");
+                tree.add(a1);
+                break;
+            case '-':
+                debugLog("del " + a1 + " (" + q.arg1 + ")");
+                tree.delete(a1);
+                break;
+            case '?':
+                String found = (tree.contains(a1) ? "Found" : "Not found");
+                debugLog("has " + a1 + " (" + q.arg1 + "): " + found);
+                return found;
+            case 's':
+                int a2 = getModulatedInput(q.arg2);
+                last_sum_result = tree.sum(a1, a2);
+                debugLog("sum " + a1 + " (" + q.arg1 + "), " + a2 + " (" + q.arg2 + "): " + last_sum_result);
+                return last_sum_result + "";
         }
         return null;
     }
@@ -66,27 +65,21 @@ public class SetRangeSum {
     }
 
     static <T extends SummingSet> void testSolution(Class<T> type) {
-        // System.out.println("running simple case 1");
-        // runTest(new Query[] { new Query('?', 0), new Query('+', 0), new Query('?',
-        // 0), new Query('-', 0),
-        // new Query('?', 0) }, new String[] { "Not found", "Found", "Not found" },
-        // type);
-        // System.out.println("done with simple case 1");
-        // System.out.println("running simple case 2");
-        // runTest(
-        // new Query[] { new Query('+', 491572259), new Query('?', 491572259), new
-        // Query('?', 899375874),
-        // new Query('s', 310971296, 877523306), new Query('+', 352411209), },
-        // new String[] { "Found", "Not found", "491572259" }, type);
-        // System.out.println("done with simple case 2");
-        // runFileTest("01", type);
-        // runFileTest("04", type);
-        // runFileTest("05", type);
-        // runFileTest("20", type);
-        // runFileTest("36_early_2", type);
+        System.out.println("running simple case 1");
+        runTest(new Query[] { new Query('?', 0), new Query('+', 0), new Query('?', 0), new Query('-', 0),
+                new Query('?', 0) }, new String[] { "Not found", "Found", "Not found" }, type);
+        runTest(new Query[] { new Query('+', 491572259), new Query('?', 491572259), new Query('?', 899375874),
+                new Query('s', 310971296, 877523306), new Query('+', 352411209), },
+                new String[] { "Found", "Not found", "491572259" }, type);
+        System.out.println("done with simple case 2");
+        runFileTest("01", type);
+        runFileTest("04", type);
+        runFileTest("05", type);
+        runFileTest("20", type);
+        runFileTest("36_early_2", type);
         runFileTest("36_early", type);
-        // runFileTest("36", type);
-        // runFileTest("83", type);
+        runFileTest("36", type);
+        runFileTest("83", type);
     }
 
     static void debugLog(String message) {
@@ -327,27 +320,21 @@ public class SetRangeSum {
 
         @Override
         public void add(int key) {
-            if (root == null) {
-                root = new SumNode(key, key);
-            } else {
-                SumNode p = find(root, key);
-                if (p.key == key)
-                    return;
-                if (p.key > key)
-                    addLeftChild(p, key);
-                else
-                    addRightChild(p, key);
+            SumNode p = null;
+            SumNode n = root;
+            while (n != null){
+                p = n;
+                // unique keys
+                if (n.key == key) return;
+                if (n.key > key) n = n.left;
+                else n = n.right;
             }
-        }
 
-        void addLeftChild(SumNode p, int key) {
-            p.left = new SumNode(key, key);
-            p.left.parent = p;
-        }
-
-        void addRightChild(SumNode p, int key) {
-            p.right = new SumNode(key, key);
-            p.right.parent = p;
+            SumNode z = new SumNode(key, key);
+            z.parent = p;
+            if (p == null) root = z;
+            else if (z.key < p.key) p.left = z;
+            else p.right = z;
         }
 
         void updateSumOfAllParents(SumNode p) {
@@ -366,77 +353,67 @@ public class SetRangeSum {
         }
 
         SumNode find(SumNode n, int key) {
-            if (n.key == key)
-                return n;
-            if (n.key > key && n.left != null)
-                return find(n.left, key);
-            if (n.key < key && n.right != null)
-                return find(n.right, key);
+            while (n != null && n.key != key) {
+                if (n.key >= key)
+                    n = n.left;
+                else
+                    n = n.right;
+            }
             return n;
         }
 
         @Override
         public void delete(int key) {
-            if (root == null)
-                return;
             SumNode p = find(root, key);
             // if the key isnt in the set, nothing to delete
-            if (p.key != key)
+            if (p == null || p.key != key)
                 return;
-
-            if (p.right == null) {
-                // if no right child, just promote the left child
-                deleteSwapChild(p.parent, p, p.left);
-            } else {
-                // "next" node is always in p's right subtree, because p has a right subtree
-                // replace the successor with its right child
-                // successor has no left children
-                SumNode n = next(p);
-                SumNode np = n.parent;
-                deleteSwapChild(np, n, n.right);
-                n.right = null;
-                // then, replace p with the successor
-                deleteSwapChild(p.parent, p, n);
+            // two simple cases - if p only has one child, promote it
+            if (p.left == null)
+                transplant(p, p.right);
+            else if (p.right == null)
+                transplant(p, p.left);
+            else {
+                SumNode next = minimum(p.right);
+                // if next node is not p's right child, replace next with its own right child
+                // also, replace next's right child with p's right child
+                if (next.parent != p){
+                    transplant(next, next.right);
+                    next.right = p.right;
+                    next.right.parent = next;
+                }
+                // replace p with next. p has no left child, so set p's left child as next's left child
+                transplant(p, next);
+                next.left = p.left;
+                next.left.parent = next;
             }
         }
 
-        private void deleteSwapChild(SumNode p, SumNode oldC, SumNode newC) {
-            if (p == null) {
-                root = newC;
-            } else {
-                if (p.key > oldC.key) {
-                    p.left = newC;
-                } else {
-                    p.right = newC;
-                }
-            }
-            // when deleting, may have to update the parent or the left child of the
-            // swapped-in node
-            if (newC != null) {
-                newC.parent = p;
-                if (newC.left == null) newC.left = oldC.left;
-                if (newC.right == null) newC.right = oldC.right;
-            }
+        void transplant(SumNode u, SumNode v){
+            if (u.parent == null) root = v;
+            else if (u.parent.left == u) u.parent.left = v;
+            else u.parent.right = v;
+            if (v != null) v.parent = u.parent;
         }
 
         SumNode next(SumNode n) {
             if (n.right != null)
-                return leftDescendant(n.right);
-            return rightAncestor(n);
+                return minimum(n.right);
+            return firstRightAncestor(n);
         }
 
-        SumNode leftDescendant(SumNode n) {
-            if (n.left == null)
-                return n;
-            return leftDescendant(n.left);
+        SumNode minimum(SumNode n) {
+            while (n.left != null) n = n.left;
+            return n;
         }
 
-        SumNode rightAncestor(SumNode n) {
-            if (n.parent == null)
-                return null;
-            if (n.key < n.parent.key)
-                return n.parent;
-            return rightAncestor(n.parent);
+        SumNode firstRightAncestor(SumNode n) {
+            SumNode p = n.parent;
+            while (p != null && p.right == n){
+                n = p;
+                p = p.parent;
+            }
+            return p;
         }
 
         @Override
@@ -444,7 +421,7 @@ public class SetRangeSum {
             if (root == null)
                 return false;
             SumNode n = find(root, key);
-            return n.key == key;
+            return n != null && n.key == key;
         }
 
         @Override
