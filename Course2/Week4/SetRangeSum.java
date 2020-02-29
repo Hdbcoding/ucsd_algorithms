@@ -9,8 +9,8 @@ public class SetRangeSum {
     static boolean debug = false;
 
     public static void main(String[] args) throws IOException {
-        runSolution();
-        // testWithTallStack(SimpleTree.class);
+        // runSolution();
+        testWithTallStack(SimpleTree.class);
     }
 
     static <T extends SummingSet> void testWithTallStack(Class<T> type) {
@@ -65,20 +65,20 @@ public class SetRangeSum {
     }
 
     static <T extends SummingSet> void testSolution(Class<T> type) {
-        // runTest(new Query[] { new Query('?', 0), new Query('+', 0), new Query('?', 0), new Query('-', 0),
-        //         new Query('?', 0) }, new String[] { "Not found", "Found", "Not found" }, type);
-        // runTest(new Query[] { new Query('+', 491572259), new Query('?', 491572259), new Query('?', 899375874),
-        //         new Query('s', 310971296, 877523306), new Query('+', 352411209), },
-        //         new String[] { "Found", "Not found", "491572259" }, type);
-        // runFileTest("04", type);
-        // runFileTest("05", type);
-        // runFileTest("20", type);
-        // runFileTest("36_early", type);
-        // runFileTest("36", type);
-        // runFileTest("83", type);
+        runTest(new Query[] { new Query('?', 0), new Query('+', 0), new Query('?', 0), new Query('-', 0),
+                new Query('?', 0) }, new String[] { "Not found", "Found", "Not found" }, type);
+        runTest(new Query[] { new Query('+', 491572259), new Query('?', 491572259), new Query('?', 899375874),
+                new Query('s', 310971296, 877523306), new Query('+', 352411209), },
+                new String[] { "Found", "Not found", "491572259" }, type);
+        runFileTest("04", type);
+        runFileTest("05", type);
+        runFileTest("20", type);
+        runFileTest("36_early", type);
+        runFileTest("36", type);
+        runFileTest("83", type);
         
         // fixed issue for 01 - was accidentally adding duplicate keys
-        // runFileTest("01", type);
+        runFileTest("01", type);
     }
 
     static void debugLog(String message) {
@@ -316,6 +316,115 @@ public class SetRangeSum {
         }
     }
 
+    static class RedBlackTree implements SummingSet {
+        boolean black = true;
+        boolean red = false;
+        SumNode nill;
+        SumNode root;
+
+        RedBlackTree(){
+            nill = createNode(-1);
+            nill.color = black;
+            root = nill;
+        }
+
+        SumNode createNode(int key){
+            SumNode n = new SumNode(key, key);
+            n.left = n.right = n.parent = nill;
+            return n;
+        }
+
+        @Override
+        public void add(int key) {
+            SumNode p = findLoose(root, key);
+            // don't add duplicates
+            if (p != nill && p.key == key) return;
+            SumNode z = createNode(key);
+            z.parent = p;
+            if (p == nill) root = z;
+            else if (z.key < p.key) p.left = z;
+            else p.right = z;
+            z.color = red;
+            insertFixup(z);
+        }
+
+        void insertFixup(SumNode z){
+            // todo - insert fixup procedure
+        }
+
+        @Override
+        public void delete(int key) {
+            // TODO Auto-generated method stub
+        }
+
+        @Override
+        public boolean contains(int key) {
+            if (root == nill)
+                return false;
+            SumNode n = find(root, key);
+            return n != null && n.key == key;
+        }
+
+        @Override
+        public long sum(int from, int to) {
+            if (root == nill)
+                return 0;
+            long sum = 0;
+            SumNode n = findLoose(root, from);
+            while (n != null && n.key < from)
+                n = next(n);
+
+            while (n != null && n.key <= to) {
+                // long v = sum + n.key;
+                // sum = ((v % MODULO) + MODULO) % MODULO;
+                sum += n.key;
+                n = next(n);
+            }
+
+            return sum;
+        }
+
+        SumNode find(SumNode n, int key) {
+            while (n != nill && n.key != key) {
+                if (n.key > key) n = n.left;
+                else n = n.right;
+            }
+            return n;
+        }
+
+        // same as find, but returns the parent of the key if the key can't be found
+        SumNode findLoose(SumNode n, int key){
+            SumNode p = nill;
+            while (n != nill) {
+                p = n;
+                if (n.key == key) break;
+                if (n.key > key) n = n.left;
+                else n = n.right;
+            }
+            return p;
+        }
+
+        SumNode next(SumNode n) {
+            if (n.right != nill)
+                return minimum(n.right);
+            return firstRightAncestor(n);
+        }
+
+        SumNode minimum(SumNode n) {
+            while (n.left != nill) n = n.left;
+            return n;
+        }
+
+        SumNode firstRightAncestor(SumNode n) {
+            SumNode p = n.parent;
+            while (p != nill && p.right == n){
+                n = p;
+                p = p.parent;
+            }
+            return p;
+        }
+    }
+
     static class SimpleTree implements SummingSet {
         SumNode root;
 
@@ -446,7 +555,6 @@ public class SetRangeSum {
 
             return sum;
         }
-
     }
 
     interface SummingSet {
@@ -467,6 +575,9 @@ public class SetRangeSum {
         SumNode left;
         SumNode right;
         SumNode parent;
+        // for red-black tree
+        boolean color;
+
 
         SumNode(int key, long sum) {
             this.key = key;
