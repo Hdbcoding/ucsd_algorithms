@@ -10,13 +10,8 @@ public class SetRangeSum {
 
     public static void main(String[] args) throws IOException {
         // runSolution();
-        testWithTallStack(RedBlackTree.class);
-    }
-
-    static <T extends SummingSet> void testWithTallStack(Class<T> type) {
-        new Thread(null, () -> {
-            testSolution(type);
-        }, "1", 1 << 26).start();
+        // testSolution(SimpleTree.class);
+        testSolution(RedBlackTree.class);
     }
 
     static void runSolution() throws IOException {
@@ -70,15 +65,14 @@ public class SetRangeSum {
         runTest(new Query[] { new Query('+', 491572259), new Query('?', 491572259), new Query('?', 899375874),
                 new Query('s', 310971296, 877523306), new Query('+', 352411209), },
                 new String[] { "Found", "Not found", "491572259" }, type);
+        runFileTest("01", type);
         runFileTest("04", type);
         runFileTest("05", type);
         runFileTest("20", type);
         runFileTest("36_early", type);
+        runFileTest("36_early_3", type);
         runFileTest("36", type);
         runFileTest("83", type);
-
-        // fixed issue for 01 - was accidentally adding duplicate keys
-        runFileTest("01", type);
     }
 
     static void debugLog(String message) {
