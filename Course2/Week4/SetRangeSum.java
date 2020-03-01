@@ -11,7 +11,8 @@ public class SetRangeSum {
     public static void main(String[] args) throws IOException {
         // runSolution();
         // testSolution(SimpleTree.class);
-        testSolution(RedBlackTree.class);
+        // testSolution(RedBlackTree.class);
+        stressTest();
     }
 
     static void runSolution() throws IOException {
@@ -73,6 +74,69 @@ public class SetRangeSum {
         runFileTest("36_early_3", type);
         runFileTest("36", type);
         runFileTest("83", type);
+    }
+
+    static void stressTest() {
+        int numTests = 10000000;
+        int maxNumQueries = 50;
+        int maxInput = 10;
+
+        Random r = new Random();
+        for (int i = 0; i < numTests; i++) {
+            System.out.print("Stress tests: %" + (double) 100 * i / numTests + "\r");
+            Query[] data = generateData(maxNumQueries, maxInput, r);
+            String expected = respondToQueries(new SimpleTree(), data);
+            String actual = respondToQueries(new RedBlackTree(), data);
+            if (!expected.equals(expected))
+                System.out.println("Unexpected result, expected: " + expected + ", but got: " + actual + " for queries "
+                        + Arrays.toString(data));
+        }
+    }
+
+    static Query[] generateData(int maxNumQueries, int maxInput, Random r) {
+        int n = nextInt(maxNumQueries, r) + 1;
+        Query[] data = new Query[n];
+        for (int i = 0; i < n; i++) {
+            char type = nextType(r);
+            int arg1 = nextInt(maxInput, r);
+            int arg2 = 0;
+            if (type == 's'){
+                int temp = nextInt(maxInput, r);
+                arg2 = Math.max(arg1, temp);
+                arg1 = Math.min(arg1, temp);
+            }
+            data[i] = new Query(type, arg1, arg2);
+        }
+        return data;
+    }
+
+    static int nextInt(int bound, Random r) {
+        return Math.abs(r.nextInt(bound));
+    }
+
+    static char nextType(Random r) {
+        int i = nextInt(4, r);
+        switch (i) {
+            case 0:
+                return '+';
+            case 1:
+                return '-';
+            case 2:
+                return '?';
+            default:
+                return 's';
+        }
+    }
+
+    static String respondToQueries(SummingSet tree, Query[] queries) {
+        ArrayList<String> actual = new ArrayList<>();
+        last_sum_result = 0;
+        for (Query q : queries) {
+            String s = processQuery(tree, q);
+            if (s != null)
+                actual.add(s);
+        }
+        return Arrays.toString(actual.toArray());
     }
 
     static void debugLog(String message) {
@@ -796,6 +860,11 @@ public class SetRangeSum {
             if (type == 's')
                 arg2 = in.nextInt();
             return new Query(type, arg1, arg2);
+        }
+
+        @Override
+        public String toString() {
+            return "{ type: " + type + " , arg1: " + arg1 + ", arg2: " + arg2 + " }";
         }
     }
 
