@@ -576,7 +576,7 @@ public class SetRangeSum {
                         }
                         w.color = x.parent.color;
                         x.parent.color = black;
-                        w.right.color = black;
+                        w.left.color = black;
                         rightRotate(x.parent);
                         x = root;
                     }
