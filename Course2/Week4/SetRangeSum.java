@@ -323,7 +323,8 @@ public class SetRangeSum {
         SumNode root;
 
         RedBlackTree() {
-            nill = createNode(-1);
+            nill = new SumNode(-1, -1);
+            nill.left = nill.right = nill.parent = nill;
             nill.color = black;
             root = nill;
         }
@@ -540,10 +541,10 @@ public class SetRangeSum {
                 return 0;
             long sum = 0;
             SumNode n = findLoose(root, from);
-            while (n != null && n.key < from)
+            while (n != nill && n.key < from)
                 n = next(n);
 
-            while (n != null && n.key <= to) {
+            while (n != nill && n.key <= to) {
                 // long v = sum + n.key;
                 // sum = ((v % MODULO) + MODULO) % MODULO;
                 sum += n.key;
