@@ -9,9 +9,9 @@ public class SetRangeSum {
     static boolean debug = false;
 
     public static void main(String[] args) throws IOException {
-        // runSolution();
-        testSolution(SimpleTree.class);
-        testSolution(RedBlackTree.class);
+        runSolution();
+        // testSolution(SimpleTree.class);
+        // testSolution(RedBlackTree.class);
         // stressTest();
     }
 
