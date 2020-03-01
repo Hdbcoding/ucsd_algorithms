@@ -10,8 +10,8 @@ public class SetRangeSum {
 
     public static void main(String[] args) throws IOException {
         // runSolution();
-        testSolution(SimpleTree.class);
-        // testSolution(RedBlackTree.class);
+        // testSolution(SimpleTree.class);
+        testSolution(RedBlackTree.class);
         // stressTest();
     }
 
@@ -409,29 +409,23 @@ public class SetRangeSum {
     static class RedBlackTree implements SummingSet {
         boolean black = true;
         boolean red = false;
-        SumNode nill;
-        SumNode root;
+        Node nill;
+        Node root;
 
         RedBlackTree() {
-            nill = new SumNode(-1, -1);
+            nill = new Node(-1);
             nill.left = nill.right = nill.parent = nill;
             nill.color = black;
             root = nill;
         }
 
-        SumNode createNode(int key) {
-            SumNode n = new SumNode(key, key);
-            n.left = n.right = n.parent = nill;
-            return n;
-        }
-
         @Override
         public void add(int key) {
-            SumNode p = findLoose(root, key);
+            Node p = findLoose(key);
             // don't add duplicates
             if (p != nill && p.key == key)
                 return;
-            SumNode z = createNode(key);
+            Node z = createNode(key);
             z.parent = p;
             if (p == nill)
                 root = z;
@@ -443,8 +437,8 @@ public class SetRangeSum {
             insertFixup(z);
         }
 
-        void insertFixup(SumNode z) {
-            SumNode y;
+        void insertFixup(Node z) {
+            Node y;
             while (z.parent.color == red) {
                 if (z.parent == z.parent.parent.left) {
                     y = z.parent.parent.right;
@@ -483,47 +477,15 @@ public class SetRangeSum {
             root.color = black;
         }
 
-        void leftRotate(SumNode x) {
-            SumNode y = x.right;
-            x.right = y.left;
-            if (y.left != nill)
-                y.left.parent = x;
-            y.parent = x.parent;
-            if (x.parent == nill)
-                root = y;
-            else if (x == x.parent.left)
-                x.parent.left = y;
-            else
-                x.parent.right = y;
-            y.left = x;
-            x.parent = y;
-        }
-
-        void rightRotate(SumNode x) {
-            SumNode y = x.left;
-            x.left = y.right;
-            if (y.right != nill)
-                y.right.parent = x;
-            y.parent = x.parent;
-            if (x.parent == nill)
-                root = y;
-            else if (x == x.parent.left)
-                x.parent.left = y;
-            else
-                x.parent.right = y;
-            y.right = x;
-            x.parent = y;
-        }
-
         @Override
         public void delete(int key) {
-            SumNode z = find(root, key);
+            Node z = findLoose(key);
             // nothing to delete if the key isn't in the set
             if (z == nill || z.key != key)
                 return;
 
-            SumNode y = z;
-            SumNode x = nill;
+                Node y = z;
+            Node x = nill;
             boolean color = y.color;
             if (z.left == nill) {
                 x = z.right;
@@ -551,18 +513,8 @@ public class SetRangeSum {
                 deleteFixup(x);
         }
 
-        void transplant(SumNode u, SumNode v) {
-            if (u.parent == nill)
-                root = v;
-            else if (u == u.parent.left)
-                u.parent.left = v;
-            else
-                u.parent.right = v;
-            v.parent = u.parent;
-        }
-
-        void deleteFixup(SumNode x) {
-            SumNode w;
+        void deleteFixup(Node x) {
+            Node w;
             while (x != root && x.color == black) {
                 if (x == x.parent.left) {
                     w = x.parent.right;
@@ -621,7 +573,7 @@ public class SetRangeSum {
         public boolean contains(int key) {
             if (root == nill)
                 return false;
-            SumNode n = find(root, key);
+            Node n = findLoose(key);
             return n != null && n.key == key;
         }
 
@@ -630,7 +582,7 @@ public class SetRangeSum {
             if (root == nill)
                 return 0;
             long sum = 0;
-            SumNode n = findLoose(root, from);
+            Node n = findLoose(from);
             while (n != nill && n.key < from)
                 n = next(n);
 
@@ -644,19 +596,9 @@ public class SetRangeSum {
             return sum;
         }
 
-        SumNode find(SumNode n, int key) {
-            while (n != nill && n.key != key) {
-                if (n.key > key)
-                    n = n.left;
-                else
-                    n = n.right;
-            }
-            return n;
-        }
-
-        // same as find, but returns the parent of the key if the key can't be found
-        SumNode findLoose(SumNode n, int key) {
-            SumNode p = nill;
+        Node findLoose(int key) {
+            Node n = root;
+            Node p = nill;
             while (n != nill) {
                 p = n;
                 if (n.key == key)
@@ -669,25 +611,85 @@ public class SetRangeSum {
             return p;
         }
 
-        SumNode next(SumNode n) {
+        Node createNode(int key) {
+            Node n = new Node(key);
+            n.left = n.right = n.parent = nill;
+            return n;
+        }
+
+        void leftRotate(Node x) {
+            Node y = x.right;
+            x.right = y.left;
+            if (y.left != nill)
+                y.left.parent = x;
+            y.parent = x.parent;
+            if (x.parent == nill)
+                root = y;
+            else if (x == x.parent.left)
+                x.parent.left = y;
+            else
+                x.parent.right = y;
+            y.left = x;
+            x.parent = y;
+        }
+
+        void rightRotate(Node x) {
+            Node y = x.left;
+            x.left = y.right;
+            if (y.right != nill)
+                y.right.parent = x;
+            y.parent = x.parent;
+            if (x.parent == nill)
+                root = y;
+            else if (x == x.parent.left)
+                x.parent.left = y;
+            else
+                x.parent.right = y;
+            y.right = x;
+            x.parent = y;
+        }
+
+        void transplant(Node u, Node v) {
+            if (u.parent == nill)
+                root = v;
+            else if (u == u.parent.left)
+                u.parent.left = v;
+            else
+                u.parent.right = v;
+            v.parent = u.parent;
+        }
+
+        Node next(Node n) {
             if (n.right != nill)
                 return minimum(n.right);
             return firstRightAncestor(n);
         }
 
-        SumNode minimum(SumNode n) {
+        Node minimum(Node n) {
             while (n.left != nill)
                 n = n.left;
             return n;
         }
 
-        SumNode firstRightAncestor(SumNode n) {
-            SumNode p = n.parent;
+        Node firstRightAncestor(Node n) {
+            Node p = n.parent;
             while (p != nill && p.right == n) {
                 n = p;
                 p = p.parent;
             }
             return p;
+        }
+
+        class Node {
+            int key;
+            Node left;
+            Node right;
+            Node parent;
+            boolean color;
+
+            Node(int key){
+                this.key = key;
+            }
         }
     }
 
@@ -842,8 +844,6 @@ public class SetRangeSum {
         SumNode left;
         SumNode right;
         SumNode parent;
-        // for red-black tree
-        boolean color;
 
         SumNode(int key, long sum) {
             this.key = key;
