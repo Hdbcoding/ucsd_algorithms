@@ -10,9 +10,9 @@ public class SetRangeSum {
 
     public static void main(String[] args) throws IOException {
         // runSolution();
-        // testSolution(SimpleTree.class);
-        // testSolution(RedBlackTree.class);
-        stressTest();
+        testSolution(SimpleTree.class);
+        testSolution(RedBlackTree.class);
+        // stressTest();
     }
 
     static void runSolution() throws IOException {
@@ -20,7 +20,7 @@ public class SetRangeSum {
         PrintWriter out = new PrintWriter(System.out);
 
         int n = in.nextInt();
-        SimpleTree tree = new SimpleTree();
+        RedBlackTree tree = new RedBlackTree();
         for (int i = 0; i < n; i++) {
             Query q = Query.read(in);
             String s = processQuery(tree, q);
@@ -72,8 +72,8 @@ public class SetRangeSum {
         runFileTest("20", type);
         runFileTest("36_early", type);
         runFileTest("36_early_3", type);
-        runFileTest("36", type);
-        runFileTest("83", type);
+        // runFileTest("36", type);
+        // runFileTest("83", type);
     }
 
     static void stressTest() {
