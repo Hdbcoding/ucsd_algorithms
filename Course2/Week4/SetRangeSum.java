@@ -9,8 +9,8 @@ public class SetRangeSum {
     static boolean debug = false;
 
     public static void main(String[] args) throws IOException {
-        runSolution();
-        // testSolution(SimpleTree.class);
+        // runSolution();
+        testSolution(SimpleTree.class);
         // testSolution(RedBlackTree.class);
         // stressTest();
     }
@@ -72,8 +72,8 @@ public class SetRangeSum {
         runFileTest("20", type);
         runFileTest("36_early", type);
         runFileTest("36_early_3", type);
-        // runFileTest("36", type);
-        // runFileTest("83", type);
+        runFileTest("36", type);
+        runFileTest("83", type);
     }
 
     static void stressTest() {
@@ -374,6 +374,38 @@ public class SetRangeSum {
         }
     }
 
+    static class AVLTree implements SummingSet {
+        @Override
+        public void add(int key) {
+            // TODO Auto-generated method stub
+
+        }
+
+        @Override
+        public void delete(int key) {
+            // TODO Auto-generated method stub
+
+        }
+
+        @Override
+        public boolean contains(int key) {
+            // TODO Auto-generated method stub
+            return false;
+        }
+
+        @Override
+        public long sum(int from, int to) {
+            // TODO Auto-generated method stub
+            return 0;
+        }
+
+        class Node {
+            int key;
+            Node left;
+            Node right;
+        }
+    }
+
     static class RedBlackTree implements SummingSet {
         boolean black = true;
         boolean red = false;
@@ -660,15 +692,15 @@ public class SetRangeSum {
     }
 
     static class SimpleTree implements SummingSet {
-        SumNode root;
+        Node root;
 
         @Override
         public void add(int key) {
-            SumNode p = findLoose(root, key);
+            Node p = find(key);
             // don't add duplicate keys
             if (p != null && p.key == key)
                 return;
-            SumNode z = new SumNode(key, key);
+            Node z = new Node(key);
             z.parent = p;
             if (p == null)
                 root = z;
@@ -678,34 +710,9 @@ public class SetRangeSum {
                 p.right = z;
         }
 
-        SumNode find(SumNode n, int key) {
-            while (n != null && n.key != key) {
-                if (n.key > key)
-                    n = n.left;
-                else
-                    n = n.right;
-            }
-            return n;
-        }
-
-        // same as find, but returns the parent of the key if the key can't be found
-        SumNode findLoose(SumNode n, int key) {
-            SumNode p = null;
-            while (n != null) {
-                p = n;
-                if (n.key == key)
-                    break;
-                if (n.key > key)
-                    n = n.left;
-                else
-                    n = n.right;
-            }
-            return p;
-        }
-
         @Override
         public void delete(int key) {
-            SumNode p = find(root, key);
+            Node p = find(key);
             // if the key isnt in the set, nothing to delete
             if (p == null || p.key != key)
                 return;
@@ -715,7 +722,7 @@ public class SetRangeSum {
             else if (p.right == null)
                 transplant(p, p.left);
             else {
-                SumNode next = minimum(p.right);
+                Node next = minimum(p.right);
                 // if next node is not p's right child, replace next with its own right child
                 // also, replace next's right child with p's right child
                 if (next.parent != p) {
@@ -731,43 +738,11 @@ public class SetRangeSum {
             }
         }
 
-        void transplant(SumNode u, SumNode v) {
-            if (u.parent == null)
-                root = v;
-            else if (u.parent.left == u)
-                u.parent.left = v;
-            else
-                u.parent.right = v;
-            if (v != null)
-                v.parent = u.parent;
-        }
-
-        SumNode next(SumNode n) {
-            if (n.right != null)
-                return minimum(n.right);
-            return firstRightAncestor(n);
-        }
-
-        SumNode minimum(SumNode n) {
-            while (n.left != null)
-                n = n.left;
-            return n;
-        }
-
-        SumNode firstRightAncestor(SumNode n) {
-            SumNode p = n.parent;
-            while (p != null && p.right == n) {
-                n = p;
-                p = p.parent;
-            }
-            return p;
-        }
-
         @Override
         public boolean contains(int key) {
             if (root == null)
                 return false;
-            SumNode n = find(root, key);
+            Node n = find(key);
             return n != null && n.key == key;
         }
 
@@ -776,7 +751,7 @@ public class SetRangeSum {
             if (root == null)
                 return 0;
             long sum = 0;
-            SumNode n = findLoose(root, from);
+            Node n = find(from);
             while (n != null && n.key < from)
                 n = next(n);
 
@@ -788,6 +763,64 @@ public class SetRangeSum {
             }
 
             return sum;
+        }
+
+        Node find(int key) {
+            Node n = root;
+            Node p = null;
+            while (n != null) {
+                p = n;
+                if (n.key == key)
+                    break;
+                if (n.key > key)
+                    n = n.left;
+                else
+                    n = n.right;
+            }
+            return p;
+        }
+
+        void transplant(Node u, Node v) {
+            if (u.parent == null)
+                root = v;
+            else if (u.parent.left == u)
+                u.parent.left = v;
+            else
+                u.parent.right = v;
+            if (v != null)
+                v.parent = u.parent;
+        }
+
+        Node next(Node n) {
+            if (n.right != null)
+                return minimum(n.right);
+            return firstRightAncestor(n);
+        }
+
+        Node minimum(Node n) {
+            while (n.left != null)
+                n = n.left;
+            return n;
+        }
+
+        Node firstRightAncestor(Node n) {
+            Node p = n.parent;
+            while (p != null && p.right == n) {
+                n = p;
+                p = p.parent;
+            }
+            return p;
+        }
+
+        class Node {
+            int key;
+            Node parent;
+            Node left;
+            Node right;
+
+            Node(int key){
+                this.key = key;
+            }
         }
     }
 
@@ -824,6 +857,8 @@ public class SetRangeSum {
             this.parent = parent;
         }
     }
+
+
 
     static class NodePair {
         SumNode left;
