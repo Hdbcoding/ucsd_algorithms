@@ -9,9 +9,10 @@ public class SetRangeSum {
     static boolean debug = false;
 
     public static void main(String[] args) throws IOException {
-        // runSolution();
+        runSolution();
         // testSolution(SimpleTree.class);
-        testSolution(RedBlackTree.class);
+        // testSolution(RedBlackTree.class);
+        // testSolution(AVLTree.class);
         // stressTest();
     }
 
@@ -100,7 +101,7 @@ public class SetRangeSum {
             char type = nextType(r);
             int arg1 = nextInt(maxInput, r);
             int arg2 = 0;
-            if (type == 's'){
+            if (type == 's') {
                 int temp = nextInt(maxInput, r);
                 arg2 = Math.max(arg1, temp);
                 arg1 = Math.min(arg1, temp);
@@ -204,7 +205,7 @@ public class SetRangeSum {
             System.out.println("Unexpected result, expected: " + expectedString + ", but got: " + actualString);
     }
 
-    static class SplayTree implements SummingSet {
+    static class SplitMergeSplayTree implements SummingSet {
         SumNode root = null;
 
         public void add(int x) {
@@ -375,34 +376,213 @@ public class SetRangeSum {
     }
 
     static class AVLTree implements SummingSet {
+        Node root;
+
         @Override
         public void add(int key) {
-            // TODO Auto-generated method stub
-
+            Node p = find(key);
+            // don't add duplicates
+            if (p != null && p.key == key)
+                return;
+            Node z = new Node(key);
+            z.parent = p;
+            if (p == null)
+                root = z;
+            else if (z.key < p.key)
+                p.left = z;
+            else
+                p.right = z;
+            rebalance(z);
         }
 
         @Override
         public void delete(int key) {
-            // TODO Auto-generated method stub
-
+            Node p = find(key);
+            // if the key isnt in the set, nothing to delete
+            if (p == null || p.key != key)
+                return;
+            Node x = p.parent;
+            // two simple cases - if p only has one child, promote it
+            if (p.left == null) {
+                transplant(p, p.right);
+            } else if (p.right == null) {
+                transplant(p, p.left);
+            } else {
+                Node next = minimum(p.right);
+                // if next node is not p's right child, replace next with its own right child
+                // also, replace next's right child with p's right child
+                if (next.parent != p) {
+                    x = next.parent;
+                    transplant(next, next.right);
+                    next.right = p.right;
+                    next.right.parent = next;
+                }
+                // replace p with next. p has no left child, so set p's left child as next's
+                // left child
+                transplant(p, next);
+                next.left = p.left;
+                next.left.parent = next;
+            }
+            rebalance(x);
         }
 
         @Override
         public boolean contains(int key) {
-            // TODO Auto-generated method stub
-            return false;
+            if (root == null)
+                return false;
+            Node n = find(key);
+            return n != null && n.key == key;
         }
 
         @Override
         public long sum(int from, int to) {
-            // TODO Auto-generated method stub
-            return 0;
+            if (root == null)
+                return 0;
+            long sum = 0;
+            Node n = find(from);
+            while (n != null && n.key < from)
+                n = next(n);
+
+            while (n != null && n.key <= to) {
+                sum += n.key;
+                n = next(n);
+            }
+
+            return sum;
+        }
+
+        void rebalance(Node n) {
+            Node p = null;
+            while (n != null) {
+                p = n.parent;
+                int l = height(n.left);
+                int r = height(n.right);
+                if (l > r + 1)
+                    rebalanceRight(n);
+                else if (r > l + 1)
+                    rebalanceLeft(n);
+                adjustHeight(n);
+                n = p;
+            }
+        }
+
+        void rebalanceRight(Node n) {
+            Node m = n.left;
+            if (height(m.right) > height(m.left))
+                leftRotate(m);
+            rightRotate(n);
+            adjustHeight(m);
+            adjustHeight(n);
+        }
+
+        void rebalanceLeft(Node n) {
+            Node m = n.right;
+            if (height(m.left) > height(m.right))
+                rightRotate(m);
+            leftRotate(n);
+            adjustHeight(m);
+            adjustHeight(n);
+        }
+
+        int height(Node n) {
+            if (n == null)
+                return 0;
+            return n.height;
+        }
+
+        void adjustHeight(Node n) {
+            n.height = Math.max(height(n.left), height(n.right)) + 1;
+        }
+
+        Node find(int key) {
+            Node n = root;
+            Node p = null;
+            while (n != null) {
+                p = n;
+                if (n.key == key)
+                    break;
+                if (n.key > key)
+                    n = n.left;
+                else
+                    n = n.right;
+            }
+            return p;
+        }
+
+        void leftRotate(Node x) {
+            Node y = x.right;
+            x.right = y.left;
+            if (y.left != null)
+                y.left.parent = x;
+            y.parent = x.parent;
+            if (x.parent == null)
+                root = y;
+            else if (x == x.parent.left)
+                x.parent.left = y;
+            else
+                x.parent.right = y;
+            y.left = x;
+            x.parent = y;
+        }
+
+        void rightRotate(Node x) {
+            Node y = x.left;
+            x.left = y.right;
+            if (y.right != null)
+                y.right.parent = x;
+            y.parent = x.parent;
+            if (x.parent == null)
+                root = y;
+            else if (x == x.parent.left)
+                x.parent.left = y;
+            else
+                x.parent.right = y;
+            y.right = x;
+            x.parent = y;
+        }
+
+        void transplant(Node u, Node v) {
+            if (u.parent == null)
+                root = v;
+            else if (u == u.parent.left)
+                u.parent.left = v;
+            else
+                u.parent.right = v;
+            if (v != null)
+                v.parent = u.parent;
+        }
+
+        Node next(Node n) {
+            if (n.right != null)
+                return minimum(n.right);
+            return firstRightAncestor(n);
+        }
+
+        Node minimum(Node n) {
+            while (n.left != null)
+                n = n.left;
+            return n;
+        }
+
+        Node firstRightAncestor(Node n) {
+            Node p = n.parent;
+            while (p != null && p.right == n) {
+                n = p;
+                p = p.parent;
+            }
+            return p;
         }
 
         class Node {
             int key;
+            Node parent;
             Node left;
             Node right;
+            int height;
+
+            Node(int key) {
+                this.key = key;
+            }
         }
     }
 
@@ -421,7 +601,7 @@ public class SetRangeSum {
 
         @Override
         public void add(int key) {
-            Node p = findLoose(key);
+            Node p = find(key);
             // don't add duplicates
             if (p != nill && p.key == key)
                 return;
@@ -479,12 +659,12 @@ public class SetRangeSum {
 
         @Override
         public void delete(int key) {
-            Node z = findLoose(key);
+            Node z = find(key);
             // nothing to delete if the key isn't in the set
             if (z == nill || z.key != key)
                 return;
 
-                Node y = z;
+            Node y = z;
             Node x = nill;
             boolean color = y.color;
             if (z.left == nill) {
@@ -573,7 +753,7 @@ public class SetRangeSum {
         public boolean contains(int key) {
             if (root == nill)
                 return false;
-            Node n = findLoose(key);
+            Node n = find(key);
             return n != null && n.key == key;
         }
 
@@ -582,13 +762,11 @@ public class SetRangeSum {
             if (root == nill)
                 return 0;
             long sum = 0;
-            Node n = findLoose(from);
+            Node n = find(from);
             while (n != nill && n.key < from)
                 n = next(n);
 
             while (n != nill && n.key <= to) {
-                // long v = sum + n.key;
-                // sum = ((v % MODULO) + MODULO) % MODULO;
                 sum += n.key;
                 n = next(n);
             }
@@ -596,7 +774,7 @@ public class SetRangeSum {
             return sum;
         }
 
-        Node findLoose(int key) {
+        Node find(int key) {
             Node n = root;
             Node p = nill;
             while (n != nill) {
@@ -687,7 +865,7 @@ public class SetRangeSum {
             Node parent;
             boolean color;
 
-            Node(int key){
+            Node(int key) {
                 this.key = key;
             }
         }
@@ -820,7 +998,7 @@ public class SetRangeSum {
             Node left;
             Node right;
 
-            Node(int key){
+            Node(int key) {
                 this.key = key;
             }
         }
@@ -857,8 +1035,6 @@ public class SetRangeSum {
             this.parent = parent;
         }
     }
-
-
 
     static class NodePair {
         SumNode left;
