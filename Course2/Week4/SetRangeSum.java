@@ -21,7 +21,7 @@ public class SetRangeSum {
         PrintWriter out = new PrintWriter(System.out);
 
         int n = in.nextInt();
-        RedBlackTree tree = new RedBlackTree();
+        AVLTree tree = new AVLTree();
         for (int i = 0; i < n; i++) {
             Query q = Query.read(in);
             String s = processQuery(tree, q);
