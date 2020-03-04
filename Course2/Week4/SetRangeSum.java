@@ -9,10 +9,11 @@ public class SetRangeSum {
     static boolean debug = false;
 
     public static void main(String[] args) throws IOException {
-        runSolution();
+        // runSolution();
         // testSolution(SimpleTree.class);
         // testSolution(RedBlackTree.class);
         // testSolution(AVLTree.class);
+        testSolution(SplayTree.class);
         // stressTest();
     }
 
@@ -372,6 +373,227 @@ public class SetRangeSum {
             right.left = left;
             update(right);
             return right;
+        }
+    }
+
+    static class SplayTree implements SummingSet {
+        Node root;
+
+        @Override
+        public void add(int key) {
+            Node n = insert(key);
+            splay(n);
+        }
+
+        @Override
+        public void delete(int key) {
+            remove(key);
+            splayFind(key);
+        }
+
+        @Override
+        public boolean contains(int key) {
+            if (root == null)
+                return false;
+            Node n = splayFind(key);
+            return n != null && n.key == key;
+        }
+
+        @Override
+        public long sum(int from, int to) {
+            if (root == null)
+                return 0;
+            long sum = 0;
+            Node n = splayFind(from);
+            while (n != null && n.key < from)
+                n = next(n);
+
+            while (n != null && n.key <= to) {
+                sum += n.key;
+                n = next(n);
+            }
+
+            return sum;
+        }
+
+        Node splayFind(int key){
+            Node n = find(key);
+            splay(n);
+            return n;
+        }
+
+        void splay(Node n){
+            if (n == null) return;
+            Node p, gp;
+            boolean pLeft, gpLeft;
+            while (n.parent != null){
+                p = n.parent;
+                gp = p.parent;
+                pLeft = isLeftChild(n, p);
+                if (gp != null) {
+                    gpLeft = isLeftChild(p, gp);
+                    if (pLeft && gpLeft){
+                        // leftZigZig
+                        rightRotate(gp);
+                        rightRotate(p);
+                    } else if (!pLeft && !gpLeft){
+                        // rightZigZig
+                        leftRotate(gp);
+                        leftRotate(p);
+                    } else if (pLeft && !gpLeft){
+                        // leftZigZag
+                        rightRotate(p);
+                        leftRotate(gp);
+                    } else if (!pLeft && gpLeft){
+                        // rightZigZag
+                        leftRotate(p);
+                        rightRotate(gp);
+                    }
+                } else {
+                    if (pLeft){
+                        rightRotate(p);
+                    } else {
+                        leftRotate(p);
+                    }
+                }
+            }
+        }
+
+        boolean isLeftChild(Node c, Node p){
+            return c == p.left;
+        }
+
+        void leftRotate(Node x) {
+            Node y = x.right;
+            x.right = y.left;
+            if (y.left != null)
+                y.left.parent = x;
+            y.parent = x.parent;
+            if (x.parent == null)
+                root = y;
+            else if (x == x.parent.left)
+                x.parent.left = y;
+            else
+                x.parent.right = y;
+            y.left = x;
+            x.parent = y;
+        }
+
+        void rightRotate(Node x) {
+            Node y = x.left;
+            x.left = y.right;
+            if (y.right != null)
+                y.right.parent = x;
+            y.parent = x.parent;
+            if (x.parent == null)
+                root = y;
+            else if (x == x.parent.left)
+                x.parent.left = y;
+            else
+                x.parent.right = y;
+            y.right = x;
+            x.parent = y;
+        }
+
+        Node insert(int key){
+            Node p = find(key);
+            // don't add duplicate keys
+            if (p != null && p.key == key)
+                return p;
+            Node z = new Node(key);
+            z.parent = p;
+            if (p == null)
+                root = z;
+            else if (z.key < p.key)
+                p.left = z;
+            else
+                p.right = z;
+            return z;
+        }
+
+        void remove(int key){
+            Node p = find(key);
+            // if the key isnt in the set, nothing to delete
+            if (p == null || p.key != key)
+                return;
+            // two simple cases - if p only has one child, promote it
+            if (p.left == null)
+                transplant(p, p.right);
+            else if (p.right == null)
+                transplant(p, p.left);
+            else {
+                Node next = minimum(p.right);
+                // if next node is not p's right child, replace next with its own right child
+                // also, replace next's right child with p's right child
+                if (next.parent != p) {
+                    transplant(next, next.right);
+                    next.right = p.right;
+                    next.right.parent = next;
+                }
+                // replace p with next. p has no left child, so set p's left child as next's
+                // left child
+                transplant(p, next);
+                next.left = p.left;
+                next.left.parent = next;
+            }
+        }
+        
+        Node find(int key) {
+            Node n = root;
+            Node p = null;
+            while (n != null) {
+                p = n;
+                if (n.key == key)
+                    break;
+                if (n.key > key)
+                    n = n.left;
+                else
+                    n = n.right;
+            }
+            return p;
+        }
+
+        void transplant(Node u, Node v) {
+            if (u.parent == null)
+                root = v;
+            else if (u.parent.left == u)
+                u.parent.left = v;
+            else
+                u.parent.right = v;
+            if (v != null)
+                v.parent = u.parent;
+        }
+
+        Node next(Node n) {
+            if (n.right != null)
+                return minimum(n.right);
+            return firstRightAncestor(n);
+        }
+
+        Node minimum(Node n) {
+            while (n.left != null)
+                n = n.left;
+            return n;
+        }
+
+        Node firstRightAncestor(Node n) {
+            Node p = n.parent;
+            while (p != null && p.right == n) {
+                n = p;
+                p = p.parent;
+            }
+            return p;
+        }
+
+        class Node {
+            int key;
+            Node parent;
+            Node left;
+            Node right;
+
+            Node(int key) {
+                this.key = key;
+            }
         }
     }
 
