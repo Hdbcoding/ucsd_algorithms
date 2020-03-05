@@ -70,12 +70,12 @@ public class SetRangeSum {
                 new String[] { "Found", "Not found", "491572259" }, type);
         runFileTest("01", type);
         runFileTest("04", type);
-        runFileTest("05", type);
-        runFileTest("20", type);
-        runFileTest("36_early", type);
-        runFileTest("36_early_3", type);
-        runFileTest("36", type);
-        runFileTest("83", type);
+        // runFileTest("05", type);
+        // runFileTest("20", type);
+        // runFileTest("36_early", type);
+        // runFileTest("36_early_3", type);
+        // runFileTest("36", type);
+        // runFileTest("83", type);
     }
 
     static void stressTest() {
@@ -204,6 +204,11 @@ public class SetRangeSum {
         String expectedString = Arrays.toString(expected);
         if (!expectedString.equals(actualString))
             System.out.println("Unexpected result, expected: " + expectedString + ", but got: " + actualString);
+        if (tree instanceof SplayTree) {
+            SplayTree st = (SplayTree) tree;
+            System.out.println("validating tree");
+            st.validateTree();
+        }
     }
 
     static class SplitMergeSplayTree implements SummingSet {
@@ -416,41 +421,42 @@ public class SetRangeSum {
             return sum;
         }
 
-        Node splayFind(int key){
+        Node splayFind(int key) {
             Node n = find(key);
             splay(n);
             return n;
         }
 
-        void splay(Node n){
-            if (n == null) return;
+        void splay(Node n) {
+            if (n == null)
+                return;
             Node p, gp;
             boolean pLeft, gpLeft;
-            while (n.parent != null){
+            while (n.parent != null) {
                 p = n.parent;
                 gp = p.parent;
                 pLeft = isLeftChild(n, p);
                 if (gp != null) {
                     gpLeft = isLeftChild(p, gp);
-                    if (pLeft && gpLeft){
+                    if (pLeft && gpLeft) {
                         // leftZigZig
                         rightRotate(gp);
                         rightRotate(p);
-                    } else if (!pLeft && !gpLeft){
+                    } else if (!pLeft && !gpLeft) {
                         // rightZigZig
                         leftRotate(gp);
                         leftRotate(p);
-                    } else if (pLeft && !gpLeft){
+                    } else if (pLeft && !gpLeft) {
                         // leftZigZag
                         rightRotate(p);
                         leftRotate(gp);
-                    } else if (!pLeft && gpLeft){
+                    } else if (!pLeft && gpLeft) {
                         // rightZigZag
                         leftRotate(p);
                         rightRotate(gp);
                     }
                 } else {
-                    if (pLeft){
+                    if (pLeft) {
                         rightRotate(p);
                     } else {
                         leftRotate(p);
@@ -459,7 +465,7 @@ public class SetRangeSum {
             }
         }
 
-        boolean isLeftChild(Node c, Node p){
+        boolean isLeftChild(Node c, Node p) {
             return c == p.left;
         }
 
@@ -495,7 +501,7 @@ public class SetRangeSum {
             x.parent = y;
         }
 
-        Node insert(int key){
+        Node insert(int key) {
             Node p = find(key);
             // don't add duplicate keys
             if (p != null && p.key == key)
@@ -511,7 +517,7 @@ public class SetRangeSum {
             return z;
         }
 
-        void remove(int key){
+        void remove(int key) {
             Node p = find(key);
             // if the key isnt in the set, nothing to delete
             if (p == null || p.key != key)
@@ -537,7 +543,7 @@ public class SetRangeSum {
                 next.left.parent = next;
             }
         }
-        
+
         Node find(int key) {
             Node n = root;
             Node p = null;
@@ -585,14 +591,52 @@ public class SetRangeSum {
             return p;
         }
 
+        void validateTree() {
+            if (root == null)
+                return;
+            Queue<Node> q = new LinkedList<>();
+            q.add(root);
+            while (!q.isEmpty()) {
+                Node n = q.poll();
+                addIfNotNull(q, n.left);
+                addIfNotNull(q, n.right);
+                long expected = getSum(n.left) + getSum(n.right) + n.key;
+                if (n.sum != expected) {
+                    System.out.println("Error at node with key " + n.key);
+                    System.out.println("Incorrect sum, got: " + n.sum + ", but expected " + expected);
+                    reportNode(n.parent, "parent");
+                    reportNode(n.left, "left");
+                    reportNode(n.right, "right");
+                }
+            }
+        }
+
+        void addIfNotNull(Queue<Node> q, Node n) {
+            if (n == null)
+                return;
+            q.add(n);
+        }
+
+        long getSum(Node n) {
+            return n == null ? 0 : n.sum;
+        }
+
+        void reportNode(Node n, String relationship) {
+            if (n == null)
+                return;
+            System.out.println(relationship + ": {key: " + n.key + ", sum: " + n.sum + "}");
+        }
+
         class Node {
             int key;
+            long sum;
             Node parent;
             Node left;
             Node right;
 
             Node(int key) {
                 this.key = key;
+                this.sum = key;
             }
         }
     }
