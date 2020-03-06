@@ -70,12 +70,12 @@ public class SetRangeSum {
                 new String[] { "Found", "Not found", "491572259" }, type);
         runFileTest("01", type);
         runFileTest("04", type);
-        // runFileTest("05", type);
-        // runFileTest("20", type);
-        // runFileTest("36_early", type);
-        // runFileTest("36_early_3", type);
-        // runFileTest("36", type);
-        // runFileTest("83", type);
+        runFileTest("05", type);
+        runFileTest("20", type);
+        runFileTest("36_early", type);
+        runFileTest("36_early_3", type);
+        runFileTest("36", type);
+        runFileTest("83", type);
     }
 
     static void stressTest() {
@@ -204,11 +204,12 @@ public class SetRangeSum {
         String expectedString = Arrays.toString(expected);
         if (!expectedString.equals(actualString))
             System.out.println("Unexpected result, expected: " + expectedString + ", but got: " + actualString);
-        if (tree instanceof SplayTree) {
-            SplayTree st = (SplayTree) tree;
-            System.out.println("validating tree");
-            st.validateTree();
-        }
+
+        // if (tree instanceof SplayTree) {
+        //     SplayTree st = (SplayTree) tree;
+        //     System.out.println("validating tree");
+        //     st.validateTree();
+        // }
     }
 
     static class SplitMergeSplayTree implements SummingSet {
@@ -387,13 +388,15 @@ public class SetRangeSum {
         @Override
         public void add(int key) {
             Node n = insert(key);
+            updateSumOfAllParents(n);
             splay(n);
         }
 
         @Override
         public void delete(int key) {
-            remove(key);
-            splayFind(key);
+            Node n = remove(key);
+            updateSumOfAllParents(n);
+            splay(n);
         }
 
         @Override
@@ -419,6 +422,18 @@ public class SetRangeSum {
             }
 
             return sum;
+        }
+
+        void updateSumOfAllParents(Node n){
+            while (n != null){
+                updateSum(n);
+                n = n.parent;
+            }
+        }
+
+        void updateSum(Node n){
+            if (n == null) return;
+            n.sum = getSum(n.left) + getSum(n.right) + n.key;
         }
 
         Node splayFind(int key) {
@@ -517,11 +532,12 @@ public class SetRangeSum {
             return z;
         }
 
-        void remove(int key) {
+        Node remove(int key) {
             Node p = find(key);
             // if the key isnt in the set, nothing to delete
             if (p == null || p.key != key)
-                return;
+                return null;
+            Node x = p.parent;
             // two simple cases - if p only has one child, promote it
             if (p.left == null)
                 transplant(p, p.right);
@@ -532,6 +548,7 @@ public class SetRangeSum {
                 // if next node is not p's right child, replace next with its own right child
                 // also, replace next's right child with p's right child
                 if (next.parent != p) {
+                    x = next.parent;
                     transplant(next, next.right);
                     next.right = p.right;
                     next.right.parent = next;
@@ -542,6 +559,8 @@ public class SetRangeSum {
                 next.left = p.left;
                 next.left.parent = next;
             }
+            // return the node whose sum needs to be updated
+            return x;
         }
 
         Node find(int key) {
