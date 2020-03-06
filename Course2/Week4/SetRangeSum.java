@@ -205,11 +205,11 @@ public class SetRangeSum {
         if (!expectedString.equals(actualString))
             System.out.println("Unexpected result, expected: " + expectedString + ", but got: " + actualString);
 
-        // if (tree instanceof SplayTree) {
-        //     SplayTree st = (SplayTree) tree;
-        //     System.out.println("validating tree");
-        //     st.validateTree();
-        // }
+        if (tree instanceof SplayTree) {
+            SplayTree st = (SplayTree) tree;
+            System.out.println("validating tree");
+            st.validateTree();
+        }
     }
 
     static class SplitMergeSplayTree implements SummingSet {
@@ -498,6 +498,8 @@ public class SetRangeSum {
                 x.parent.right = y;
             y.left = x;
             x.parent = y;
+            updateSum(x);
+            updateSum(y);
         }
 
         void rightRotate(Node x) {
@@ -514,6 +516,8 @@ public class SetRangeSum {
                 x.parent.right = y;
             y.right = x;
             x.parent = y;
+            updateSum(x);
+            updateSum(y);
         }
 
         Node insert(int key) {
