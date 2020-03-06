@@ -424,6 +424,56 @@ public class SetRangeSum {
             return sum;
         }
 
+        long st_sum(int from, int to){
+            if (root == null) return 0;
+            NodePair np = split(root, from);
+            Node lt_start = np.lt;
+            Node ge_start = np.ge;
+            NodePair np2 = split(ge_start, to);
+            Node ge_start_lt_end = np2.lt;
+            Node ge_end = np2.ge;
+            long sum = getSum(ge_start_lt_end);
+            if (ge_end != null && ge_end.key == to)
+                sum += ge_end.key;
+            
+            merge(ge_start_lt_end, ge_end);
+            merge(lt_start, ge_start);
+
+            return sum;
+        }
+
+        NodePair split(Node r, int key){
+            //note - r must be a valid root - make sure not to drop anything
+            root = r;
+            Node n = splayFind(key);
+            if (n.key >= key) return cutLeft(n);
+            return cutRight(n);
+        }
+
+        void merge(Node lt, Node ge){
+            //note - ge must be a valid root - make sure not to drop anything
+            root = ge;
+            ge = minimum(ge);
+            splay(ge);
+            ge.left = lt;
+        }
+
+        NodePair cutLeft(Node n){
+            Node lt = n.left;
+            Node ge = n;
+            lt.parent = null;
+            ge.left = null;
+            return new NodePair(lt, ge);
+        }
+
+        NodePair cutRight(Node n){
+            Node lt = n;
+            Node ge = n.right;
+            lt.right = null;
+            ge.parent = null;
+            return new NodePair(lt, ge);
+        }
+
         void updateSumOfAllParents(Node n){
             while (n != null){
                 updateSum(n);
@@ -660,6 +710,16 @@ public class SetRangeSum {
             Node(int key) {
                 this.key = key;
                 this.sum = key;
+            }
+        }
+
+        class NodePair {
+            Node lt;
+            Node ge;
+
+            NodePair(Node lt, Node ge){
+                this.lt = lt;
+                this.ge = ge;
             }
         }
     }
