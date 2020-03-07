@@ -2,7 +2,6 @@ import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
-// TODO - I'll get to this one eventually I promise
 public class SetRangeSum {
     static int MODULO = 1000000001;
     static long last_sum_result = 0;
