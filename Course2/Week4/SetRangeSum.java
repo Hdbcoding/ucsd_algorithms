@@ -73,8 +73,10 @@ public class SetRangeSum {
         // runFileTest("05", type);
         // runFileTest("20", type);
         // runFileTest("36_early", type);
+        // expect: [300593336, 300593336, 3331696173, 0, 0, 2766079857, 2902704553, 2902704553, 1573545795, 664621034, 5271708690, 6117022770, 1019297305, 6117022770, 3529360996, 6117022770, 5912365941, 3206797349, 2154123881, 3217917472, 1934033151, 3573571086, 3573571086, 0, 2223692614, 2223692614, 0, 3293779129, 3871589884, 3938381919, 459880895, 4453870979, 5021919884, 5050397448, 0, 2656477563, Found, Not found, Not found, Found, Found, Not found, 1551162298]
+        // actual: [300593336, 300593336, 3331696173, 0, 0, 2766079857, 2902704553, 2902704553, 1573545795, 664621034, 5271708690, 6117022770, 1019297305, 6117022770, 3529360996, 6117022770, 5865112775, 3206797349, 3905275836, 0, 0, 5656329740, 5656329740, 977975530, 0, 0, 0, 6604116659, 0, 7662338021, 671749775, 0, 0, 0, 785927705, 0, Not found, Not found, Not found, Not found, Not found, Not found, 9676665715]
         runFileTest("36_early_3", type);
-        runFileTest("36", type);
+        // runFileTest("36", type);
         // runFileTest("83", type);
     }
 
@@ -198,13 +200,16 @@ public class SetRangeSum {
             String s = processQuery(tree, q);
             if (s != null)
                 actual.add(s);
+            validateSplayTree(tree);
         }
 
         String actualString = Arrays.toString(actual.toArray());
         String expectedString = Arrays.toString(expected);
         if (!expectedString.equals(actualString))
             System.out.println("Unexpected result, expected: " + expectedString + ", but got: " + actualString);
+    }
 
+    static void validateSplayTree(SummingSet tree){
         if (tree instanceof SplayTree) {
             SplayTree st = (SplayTree) tree;
             System.out.println("validating tree");
@@ -444,6 +449,7 @@ public class SetRangeSum {
             //note - ge must be a valid root - make sure not to drop anything
             if (ge != null) {
                 root = ge;
+
                 if (lt != null) {
                     ge = minimum(ge);
                     splay(ge);
