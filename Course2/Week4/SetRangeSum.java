@@ -8,11 +8,11 @@ public class SetRangeSum {
     static long last_sum_result = 0;
 
     public static void main(String[] args) throws IOException {
-        // runSolution();
+        runSolution();
         // testSolution(SimpleTree.class);
         // testSolution(RedBlackTree.class);
         // testSolution(AVLTree.class);
-        testSolution(SplayTree.class);
+        // testSolution(SplayTree.class);
         // stressTest();
     }
 
