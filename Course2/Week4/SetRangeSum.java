@@ -6,7 +6,6 @@ import java.util.*;
 public class SetRangeSum {
     static int MODULO = 1000000001;
     static long last_sum_result = 0;
-    static boolean debug = false;
 
     public static void main(String[] args) throws IOException {
         // runSolution();
@@ -36,48 +35,42 @@ public class SetRangeSum {
         int a1 = getModulatedInput(q.arg1);
         switch (q.type) {
             case '+':
-                debugLog("add " + a1 + " (" + q.arg1 + ")");
                 tree.add(a1);
                 break;
             case '-':
-                debugLog("del " + a1 + " (" + q.arg1 + ")");
                 tree.delete(a1);
                 break;
             case '?':
                 String found = (tree.contains(a1) ? "Found" : "Not found");
-                debugLog("has " + a1 + " (" + q.arg1 + "): " + found);
                 return found;
             case 's':
                 int a2 = getModulatedInput(q.arg2);
                 last_sum_result = tree.sum(a1, a2);
-                debugLog("sum " + a1 + " (" + q.arg1 + "), " + a2 + " (" + q.arg2 + "): " + last_sum_result);
                 return last_sum_result + "";
         }
         return null;
     }
 
-    private static int getModulatedInput(int arg) {
+    static int getModulatedInput(int arg) {
         long v = arg + last_sum_result;
         // return (int) (v % MODULO + MODULO) % MODULO;
         return (int) (v % MODULO);
     }
 
     static <T extends SummingSet> void testSolution(Class<T> type) {
-        // runTest(new Query[] { new Query('?', 0), new Query('+', 0), new Query('?', 0), new Query('-', 0),
-        //         new Query('?', 0) }, new String[] { "Not found", "Found", "Not found" }, type);
-        // runTest(new Query[] { new Query('+', 491572259), new Query('?', 491572259), new Query('?', 899375874),
-        //         new Query('s', 310971296, 877523306), new Query('+', 352411209), },
-        //         new String[] { "Found", "Not found", "491572259" }, type);
-        // runFileTest("01", type);
-        // runFileTest("04", type);
-        // runFileTest("05", type);
-        // runFileTest("20", type);
-        // runFileTest("36_early", type);
-        // expect: [300593336, 300593336, 3331696173, 0, 0, 2766079857, 2902704553, 2902704553, 1573545795, 664621034, 5271708690, 6117022770, 1019297305, 6117022770, 3529360996, 6117022770, 5912365941, 3206797349, 2154123881, 3217917472, 1934033151, 3573571086, 3573571086, 0, 2223692614, 2223692614, 0, 3293779129, 3871589884, 3938381919, 459880895, 4453870979, 5021919884, 5050397448, 0, 2656477563, Found, Not found, Not found, Found, Found, Not found, 1551162298]
-        // actual: [300593336, 300593336, 3331696173, 0, 0, 2766079857, 2902704553, 2902704553, 1573545795, 664621034, 5271708690, 6117022770, 1019297305, 6117022770, 3529360996, 6117022770, 5865112775, 3206797349, 3905275836, 0, 0, 5656329740, 5656329740, 977975530, 0, 0, 0, 6604116659, 0, 7662338021, 671749775, 0, 0, 0, 785927705, 0, Not found, Not found, Not found, Not found, Not found, Not found, 9676665715]
+        runTest(new Query[] { new Query('?', 0), new Query('+', 0), new Query('?', 0), new Query('-', 0),
+                new Query('?', 0) }, new String[] { "Not found", "Found", "Not found" }, type);
+        runTest(new Query[] { new Query('+', 491572259), new Query('?', 491572259), new Query('?', 899375874),
+                new Query('s', 310971296, 877523306), new Query('+', 352411209), },
+                new String[] { "Found", "Not found", "491572259" }, type);
+        runFileTest("01", type);
+        runFileTest("04", type);
+        runFileTest("05", type);
+        runFileTest("20", type);
+        runFileTest("36_early", type);
         runFileTest("36_early_3", type);
-        // runFileTest("36", type);
-        // runFileTest("83", type);
+        runFileTest("36", type);
+        runFileTest("83", type);
     }
 
     static void stressTest() {
@@ -143,11 +136,6 @@ public class SetRangeSum {
         return Arrays.toString(actual.toArray());
     }
 
-    static void debugLog(String message) {
-        if (debug)
-            System.out.println(message);
-    }
-
     static <T extends SummingSet> void runFileTest(String key, Class<T> type) {
         System.out.println("running file test: " + key);
         String root = "C:/test_data/ucsd_algorithms/2_4_4/";
@@ -200,13 +188,13 @@ public class SetRangeSum {
             String s = processQuery(tree, q);
             if (s != null)
                 actual.add(s);
-            validateSplayTree(tree);
         }
 
         String actualString = Arrays.toString(actual.toArray());
         String expectedString = Arrays.toString(expected);
         if (!expectedString.equals(actualString))
             System.out.println("Unexpected result, expected: " + expectedString + ", but got: " + actualString);
+        // validateSplayTree(tree);
     }
 
     static void validateSplayTree(SummingSet tree){
@@ -428,6 +416,7 @@ public class SetRangeSum {
             // if the key isnt in the set, nothing to delete
             if (p == null || p.key != key)
                 return null;
+
             Node x = p.parent;
             // two simple cases - if p only has one child, promote it
             if (p.left == null)
@@ -436,6 +425,7 @@ public class SetRangeSum {
                 transplant(p, p.left);
             else {
                 Node next = minimum(p.right);
+                x = next;
                 // if next node is not p's right child, replace next with its own right child
                 // also, replace next's right child with p's right child
                 if (next.parent != p) {
