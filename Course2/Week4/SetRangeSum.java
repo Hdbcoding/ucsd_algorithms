@@ -22,7 +22,7 @@ public class SetRangeSum {
         PrintWriter out = new PrintWriter(System.out);
 
         int n = in.nextInt();
-        AVLTree tree = new AVLTree();
+        SplayTree tree = new SplayTree();
         for (int i = 0; i < n; i++) {
             Query q = Query.read(in);
             String s = processQuery(tree, q);
@@ -63,19 +63,19 @@ public class SetRangeSum {
     }
 
     static <T extends SummingSet> void testSolution(Class<T> type) {
-        runTest(new Query[] { new Query('?', 0), new Query('+', 0), new Query('?', 0), new Query('-', 0),
-                new Query('?', 0) }, new String[] { "Not found", "Found", "Not found" }, type);
-        runTest(new Query[] { new Query('+', 491572259), new Query('?', 491572259), new Query('?', 899375874),
-                new Query('s', 310971296, 877523306), new Query('+', 352411209), },
-                new String[] { "Found", "Not found", "491572259" }, type);
-        runFileTest("01", type);
-        runFileTest("04", type);
-        runFileTest("05", type);
-        runFileTest("20", type);
-        runFileTest("36_early", type);
+        // runTest(new Query[] { new Query('?', 0), new Query('+', 0), new Query('?', 0), new Query('-', 0),
+        //         new Query('?', 0) }, new String[] { "Not found", "Found", "Not found" }, type);
+        // runTest(new Query[] { new Query('+', 491572259), new Query('?', 491572259), new Query('?', 899375874),
+        //         new Query('s', 310971296, 877523306), new Query('+', 352411209), },
+        //         new String[] { "Found", "Not found", "491572259" }, type);
+        // runFileTest("01", type);
+        // runFileTest("04", type);
+        // runFileTest("05", type);
+        // runFileTest("20", type);
+        // runFileTest("36_early", type);
         runFileTest("36_early_3", type);
         runFileTest("36", type);
-        runFileTest("83", type);
+        // runFileTest("83", type);
     }
 
     static void stressTest() {
@@ -409,19 +409,8 @@ public class SetRangeSum {
 
         @Override
         public long sum(int from, int to) {
-            if (root == null)
-                return 0;
-            long sum = 0;
-            Node n = splayFind(from);
-            while (n != null && n.key < from)
-                n = next(n);
-
-            while (n != null && n.key <= to) {
-                sum += n.key;
-                n = next(n);
-            }
-
-            return sum;
+            return st_sum(from, to);
+            
         }
 
         long st_sum(int from, int to){
@@ -437,7 +426,7 @@ public class SetRangeSum {
                 sum += ge_end.key;
             
             merge(ge_start_lt_end, ge_end);
-            merge(lt_start, ge_start);
+            merge(lt_start, root);
 
             return sum;
         }
@@ -445,6 +434,7 @@ public class SetRangeSum {
         NodePair split(Node r, int key){
             //note - r must be a valid root - make sure not to drop anything
             root = r;
+            if (r == null) return new NodePair(null, null);
             Node n = splayFind(key);
             if (n.key >= key) return cutLeft(n);
             return cutRight(n);
@@ -452,17 +442,27 @@ public class SetRangeSum {
 
         void merge(Node lt, Node ge){
             //note - ge must be a valid root - make sure not to drop anything
-            root = ge;
-            ge = minimum(ge);
-            splay(ge);
-            ge.left = lt;
+            if (ge != null) {
+                root = ge;
+                if (lt != null) {
+                    ge = minimum(ge);
+                    splay(ge);
+                    ge.left = lt;
+                    lt.parent = ge;
+                    updateSum(ge);
+                }
+            } else {
+                root = lt;
+            }
         }
 
         NodePair cutLeft(Node n){
             Node lt = n.left;
             Node ge = n;
-            lt.parent = null;
+            if (lt != null) lt.parent = null;
             ge.left = null;
+            updateSum(lt);
+            updateSum(ge);
             return new NodePair(lt, ge);
         }
 
@@ -470,7 +470,9 @@ public class SetRangeSum {
             Node lt = n;
             Node ge = n.right;
             lt.right = null;
-            ge.parent = null;
+            if (ge != null) ge.parent = null;
+            updateSum(lt);
+            updateSum(ge);
             return new NodePair(lt, ge);
         }
 
@@ -644,18 +646,21 @@ public class SetRangeSum {
         }
 
         Node next(Node n) {
+            if (n == null) return n;
             if (n.right != null)
                 return minimum(n.right);
             return firstRightAncestor(n);
         }
 
         Node minimum(Node n) {
+            if (n == null) return n;
             while (n.left != null)
                 n = n.left;
             return n;
         }
 
         Node firstRightAncestor(Node n) {
+            if (n == null) return n;
             Node p = n.parent;
             while (p != null && p.right == n) {
                 n = p;
