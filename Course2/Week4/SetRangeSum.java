@@ -217,176 +217,6 @@ public class SetRangeSum {
         }
     }
 
-    static class SplitMergeSplayTree implements SummingSet {
-        SumNode root = null;
-
-        public void add(int x) {
-            SumNode left = null;
-            SumNode right = null;
-            SumNode new_vertex = null;
-            NodePair leftRight = split(root, x);
-            left = leftRight.left;
-            right = leftRight.right;
-            if (right == null || right.key != x) {
-                new_vertex = new SumNode(x, x, null, null, null);
-            }
-            root = merge(merge(left, new_vertex), right);
-        }
-
-        public void delete(int x) {
-            // TODO - implement
-        }
-
-        public boolean contains(int x) {
-            // TODO - implement
-            return false;
-        }
-
-        public long sum(int from, int to) {
-            NodePair leftMiddle = split(root, from);
-            SumNode left = leftMiddle.left;
-            SumNode middle = leftMiddle.right;
-            NodePair middleRight = split(middle, to + 1);
-            middle = middleRight.left;
-            SumNode right = middleRight.right;
-            long ans = 0;
-            // TODO - implement
-            return ans;
-        }
-
-        void update(SumNode v) {
-            if (v == null)
-                return;
-            v.sum = v.key + (v.left != null ? v.left.sum : 0) + (v.right != null ? v.right.sum : 0);
-            if (v.left != null) {
-                v.left.parent = v;
-            }
-            if (v.right != null) {
-                v.right.parent = v;
-            }
-        }
-
-        void smallRotation(SumNode v) {
-            SumNode parent = v.parent;
-            if (parent == null) {
-                return;
-            }
-            SumNode grandparent = v.parent.parent;
-            if (parent.left == v) {
-                SumNode m = v.right;
-                v.right = parent;
-                parent.left = m;
-            } else {
-                SumNode m = v.left;
-                v.left = parent;
-                parent.right = m;
-            }
-            update(parent);
-            update(v);
-            v.parent = grandparent;
-            if (grandparent != null) {
-                if (grandparent.left == parent) {
-                    grandparent.left = v;
-                } else {
-                    grandparent.right = v;
-                }
-            }
-        }
-
-        void bigRotation(SumNode v) {
-            if (v.parent.left == v && v.parent.parent.left == v.parent) {
-                // Zig-zig
-                smallRotation(v.parent);
-                smallRotation(v);
-            } else if (v.parent.right == v && v.parent.parent.right == v.parent) {
-                // Zig-zig
-                smallRotation(v.parent);
-                smallRotation(v);
-            } else {
-                // Zig-zag
-                smallRotation(v);
-                smallRotation(v);
-            }
-        }
-
-        SumNode splay(SumNode v) {
-            if (v == null)
-                return null;
-            while (v.parent != null) {
-                if (v.parent.parent == null) {
-                    smallRotation(v);
-                    break;
-                }
-                bigRotation(v);
-            }
-            return v;
-        }
-
-        // Searches for the given key in the tree with the given root
-        // and calls splay for the deepest visited node after that.
-        // Returns pair of the result and the new root.
-        // If found, result is a pointer to the node with the given key.
-        // Otherwise, result is a pointer to the node with the smallest
-        // bigger key (next value in the order).
-        // If the key is bigger than all keys in the tree,
-        // then result is null.
-        NodePair find(SumNode root, int key) {
-            SumNode v = root;
-            SumNode last = root;
-            SumNode next = null;
-            while (v != null) {
-                if (v.key >= key && (next == null || v.key < next.key)) {
-                    next = v;
-                }
-                last = v;
-                if (v.key == key) {
-                    break;
-                }
-                if (v.key < key) {
-                    v = v.right;
-                } else {
-                    v = v.left;
-                }
-            }
-            root = splay(last);
-            return new NodePair(next, root);
-        }
-
-        NodePair split(SumNode root, int key) {
-            NodePair result = new NodePair();
-            NodePair findAndRoot = find(root, key);
-            root = findAndRoot.right;
-            result.right = findAndRoot.left;
-            if (result.right == null) {
-                result.left = root;
-                return result;
-            }
-            result.right = splay(result.right);
-            result.left = result.right.left;
-            result.right.left = null;
-            if (result.left != null) {
-                result.left.parent = null;
-            }
-            update(result.left);
-            update(result.right);
-            return result;
-        }
-
-        SumNode merge(SumNode left, SumNode right) {
-            if (left == null)
-                return right;
-            if (right == null)
-                return left;
-            while (right.left != null) {
-                right = right.left;
-            }
-            right = splay(right);
-            right.left = left;
-            update(right);
-            return right;
-        }
-    }
-
     static class SplayTree implements SummingSet {
         Node root;
 
@@ -415,7 +245,6 @@ public class SetRangeSum {
         @Override
         public long sum(int from, int to) {
             return st_sum(from, to);
-            
         }
 
         long st_sum(int from, int to){
@@ -1393,19 +1222,6 @@ public class SetRangeSum {
             this.left = left;
             this.right = right;
             this.parent = parent;
-        }
-    }
-
-    static class NodePair {
-        SumNode left;
-        SumNode right;
-
-        NodePair() {
-        }
-
-        NodePair(SumNode left, SumNode right) {
-            this.left = left;
-            this.right = right;
         }
     }
 
