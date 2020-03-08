@@ -1,7 +1,6 @@
 import java.io.*;
 import java.util.*;
 
-// TODO - I'll get to this one eventually I promise
 class RopeProblem {
 	public static void main(String[] args) throws IOException {
 		runSolution();
@@ -11,7 +10,7 @@ class RopeProblem {
 	static void runSolution() throws IOException {
 		FastScanner in = new FastScanner();
 		PrintWriter out = new PrintWriter(System.out);
-		Rope rope = new Rope();
+		Rope2 rope = new Rope2();
 		rope.initialize(in.next());
 		for (int q = in.nextInt(); q > 0; q--) {
 			int i = in.nextInt();
@@ -29,7 +28,7 @@ class RopeProblem {
 	}
 
 	static void runTest(String word, Query[] queries, String expected) {
-		Rope r = new Rope();
+		Rope2 r = new Rope2();
 		r.initialize(word);
 		for (Query q : queries) {
 			r.process(q.i, q.j, q.k);
@@ -37,6 +36,259 @@ class RopeProblem {
 		String actual = r.result();
 		if (!actual.equals(expected))
 			System.out.println("Unexpected result on word " + word + ". Expected " + expected + ", but got: " + actual);
+	}
+
+	static class Rope2 implements StringOrganizer {
+		String s;
+		Node root;
+
+		@Override
+		public void initialize(String s) {
+			this.s = s;
+			root = new Node(0);
+			Node n = root;
+			for (int i = 1; i < s.length(); i++){
+				n.right = new Node(i);
+				n.right.parent = n;
+				n = n.right;
+			}
+		}
+
+		@Override
+		public void process(int i, int j, int k) {
+			// cut off the string before i
+			NodePair np = split(root, i);
+			Node lt_i = np.lt;
+			Node gt_i = np.gt;
+
+			j = j - i + 1;
+			// cut off the string after j
+			np = split(gt_i, j);
+			Node gt_i_lt_j = np.lt;
+			Node gt_j = np.gt;
+
+			// merge the segments around the desired segment
+			merge(lt_i, gt_j);
+
+			// cut off the rest of the string at k
+			np = split(root, k);
+			Node lt_k = np.lt;
+			Node gt_k = np.gt;
+
+			// merge the stuff before k with the segment cut out of the string earlier
+			merge(lt_k, gt_i_lt_j);
+			// merge te stuff after k to complete the string in a new order
+			merge(root, gt_k);
+		}
+
+		@Override
+		public String result() {
+			StringBuilder sb = new StringBuilder();
+			Stack<Node> toPrint = new Stack<Node>();
+			Node n = root;
+			while (n != null || !toPrint.isEmpty()) {
+				while (n != null){
+					toPrint.push(n);
+					n = n.left;
+				}
+				n = toPrint.pop();
+				sb.append(s.charAt(n.index));
+				n = n.right;
+			}
+			return sb.toString();
+		}
+
+		NodePair split(Node r, int i) {
+			root = r;
+			if (r == null)
+				return new NodePair(null, null);
+			Node n = splayFind(i);
+			i -= n.numLeft;
+			if (i == 0)
+				return cutLeft(n);
+			else
+				return cutRight(n);
+		}
+
+		void merge(Node lt, Node gt) {
+			if (gt != null) {
+				root = gt;
+				if (lt != null) {
+					while (gt.left != null)
+						gt = gt.left;
+					splay(gt);
+					gt.left = lt;
+					lt.parent = gt;
+					updateCounts(gt);
+				}
+			} else {
+				root = lt;
+			}
+		}
+
+		NodePair cutLeft(Node n) {
+            Node lt = n.left;
+            Node gt = n;
+            if (lt != null) lt.parent = null;
+            gt.left = null;
+            updateCounts(lt);
+            updateCounts(gt);
+            return new NodePair(lt, gt);
+		}
+
+		NodePair cutRight(Node n) {
+            Node lt = n;
+            Node ge = n.right;
+            lt.right = null;
+            if (ge != null) ge.parent = null;
+            updateCounts(lt);
+            updateCounts(ge);
+            return new NodePair(lt, ge);
+		}
+
+		void updateCounts(Node n) {
+			if (n == null)
+				return;
+			n.numLeft = getCount(n.left);
+			n.numUnder = n.numLeft + getCount(n.right);
+		}
+
+		int getCount(Node n) {
+			if (n == null)
+				return 0;
+			return n.numUnder + 1;
+		}
+
+		Node splayFind(int i) {
+			if (root == null)
+				return null;
+			Node n = find(i);
+			splay(n);
+			return n;
+		}
+
+		Node find(int i) {
+			Node n = root;
+			Node p = null;
+			while (n != null) {
+				p = n;
+				int remaining = i - n.numLeft;
+				// if the current index is somewhere within this node
+				if (remaining == 0) {
+					break;
+				}
+				if (remaining < 0) {
+					n = n.left;
+				} else {
+					i = remaining - 1;
+					n = n.right;
+				}
+			}
+			return p;
+		}
+
+		void splay(Node n) {
+            if (n == null)
+                return;
+            Node p, gp;
+            boolean pLeft, gpLeft;
+            while (n.parent != null) {
+                p = n.parent;
+                gp = p.parent;
+                pLeft = isLeftChild(n, p);
+                if (gp != null) {
+                    gpLeft = isLeftChild(p, gp);
+                    if (pLeft && gpLeft) {
+                        // leftZigZig
+                        rightRotate(gp);
+                        rightRotate(p);
+                    } else if (!pLeft && !gpLeft) {
+                        // rightZigZig
+                        leftRotate(gp);
+                        leftRotate(p);
+                    } else if (pLeft && !gpLeft) {
+                        // leftZigZag
+                        rightRotate(p);
+                        leftRotate(gp);
+                    } else if (!pLeft && gpLeft) {
+                        // rightZigZag
+                        leftRotate(p);
+                        rightRotate(gp);
+                    }
+                } else {
+                    if (pLeft) {
+                        rightRotate(p);
+                    } else {
+                        leftRotate(p);
+                    }
+                }
+            }
+        }
+
+        boolean isLeftChild(Node c, Node p) {
+            return c == p.left;
+        }
+
+        void leftRotate(Node x) {
+            Node y = x.right;
+            x.right = y.left;
+            if (y.left != null)
+                y.left.parent = x;
+            y.parent = x.parent;
+            if (x.parent == null)
+                root = y;
+            else if (x == x.parent.left)
+                x.parent.left = y;
+            else
+                x.parent.right = y;
+            y.left = x;
+            x.parent = y;
+            updateCounts(x);
+            updateCounts(y);
+        }
+
+        void rightRotate(Node x) {
+            Node y = x.left;
+            x.left = y.right;
+            if (y.right != null)
+                y.right.parent = x;
+            y.parent = x.parent;
+            if (x.parent == null)
+                root = y;
+            else if (x == x.parent.left)
+                x.parent.left = y;
+            else
+                x.parent.right = y;
+            y.right = x;
+            x.parent = y;
+            updateCounts(x);
+            updateCounts(y);
+        }
+
+		class Node {
+			int index;
+			int numLeft;
+			int numUnder;
+			Node left;
+			Node right;
+			Node parent;
+			Node(int index){
+				this.index = index;
+			}
+		}
+
+		class NodePair {
+			Node lt;
+			Node gt;
+
+			NodePair(Node lt, Node gt) {
+				this.lt = lt;
+				this.gt = gt;
+			}
+
+			NodePair() {
+			}
+		}
 	}
 
 	static class Rope implements StringOrganizer {
