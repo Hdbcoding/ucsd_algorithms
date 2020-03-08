@@ -55,6 +55,7 @@ class RopeProblem {
 			Node lt_i = np.lt;
 			Node gt_i = np.gt;
 
+			j = j - i + 1;
 			// cut off the string after j
 			np = split(gt_i, j);
 			Node gt_i_lt_j = np.lt;
@@ -134,7 +135,7 @@ class RopeProblem {
 
 		NodePair cutMiddle(Node n, int i) {
 			String lString = n.value.substring(0, i);
-			String rString = n.value.substring(i + 1);
+			String rString = n.value.substring(i);
 			Node lt = n;
 			lt.value = lString;
 			Node gt = new Node();
