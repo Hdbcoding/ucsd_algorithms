@@ -4,14 +4,14 @@ import java.util.*;
 // TODO - I'll get to this one eventually I promise
 class RopeProblem {
 	public static void main(String[] args) throws IOException {
-		// runSolution();
-		testSolution();
+		runSolution();
+		// testSolution();
 	}
 
 	static void runSolution() throws IOException {
 		FastScanner in = new FastScanner();
 		PrintWriter out = new PrintWriter(System.out);
-		NaiveRope rope = new NaiveRope();
+		Rope rope = new Rope();
 		rope.initialize(in.next());
 		for (int q = in.nextInt(); q > 0; q--) {
 			int i = in.nextInt();
@@ -79,16 +79,15 @@ class RopeProblem {
 		public String result() {
 			StringBuilder sb = new StringBuilder();
 			Stack<Node> toPrint = new Stack<Node>();
-			toPrint.push(root);
-			Node n;
-			while (!toPrint.isEmpty()) {
+			Node n = root;
+			while (n != null || !toPrint.isEmpty()) {
+				while (n != null){
+					toPrint.push(n);
+					n = n.left;
+				}
 				n = toPrint.pop();
-				if (n == null)
-					continue;
-				if (n.value != null)
-					sb.append(n.value);
-				toPrint.push(n.left);
-				toPrint.push(n.right);
+				sb.append(n.value);
+				n = n.right;
 			}
 			return sb.toString();
 		}
