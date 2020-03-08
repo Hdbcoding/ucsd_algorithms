@@ -1250,7 +1250,6 @@ public class SetRangeSum {
                 return type.getDeclaredConstructor().newInstance(new Object[0]);
             } catch (InstantiationException | IllegalAccessException | IllegalArgumentException
                     | InvocationTargetException | NoSuchMethodException | SecurityException e) {
-                // TODO Auto-generated catch block
                 e.printStackTrace();
             }
             return null;
